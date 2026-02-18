@@ -246,6 +246,12 @@
                 <i data-lucide="user-round" class="w-4 h-4"></i>
                 <span id="auth-open-label">Přihlásit</span>
             </button>
+            <button onclick="socialLogin('steam')" class="bg-[#171a21] hover:bg-[#2a475e] text-white px-3 py-2.5 rounded-xl font-black uppercase text-[11px] border border-white/10 transition-all active:scale-95 hover:scale-105">
+                Steam
+            </button>
+            <button onclick="socialLogin('google')" class="bg-white hover:bg-gray-200 text-black px-3 py-2.5 rounded-xl font-black uppercase text-[11px] border border-white/60 transition-all active:scale-95 hover:scale-105">
+                Google
+            </button>
             <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
                 <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
                 <div class="leading-tight">
