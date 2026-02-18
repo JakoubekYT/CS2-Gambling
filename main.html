@@ -338,16 +338,21 @@
                         <div id="spinner-track"></div>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 justify-center">
+                    <div class="flex flex-wrap gap-3 justify-center items-center">
+                        <label for="open-count" class="text-xs font-black uppercase tracking-widest text-purple-300">Počet spinů</label>
+                        <select id="open-count" class="bg-[#0b0d11] border border-purple-500/40 text-white rounded-xl px-4 py-3 font-black">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                        </select>
                         <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
                             OTEVŘÍT BEDNU
                         </button>
-                        <button id="btn-open-case-5" class="bg-purple-600 hover:bg-purple-500 text-white px-8 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(168,85,247,0.35)] text-xl tracking-tighter">
-                            OTEVŘÍT 5x
-                        </button>
                     </div>
                     <div id="multi-spin-area" class="mt-6 hidden text-left">
-                        <h4 class="text-sm font-black uppercase tracking-widest text-purple-300 mb-3">MULTI SPIN (5x)</h4>
+                        <h4 id="multi-spin-title" class="text-sm font-black uppercase tracking-widest text-purple-300 mb-3">MULTI SPIN</h4>
                         <div id="multi-spinner-list" class="space-y-3"></div>
                         <div id="multi-spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4"></div>
                     </div>
@@ -442,7 +447,7 @@
                         <h2 id="selector-title" class="text-4xl font-black uppercase italic tracking-tighter text-white">VYBER SKIN</h2>
                     </div>
                 </div>
-                <div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+                <div class="flex justify-end"><select id="selector-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-bold text-xs uppercase" onchange="openSelector(window.currentSelectorType || 'input', window.currentSelectorSlot || 0)"><option value="price-low">Cena: nejnižší</option><option value="price-high">Cena: nejvyšší</option><option value="name">Jméno A-Z</option></select></div><div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
 
         </main>
@@ -1355,6 +1360,44 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
         }
 
+        function buildSpinRow(trackId) {
+            return `<div class="spinner-container relative" style="height:116px"><div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div><div class="spinner-selector"></div><div id="${trackId}" class="flex absolute left-0 h-full items-center"></div></div>`;
+        }
+
+        function fillTrackWithCaseSkins(track, caseObj, winningSkin = null) {
+            const totalItems = 60;
+            const winningIndex = 50;
+            let html = '';
+            for(let j=0;j<totalItems;j++) {
+                const skin = (winningSkin && j === winningIndex)
+                    ? winningSkin
+                    : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
+                html += `<div class="spinner-item" style="min-width:124px;height:96px;border-color:${skin.color};margin:0 2px;padding:6px"><img src="${skin.img}" onerror="handleImgError(this)" style="max-height:56px"><div class="text-[8px] font-black uppercase text-gray-300 mt-1 truncate w-full text-center">${skin.name}</div></div>`;
+            }
+            track.innerHTML = html;
+        }
+
+        function previewMultiRows(caseObj, count) {
+            const area = document.getElementById('multi-spin-area');
+            const list = document.getElementById('multi-spinner-list');
+            const title = document.getElementById('multi-spin-title');
+            const results = document.getElementById('multi-spin-results');
+            if(!area || !list || !title || !results) return;
+
+            if(count <= 1) {
+                area.classList.add('hidden');
+                list.innerHTML = '';
+                results.innerHTML = '';
+                return;
+            }
+
+            title.textContent = `MULTI SPIN (${count}x)`;
+            area.classList.remove('hidden');
+            results.innerHTML = '';
+            list.innerHTML = Array.from({length: count}, (_, i) => buildSpinRow(`multi-track-${i}`)).join('');
+            list.querySelectorAll('[id^="multi-track-"]').forEach(track => fillTrackWithCaseSkins(track, caseObj));
+        }
+
         function startMultiSpinner(caseObj, count = 5) {
             if(isSpinning) return;
             const totalCost = caseObj.price * count;
@@ -1365,39 +1408,33 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             isSpinning = true;
 
             const btn1 = document.getElementById('btn-open-case');
-            const btn5 = document.getElementById('btn-open-case-5');
-            btn1.disabled = true; btn5.disabled = true;
-            btn1.classList.add('opacity-50'); btn5.classList.add('opacity-50');
-            btn1.textContent = 'Točí se...';
-            btn5.textContent = 'Točí se 5x...';
+            const selectCount = document.getElementById('open-count');
+            btn1.disabled = true;
+            if(selectCount) selectCount.disabled = true;
+            btn1.classList.add('opacity-50');
+            btn1.textContent = `Točí se ${count}x...`;
 
             const area = document.getElementById('multi-spin-area');
             const list = document.getElementById('multi-spinner-list');
             const results = document.getElementById('multi-spin-results');
+            const title = document.getElementById('multi-spin-title');
             area.classList.remove('hidden');
-            list.innerHTML = '';
+            title.textContent = `MULTI SPIN (${count}x)`;
             results.innerHTML = '';
+            if(!list.children.length || list.children.length !== count) {
+                list.innerHTML = Array.from({length: count}, (_, i) => buildSpinRow(`multi-track-${i}`)).join('');
+            }
 
             const rowMeta = [];
-            const totalItems = 60;
             const winningIndex = 50;
             const itemWidth = 132;
 
             for(let i=0;i<count;i++) {
                 const winningSkin = rollCaseSkin(caseObj);
-                const row = document.createElement('div');
-                row.className = 'spinner-container relative';
-                row.style.height = '116px';
-                row.innerHTML = `<div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div><div class="spinner-selector"></div><div id="multi-track-${i}" class="flex absolute left-0 h-full items-center"></div>`;
-                list.appendChild(row);
-                const track = row.querySelector(`#multi-track-${i}`);
-                let html = '';
-                for(let j=0;j<totalItems;j++) {
-                    const skin = j === winningIndex ? winningSkin : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
-                    html += `<div class="spinner-item" style="min-width:124px;height:96px;border-color:${skin.color};margin:0 2px;padding:6px"><img src="${skin.img}" onerror="handleImgError(this)" style="max-height:56px"><div class="text-[8px] font-black uppercase text-gray-300 mt-1 truncate w-full text-center">${skin.name}</div></div>`;
-                }
-                track.innerHTML = html;
-                rowMeta.push({ row, track, winningSkin });
+                const track = list.querySelector(`#multi-track-${i}`);
+                if(!track) continue;
+                fillTrackWithCaseSkins(track, caseObj, winningSkin);
+                rowMeta.push({ row: track.parentElement, track, winningSkin });
             }
 
             setTimeout(() => {
@@ -1405,7 +1442,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     const containerWidth = m.row.clientWidth;
                     const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2);
                     const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
-                    m.track.style.transition = `transform ${5.5 + idx * 0.15}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    m.track.style.transition = `transform ${5.2 + idx * 0.12}s cubic-bezier(0.1, 0, 0.1, 1)`;
                     m.track.style.transform = `translateX(-${finalOffset}px)`;
                 });
 
@@ -1419,11 +1456,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     showToast(`Multi spin hotový: ${count} skinů (${formatMoney(totalWin)})`);
 
                     isSpinning = false;
-                    btn1.disabled = false; btn5.disabled = false;
-                    btn1.classList.remove('opacity-50'); btn5.classList.remove('opacity-50');
+                    btn1.disabled = false;
+                    if(selectCount) selectCount.disabled = false;
+                    btn1.classList.remove('opacity-50');
                     btn1.textContent = 'HRÁT ZNOVU';
-                    btn5.textContent = 'OTEVŘÍT 5x';
-                }, 6600);
+                }, 6500);
             }, 50);
         }
 
@@ -1463,15 +1500,21 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            const btn5 = document.getElementById('btn-open-case-5');
-            btn.onclick = () => startSpinner(c);
-            if(btn5) btn5.onclick = () => startMultiSpinner(c, 5);
+            const countSel = document.getElementById('open-count');
+            const selectedCount = () => Math.max(1, Math.min(5, parseInt(countSel?.value || '1', 10)));
+            btn.onclick = () => {
+                const cnt = selectedCount();
+                if(cnt === 1) startSpinner(c);
+                else startMultiSpinner(c, cnt);
+            };
+            if(countSel) {
+                countSel.onchange = () => previewMultiRows(c, selectedCount());
+                previewMultiRows(c, selectedCount());
+                countSel.disabled = false;
+            }
             btn.textContent = "OTEVŘÍT BEDNU";
-            if(btn5) btn5.textContent = "OTEVŘÍT 5x";
             btn.disabled = false;
-            if(btn5) btn5.disabled = false;
             btn.classList.remove('opacity-50');
-            if(btn5) btn5.classList.remove('opacity-50');
 
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-case-view').classList.remove('hidden');
@@ -1487,7 +1530,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
             const btn = document.getElementById('btn-open-case');
             const area = document.getElementById('multi-spin-area');
+            const countSel = document.getElementById('open-count');
             if(area) area.classList.add('hidden');
+            if(countSel) countSel.disabled = true;
             btn.textContent = "Točí se...";
             btn.disabled = true;
             btn.classList.add('opacity-50');
@@ -1566,6 +1611,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     
                     btn.textContent = "HRÁT ZNOVU";
                     btn.disabled = false;
+                    if(countSel) countSel.disabled = false;
                     btn.classList.remove('opacity-50');
                 }, 6500); 
             }, 50);
@@ -1708,6 +1754,8 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function removeUpgInput(i) { upgInputs[i] = null; renderUpgrader(); }
 
         function openSelector(type, slotIndex = 0) {
+            window.currentSelectorType = type;
+            window.currentSelectorSlot = slotIndex;
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-selector').classList.remove('hidden');
             
@@ -1715,6 +1763,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if (type === 'input') {
                 document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
                 let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') available.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') available.sort((a,b)=>a.name.localeCompare(b.name));
+                else available.sort((a,b)=>a.price-b.price);
                 grid.innerHTML = available.map((item, idx) => `
                     <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                         <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
@@ -1725,7 +1777,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             } else {
                 document.getElementById('selector-title').textContent = "VYBER CÍLOVÝ SKIN";
                 let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
-                let targets = Object.values(skinsDB).filter(s => s.price > totalVal).sort((a,b) => a.price - b.price);
+                let targets = Object.values(skinsDB).filter(s => s.price > totalVal);
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') targets.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') targets.sort((a,b)=>a.name.localeCompare(b.name));
+                else targets.sort((a,b)=>a.price-b.price);
                 grid.innerHTML = targets.map((item, idx) => `
                     <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                         <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
@@ -1808,6 +1864,118 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             } catch {
                 return null;
             }
+        }
+
+        function initializeLiveDrops() {
+            const dropsContainer = document.getElementById('live-drops');
+            if(!dropsContainer) return;
+            dropsContainer.style.animation = 'none';
+            const skinList = Object.values(skinsDB);
+            let lastSkinId = null;
+            let offsetX = 0;
+            let paused = false;
+
+            const steamProfiles = [
+                { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
+                { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
+                { name: 'Gamer', avatar: 'https://cdn.casehug.com/bots/bot-gadget.gif' },
+                { name: 'Pro', avatar: 'https://cdn.casehug.com/bots/bot-jarvis.gif' },
+                { name: 'Lucky', avatar: 'https://cdn.casehug.com/bots/bot-poke_1.png' },
+                { name: 'Hunter', avatar: 'https://avatars.steamstatic.com/5a3b1d7d7d2f3a2b4e_full.jpg' },
+                { name: 'Trader', avatar: 'https://avatars.steamstatic.com/6b8f3c2d2d2a3b1c4f_full.jpg' },
+                { name: 'Baller', avatar: 'https://avatars.steamstatic.com/8c7d9f4a4a4b5c6d7e_full.jpg' }
+            ];
+
+            function addRandomDrop() {
+                if(skinList.length === 0) return;
+                let attempts = 0;
+                let randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
+                    randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                    attempts++;
+                }
+                lastSkinId = randomSkin.id;
+
+                const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
+                const item = document.createElement('div');
+                item.className = 'live-drop-item';
+
+                const avatarWrap = document.createElement('div');
+                avatarWrap.className = 'live-drop-avatar';
+                const avatarImg = document.createElement('img');
+                avatarImg.src = profile.avatar;
+                avatarImg.alt = profile.name;
+                avatarImg.style.width = '100%'; avatarImg.style.height = '100%'; avatarImg.style.objectFit = 'cover';
+                avatarImg.onerror = handleImgError;
+                avatarWrap.appendChild(avatarImg);
+
+                const img = document.createElement('img');
+                img.src = randomSkin.img;
+                img.alt = randomSkin.name;
+                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
+                img.onerror = handleImgError;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'live-drop-item-name';
+                nameDiv.textContent = randomSkin.name;
+
+                const userDiv = document.createElement('div');
+                userDiv.className = 'live-drop-item-user';
+                userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'live-drop-tooltip';
+                tooltip.innerHTML = `
+                    <div class="tp-row">
+                        <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
+                        <div>
+                            <div class="tp-name">${profile.name}</div>
+                            <div class="tp-when">Vyhrálo: ${randomSkin.name}</div>
+                        </div>
+                    </div>
+                `;
+
+                item.appendChild(avatarWrap);
+                item.appendChild(img);
+                item.appendChild(nameDiv);
+                item.appendChild(userDiv);
+                item.appendChild(tooltip);
+
+                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; });
+                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
+
+                dropsContainer.appendChild(item);
+                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
+            }
+
+            for(let i=0;i<18;i++) addRandomDrop();
+            setInterval(addRandomDrop, 1700);
+            setInterval(() => {
+                if(dropsContainer.children.length < 6) {
+                    for(let i=0;i<12;i++) addRandomDrop();
+                }
+            }, 4000);
+
+            let lastTs = performance.now();
+            const speed = 34;
+            function animate(ts) {
+                const dt = Math.min(0.05, (ts - lastTs) / 1000);
+                lastTs = ts;
+                if(!paused) {
+                    offsetX -= speed * dt;
+                    const first = dropsContainer.firstElementChild;
+                    if(first) {
+                        const firstWidth = first.getBoundingClientRect().width + 16;
+                        if(-offsetX >= firstWidth) {
+                            offsetX += firstWidth;
+                            dropsContainer.appendChild(first);
+                        }
+                    }
+                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
+                }
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
         }
 
         function simulateLiveChat() {
