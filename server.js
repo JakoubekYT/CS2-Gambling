@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const path = require('path');
@@ -170,6 +171,33 @@ passport.deserializeUser((id, done) => {
 if (!STEAM_API_KEY) {
   console.warn('Steam profile enrichment is disabled (missing STEAM_API_KEY).');
 }
+passport.use(
+  new SteamStrategy(
+    {
+      returnURL: `${DOMAIN}/auth/steam/return`,
+      realm: `${DOMAIN}/`,
+      apiKey: process.env.STEAM_API_KEY || ''
+    },
+    async (identifier, profile, done) => {
+      try {
+        let user = await User.findOne({ steamId: profile.id });
+        if (!user) {
+          user = await User.create({
+            steamId: profile.id,
+            nickname: profile._json?.personaname || profile.displayName || 'steam-user',
+            displayName: profile._json?.realname || profile.displayName || 'Steam User',
+            avatar: profile._json?.avatarfull || '',
+            balance: START_BALANCE,
+            inventory: []
+          });
+        }
+        return done(null, user);
+      } catch (err) {
+        return done(err);
+      }
+    }
+  )
+);
 
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   passport.use(
@@ -447,6 +475,13 @@ app.get('/auth/steam/return', async (req, res) => {
     return res.redirect('/?auth=steam-failed');
   }
 });
+// --- STEAM AUTH ---
+app.get('/auth/steam', passport.authenticate('steam'));
+app.get(
+  '/auth/steam/return',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  (_req, res) => res.redirect('/')
+);
 
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
