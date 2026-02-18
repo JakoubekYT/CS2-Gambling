@@ -539,7 +539,7 @@
         };
 
         // --- STAV A DATABÁZE ---
-        let balanceBase = 0.00;
+        let balanceBase = 100.00;
         const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
@@ -1064,29 +1064,54 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             };
 
             const allSkins = Object.values(skinsDB);
-            const pickRandomUniqueSkins = (count, used = []) => {
-                const picks = [...used];
-                let guard = 0;
-                while(picks.length < count && guard < 200) {
-                    const candidate = allSkins[Math.floor(Math.random() * allSkins.length)];
-                    if(candidate && !picks.find(x => x.id === candidate.id)) picks.push(candidate);
-                    guard++;
-                }
-                return picks;
+            const pickByPrice = (maxPrice, exclude = []) => {
+                const pool = allSkins.filter(s => s.price <= maxPrice && !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            };
+            const pickAny = (exclude = []) => {
+                const pool = allSkins.filter(s => !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
             };
 
             extraCases.forEach(ec => {
                 if(casesDB.find(c => c.id === ec.id)) return;
+
                 const topSkins = ec.top.map(([w, n]) => findSkin(w, n));
-                const contents = pickRandomUniqueSkins(5, topSkins).slice(0, 5);
-                const chances = randomChances(5);
+                const price = ec.price;
+                const picks = [];
+
+                // House edge: většina dropů pod cenou case
+                const p1 = pickByPrice(Math.max(0.2, price * 0.20), picks) || pickAny(picks);
+                if(p1) picks.push(p1);
+                const p2 = pickByPrice(Math.max(0.5, price * 0.40), picks) || pickAny(picks);
+                if(p2) picks.push(p2);
+                const p3 = pickByPrice(Math.max(1, price * 0.65), picks) || pickAny(picks);
+                if(p3) picks.push(p3);
+                const p4 = pickByPrice(Math.max(2, price * 0.90), picks) || pickAny(picks);
+                if(p4) picks.push(p4);
+
+                // Dopamin drop (mírný profit) + jackpot (top skin podle názvu)
+                const midProfit = topSkins[1] || pickByPrice(Math.max(2, price * 1.25), picks) || pickAny(picks);
+                if(midProfit && !picks.find(x => x.id === midProfit.id)) picks.push(midProfit);
+                const jackpot = topSkins[0] || pickByPrice(Math.max(3, price * 2.5), picks) || pickAny(picks);
+                if(jackpot && !picks.find(x => x.id === jackpot.id)) picks.push(jackpot);
+
+                while(picks.length < 6) {
+                    const x = pickAny(picks);
+                    if(!x) break;
+                    picks.push(x);
+                }
+
+                const chances = [56, 24, 11, 6, 2.5, 0.5];
                 casesDB.push({
                     id: ec.id,
                     name: ec.name,
                     price: ec.price,
                     color: ec.color,
                     img: ec.img,
-                    contents: contents.map((skin, idx) => ({ skin, chance: chances[idx] || 1 }))
+                    contents: picks.slice(0, 6).map((skin, idx) => ({ skin, chance: chances[idx] || 0.5 }))
                 });
             });
 
@@ -1237,7 +1262,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
                 return `
-                <div data-case-id="${c.id}" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/20 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+                <div data-case-id="${c.id}" onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/20 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
                     <div class="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <img src="${c.img}" data-alts="${(c.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
                     <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
@@ -1273,6 +1298,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function openCaseView(id) {
             activeCaseId = id;
             const c = casesDB.find(x => x.id === id);
+            if(!c) { showToast('Bedna nebyla nalezena', true); return; }
             
             document.getElementById('view-case-name').textContent = c.name;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
