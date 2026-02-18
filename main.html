@@ -21,7 +21,8 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow: hidden; }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
-        
+        .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 40s linear infinite; }
+        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
@@ -29,7 +30,7 @@
         
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
 
-        /* Spinner a Multi-open */
+        /* Spinner pro bedny */
         .spinner-container {
             position: relative; width: 100%; height: 180px;
             background: linear-gradient(180deg, #101218 0%, #0a0b0e 100%);
@@ -56,14 +57,6 @@
         .blur-right { right: 0; background: linear-gradient(270deg, #0b0d11 0%, transparent 100%); }
         .fallback-img { filter: grayscale(1) opacity(0.3); }
 
-        /* Multi-open Flip Animace */
-        .flip-card { perspective: 1000px; width: 140px; height: 160px; }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
-        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; }
-        .flip-card-front { background: #1a1e26; border: 2px dashed #2d3748; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #4a5568; }
-        .flip-card-back { background: #14171c; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; border-bottom: 4px solid; }
-
         /* Vizuální efekty Výhry */
         .win-pop { animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -76,69 +69,39 @@
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
         }
 
-        /* Qty tlačítka */
-        .qty-btn { background: #1a1e26; border: 1px solid #2d3748; color: #a0aec0; padding: 8px 16px; border-radius: 8px; font-weight: bold; transition: all 0.2s; }
-        .qty-btn.active { background: var(--accent); color: black; border-color: var(--accent); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
-
-        /* Live Drops (Plynulý posuv) */
-        #live-drops-container { display: flex; flex-wrap: nowrap; overflow: hidden; width: 100%; position: relative; }
-        .live-drop-item { flex: 0 0 auto; margin-right: 1rem; transition: transform 0.5s ease-out, opacity 0.5s; opacity: 0; transform: translateX(-20px); }
-        .live-drop-item.show { opacity: 1; transform: translateX(0); }
+        /* Upgrade efekty */
+        .upgrade-shake { animation: shake 0.5s ease-in-out infinite; border-color: #a855f7 !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
     </style>
 </head>
 <body class="h-screen flex flex-col" onclick="initAudio()">
 
-    <div id="win-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300 opacity-0 overflow-y-auto py-10">
-        <div id="win-bg-glow" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] blur-[150px] opacity-30 win-glow-rotate rounded-full pointer-events-none"></div>
+    <div id="win-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300 opacity-0">
+        <div id="win-bg-glow" class="absolute w-[800px] h-[800px] blur-[150px] opacity-40 win-glow-rotate rounded-full"></div>
         
-        <div class="text-center relative z-10 w-full max-w-5xl px-8 flex flex-col items-center">
-            <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-8">Získal jsi</h3>
+        <div class="text-center relative z-10 w-full max-w-3xl px-8 flex flex-col items-center">
+            <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-4">Padlo ti</h3>
+            <img id="win-image" class="h-80 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] scale-0 mb-8" src="" alt="Skin">
+            <h2 id="win-name" class="text-6xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl mb-2"></h2>
+            <div id="win-price" class="text-3xl font-bold text-yellow-400 mb-12">0.00 EUR</div>
             
-            <div id="win-items-grid" class="flex flex-wrap justify-center gap-6 mb-8 w-full">
-                </div>
-
-            <div id="win-total-price" class="text-4xl font-bold text-yellow-400 mb-12 drop-shadow-lg">0.00 EUR</div>
-            
-            <div class="flex flex-col sm:flex-row gap-6 justify-center w-full max-w-2xl">
-                <button id="btn-win-sell" class="flex-1 bg-green-500 hover:bg-green-600 text-black py-5 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
+            <div class="flex gap-6 justify-center w-full max-w-lg">
+                <button id="btn-win-sell" class="flex-1 bg-green-500 hover:bg-green-600 text-black py-4 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
                     Prodat za <span id="win-sell-price"></span>
                 </button>
-                <button id="btn-win-keep" class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-5 rounded-2xl font-black uppercase text-xl transition-all hover:scale-105 active:scale-95">
-                    Uložit do inventáře
+                <button id="btn-win-keep" class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-4 rounded-2xl font-black uppercase text-xl transition-all hover:scale-105 active:scale-95">
+                    Nechat v inventáři
                 </button>
             </div>
         </div>
-        <div id="particles-container" class="fixed inset-0 pointer-events-none overflow-hidden z-20"></div>
-    </div>
-
-    <div id="deposit-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 opacity-0">
-        <div class="bg-[#14171c] border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative scale-95 transition-transform duration-300" id="deposit-box">
-            <button onclick="closeDeposit()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <h2 class="text-3xl font-black uppercase italic text-white mb-2">Vklad <span class="text-yellow-400">Předmětů / Peněz</span></h2>
-            <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-6">Vyber si platební metodu (Připraveno na Backend)</p>
-            
-            <div class="space-y-4">
-                <button onclick="simDeposit(50)" class="w-full bg-white text-black hover:bg-gray-200 flex items-center justify-center gap-3 py-4 rounded-2xl font-black transition-all text-lg">
-                    <svg class="w-6 h-6" viewBox="0 0 384 384" fill="currentColor"><path d="M318 128... (zkráceno pro Apple logo)"></path><i data-lucide="apple" class="w-6 h-6"></i> Apple Pay</button>
-                <button onclick="simDeposit(50)" class="w-full bg-[#00457C] hover:bg-[#003665] text-white flex items-center justify-center gap-3 py-4 rounded-2xl font-black transition-all text-lg">
-                    <i data-lucide="credit-card" class="w-6 h-6"></i> PayPal / Karta
-                </button>
-                <button onclick="simDeposit(50)" class="w-full bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center gap-3 py-4 rounded-2xl font-black border border-gray-600 transition-all text-lg">
-                    <i data-lucide="box" class="w-6 h-6"></i> Vložit CS2 Skiny
-                </button>
-            </div>
-            <div class="mt-6 text-center border-t border-white/5 pt-4">
-                <p class="text-[10px] text-gray-600 uppercase">Tyto metody budou napojeny na platební bránu (Stripe/Zen) a Steam boty v produkční verzi.</p>
-            </div>
-        </div>
+        <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
     <div class="h-16 bg-[#090b0e] border-b border-white/5 flex items-center overflow-hidden z-40">
-        <div class="flex-shrink-0 bg-yellow-400 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest z-10 relative">
-            <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse mr-2"></span> LIVE DROPY
+        <div class="flex-shrink-0 bg-yellow-400 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest">
+            OTODROP LIVE
         </div>
-        <div id="live-drops-container" class="flex items-center">
-            </div>
+        <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
     </div>
 
     <header class="h-20 bg-[#16191f]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 z-30">
@@ -174,8 +137,8 @@
                 </div>
             </div>
 
-            <button onclick="openDeposit()" class="bg-green-500/20 hover:bg-green-500 text-green-500 hover:text-white px-6 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-500/50 shadow-lg active:scale-95 flex items-center gap-2">
-                <i data-lucide="wallet" class="w-4 h-4"></i> Vklad
+            <button onclick="addFreeMoney()" class="bg-green-500/20 hover:bg-green-500 text-green-500 hover:text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-500/50 shadow-lg active:scale-95">
+                + PENÍZE ZDARMA
             </button>
         </div>
     </header>
@@ -186,8 +149,9 @@
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
                 <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/20 to-[#0b0d11] border border-yellow-400/20 shadow-2xl flex items-center px-12 mb-8">
                     <div class="relative z-10 max-w-2xl space-y-4">
-                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">Nejférnější <span class="text-yellow-400">CS2 OPENING</span></h1>
-                        <p class="text-gray-400 text-md font-medium leading-relaxed">Otevři bedny nebo použij náš Upgrader s reálnou šancí. Připraveno pro ostrý provoz s reálnými penězi a skiny.</p>
+                        <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic">ROZŠÍŘENÁ DATABÁZE</div>
+                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
+                        <p class="text-gray-400 text-md font-medium leading-relaxed">Otevři bedny se zvukem asmr tikání nebo použij 3-slotový Upgrader a získej svůj vysněný knife!</p>
                     </div>
                     <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/5"></i>
                 </div>
@@ -195,36 +159,20 @@
             </section>
 
             <section id="page-case-view" class="page hidden fade-in max-w-6xl mx-auto space-y-8">
-                <div class="flex justify-between items-center">
-                    <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět na bedny
-                    </button>
-                    <div class="flex items-center gap-4 bg-gray-900 p-2 rounded-xl border border-white/5">
-                        <span class="text-xs font-bold text-gray-500 uppercase px-2">Počet:</span>
-                        <div class="flex gap-1" id="qty-selector">
-                            <button class="qty-btn active" onclick="setOpenQty(1)">1</button>
-                            <button class="qty-btn" onclick="setOpenQty(2)">2</button>
-                            <button class="qty-btn" onclick="setOpenQty(5)">5</button>
-                            <button class="qty-btn" onclick="setOpenQty(10)">10</button>
-                        </div>
-                        <div class="w-px h-6 bg-gray-700 mx-2"></div>
-                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-white uppercase group">
-                            <div class="relative">
-                                <input type="checkbox" id="fast-open-toggle" class="sr-only">
-                                <div class="w-10 h-5 bg-gray-700 rounded-full shadow-inner transition-colors"></div>
-                                <div class="dot absolute w-3 h-3 bg-white rounded-full top-1 left-1 transition-transform"></div>
-                            </div>
-                            <span class="group-hover:text-yellow-400 transition-colors">Bleskové otevření</span>
-                        </label>
-                    </div>
-                </div>
+                <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět na bedny
+                </button>
 
                 <div class="bg-[#14171c] rounded-3xl border border-white/5 p-8 shadow-2xl text-center">
                     <h2 id="view-case-name" class="text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl">Bedna</h2>
                     <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
 
-                    <div id="opening-area" class="min-h-[180px] mb-8 relative flex items-center justify-center">
-                        </div>
+                    <div class="spinner-container relative mb-8">
+                        <div class="blur-edges blur-left"></div>
+                        <div class="blur-edges blur-right"></div>
+                        <div class="spinner-selector"></div>
+                        <div id="spinner-track"></div>
+                    </div>
 
                     <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
                         OTEVŘÍT BEDNU
@@ -242,6 +190,7 @@
                     <h2 class="text-5xl font-black uppercase italic tracking-tighter text-white">OTODROP <span class="text-purple-500">UPGRADER</span></h2>
                     <p class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Slož až 3 skiny dohromady a vyber si cokoliv z databáze</p>
                 </div>
+                
                 <div class="bg-[#14171c] p-10 rounded-3xl border border-white/5 shadow-2xl relative upgrade-glow" id="upgrade-panel">
                     <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-12 items-center">
                         <div class="space-y-4">
@@ -252,6 +201,7 @@
                                 <div id="upg-total-input-val" class="text-purple-400 font-black text-xl">0.00 EUR</div>
                             </div>
                         </div>
+                        
                         <div class="text-center space-y-6">
                             <div class="relative">
                                 <svg class="w-48 h-48 mx-auto transform -rotate-90">
@@ -263,8 +213,11 @@
                                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Šance</span>
                                 </div>
                             </div>
-                            <button onclick="attemptUpgrade()" id="btn-upgrade-exec" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-black py-5 rounded-2xl uppercase italic shadow-lg shadow-purple-500/30 active:scale-95 transition-all tracking-tighter text-xl">Vylepšit</button>
+                            <button onclick="attemptUpgrade()" id="btn-upgrade-exec" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-black py-5 rounded-2xl uppercase italic shadow-lg shadow-purple-500/30 active:scale-95 transition-all tracking-tighter text-xl">
+                                Vylepšit
+                            </button>
                         </div>
+                        
                         <div class="space-y-4 h-full flex flex-col justify-center">
                             <h3 class="text-gray-400 font-black uppercase text-sm tracking-widest text-center mb-2">Cílový skin</h3>
                             <div id="upg-target-slot" onclick="openSelector('target')" class="bg-gray-900/50 border-2 border-dashed border-purple-500/50 hover:border-yellow-400 rounded-3xl h-64 flex flex-col items-center justify-center p-4 relative overflow-hidden cursor-pointer transition-all group">
@@ -282,7 +235,9 @@
                         <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white">MŮJ <span class="text-yellow-400">INVENTÁŘ</span></h2>
                         <p id="inv-stats" class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">0 předmětů v hodnotě 0.00 EUR</p>
                     </div>
-                    <button onclick="sellAllSkins()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-3 rounded-xl font-bold text-xs transition-all border border-red-500/20 uppercase tracking-widest">Prodat vše</button>
+                    <button onclick="sellAllSkins()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-3 rounded-xl font-bold text-xs transition-all border border-red-500/20 uppercase tracking-widest">
+                        Prodat vše
+                    </button>
                 </div>
                 <div id="inventory-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
@@ -290,29 +245,43 @@
             <section id="page-selector" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex items-center justify-between border-b border-white/10 pb-6">
                     <div>
-                        <button onclick="switchPage('upgrade')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors mb-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět do Upgraderu</button>
+                        <button onclick="switchPage('upgrade')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors mb-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět do Upgraderu
+                        </button>
                         <h2 id="selector-title" class="text-4xl font-black uppercase italic tracking-tighter text-white">VYBER SKIN</h2>
                     </div>
                 </div>
                 <div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
+
         </main>
     </div>
 
-    <style>
-        #fast-open-toggle:checked + div { background-color: var(--accent); }
-        #fast-open-toggle:checked + div + .dot { transform: translateX(20px); background-color: black; }
-    </style>
+    <div id="toast" class="fixed bottom-10 right-10 bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black shadow-2xl opacity-0 transform translate-y-10 transition-all duration-300 z-[100] uppercase italic tracking-tighter text-lg border-2 border-yellow-300">
+        Akce úspěšná!
+    </div>
 
     <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
-        function handleImgError(img) { img.onerror = null; img.src = FALLBACK_IMG; img.classList.add('fallback-img'); }
+        function handleImgError(img) {
+            img.onerror = null; 
+            img.src = FALLBACK_IMG;
+            img.classList.add('fallback-img');
+        }
+    </script>
 
-        // --- ZVUKOVÝ ENGINE (Vylepšený a jemnější) ---
-        let audioCtx; let audioInitialized = false;
+    <script>
+        // --- AUDIO ENGINE (Web Audio API) ---
+        let audioCtx;
+        let audioInitialized = false;
+
         function initAudio() {
-            if(!audioInitialized) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioInitialized = true; } 
-            else if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+            if(!audioInitialized) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                audioInitialized = true;
+            } else if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
         const SoundEngine = {
@@ -320,197 +289,327 @@
                 if(!audioCtx) return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine'; // Mnohem jemnější
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.015, audioCtx.currentTime); // Hlasitost drasticky snížena
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.03);
             },
             playWin: (rarity) => {
                 if(!audioCtx) return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'triangle'; // Jemnější než square
-                let baseFreq = rarity === 'gold' ? 523.25 : (rarity === 'red' ? 440 : 329.63);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                
+                let baseFreq = rarity === 'gold' ? 523.25 : (rarity === 'red' ? 440 : 329.63); // C5, A4, E4
                 osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
                 osc.frequency.setValueAtTime(baseFreq * 1.25, audioCtx.currentTime + 0.1);
                 osc.frequency.setValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Snížená hlasitost
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.0);
-                osc.start(); osc.stop(audioCtx.currentTime + 1.0);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            },
+            playUpgradeProcess: () => {
+                if(!audioCtx) return null;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 2); // stoupá 2 sekundy
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                osc.start();
+                return { osc, gain };
+            },
+            playUpgradeFail: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
             }
         };
 
-        // --- BACKEND SIMULÁTOR (Příprava na Node.js) ---
-        // V produkci tyto funkce zavolají fetch() na tvoje API.
-        const BackendAPI = {
-            openCase: async (caseId, quantity) => {
-                const c = casesDB.find(x => x.id === caseId);
-                let cost = c.price * quantity;
-                if(balanceBase < cost) throw new Error("Nedostatek prostředků");
-                
-                balanceBase -= cost;
-                
-                let winnings = [];
-                for(let i=0; i<quantity; i++) {
-                    const roll = Math.random() * 100;
-                    let sum = 0;
-                    let winSkin = c.contents[0].skin;
-                    for(let item of c.contents) {
-                        sum += item.chance;
-                        if(roll <= sum) { winSkin = item.skin; break; }
-                    }
-                    winnings.push(winSkin);
-                }
-                return winnings; // Vrací pole vyhraných skinů
-            }
-        };
-
-        // --- DATABÁZE A STAV ---
+        // --- STAV A DATABÁZE ---
         let balanceBase = 0.00;
-        let openQuantity = 1;
-        let userInventory = [];
-        let activeCaseId = null;
-        let isSpinning = false;
-        let spinAnimationId = null;
-
         const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
 
-        // Stejná databáze jako minule
-        const rawSkinData = `P250|Sand Dune|0.10|#4b69ff\nGlock-18|Catacombs|0.20|#4b69ff\nSSG 08|Abyss|0.50|#4b69ff\nP90|Grim|0.80|#4b69ff\nM4A4|Magnesium|1.00|#4b69ff\nMAC-10|Candy Apple|1.10|#4b69ff\nGlock-18|Weasel|1.20|#8847ff\nGlock-18|Moonrise|1.50|#8847ff\nUSP-S|Ticket to Hell|1.80|#8847ff\nP250|Asiimov|2.00|#8847ff\nAK-47|Elite Build|2.50|#8847ff\nM4A1-S|Night Terror|2.50|#8847ff\nAWP|Worm God|3.00|#8847ff\nUSP-S|Cyrex|3.50|#8847ff\nAK-47|Slate|4.00|#8847ff\nDesert Eagle|Light Rail|4.00|#8847ff\nAWP|Mortis|4.50|#d32ee6\nGlock-18|Water Elemental|5.00|#d32ee6\nUSP-S|Cortex|5.00|#d32ee6\nDesert Eagle|Conspiracy|6.00|#d32ee6\nAK-47|Phantom Disruptor|6.00|#d32ee6\nDesert Eagle|Mecha Industries|7.00|#d32ee6\nMAC-10|Neon Rider|8.00|#d32ee6\nAWP|Atheris|10.00|#8847ff\nM4A4|Desolate Space|10.00|#d32ee6\nGlock-18|Bullet Queen|12.00|#eb4b4b\nFAMAS|Commemoration|12.00|#eb4b4b\nM4A1-S|Decimator|14.00|#d32ee6\nAK-47|Redline|15.00|#d32ee6\nGlock-18|Neo-Noir|15.00|#eb4b4b\nM4A4|In Living Color|15.00|#eb4b4b\nAK-47|Ice Coaled|18.00|#d32ee6\nUSP-S|Neo-Noir|18.00|#eb4b4b\nM4A4|Neo-Noir|20.00|#d32ee6\nAWP|Neo-Noir|25.00|#eb4b4b\nUSP-S|Orion|25.00|#d32ee6\nM4A1-S|Hyper Beast|25.00|#eb4b4b\nM4A4|The Emperor|30.00|#eb4b4b\nAK-47|Asiimov|35.00|#eb4b4b\nM4A1-S|Player Two|35.00|#eb4b4b\nAK-47|Neon Rider|40.00|#eb4b4b\nUSP-S|Kill Confirmed|45.00|#eb4b4b\nUSP-S|Printstream|55.00|#d32ee6\nDesert Eagle|Printstream|60.00|#eb4b4b\nAK-47|Bloodsport|75.00|#eb4b4b\nAK-47|Vulcan|80.00|#eb4b4b\nAWP|Containment Breach|85.00|#eb4b4b\nAWP|Asiimov|110.00|#eb4b4b\nM4A1-S|Printstream|210.00|#eb4b4b\nDesert Eagle|Emerald Jörmungandr|350.00|#eb4b4b\nBayonet|Slaughter|450.00|#ebca44\nM4A1-S|Blue Phosphor|700.00|#d32ee6\nGlock-18|Fade|800.00|#ebca44\nDesert Eagle|Blaze|900.00|#eb4b4b\nM9 Bayonet|Doppler|900.00|#ebca44\nTalon Knife|Fade|1000.00|#ebca44\nKarambit|Tiger Tooth|1000.00|#ebca44\nKarambit|Doppler|1100.00|#ebca44\nKarambit|Fade|1200.00|#ebca44\nM9 Bayonet|Lore|1200.00|#ebca44\nDriver Gloves|King Snake|1200.00|#ebca44\nKarambit|Marble Fade|1300.00|#ebca44\nButterfly Knife|Slaughter|1400.00|#ebca44\nKarambit|Lore|1500.00|#ebca44\nM9 Bayonet|Autotronic|1500.00|#ebca44\nButterfly Knife|Doppler|1600.00|#ebca44\nSkeleton Knife|Crimson Web|1600.00|#ebca44\nButterfly Knife|Tiger Tooth|1700.00|#ebca44\nM9 Bayonet|Crimson Web|1800.00|#ebca44\nSkeleton Knife|Fade|1800.00|#ebca44\nButterfly Knife|Marble Fade|2000.00|#ebca44\nSport Gloves|Vice|2000.00|#ebca44\nButterfly Knife|Fade|2200.00|#ebca44\nM4A1-S|Welcome to the Jungle|2500.00|#ebca44\nAWP|Medusa|3000.00|#ebca44\nAK-47|Gold Arabesque|3000.00|#ebca44\nM4A4|Howl|3500.00|#ebca44\nSport Gloves|Pandoras Box|4000.00|#ebca44\nAK-47|Wild Lotus|4500.00|#ebca44\nAWP|Dragon Lore|5000.00|#ebca44\nAWP|Gungnir|6000.00|#ebca44`;
-        
+        // Přidáno dalších 50 oblíbených skinů
+        const rawSkinData = `
+P250|Sand Dune|0.10|#4b69ff
+Glock-18|Catacombs|0.20|#4b69ff
+SSG 08|Abyss|0.50|#4b69ff
+P90|Grim|0.80|#4b69ff
+M4A4|Magnesium|1.00|#4b69ff
+MAC-10|Candy Apple|1.10|#4b69ff
+Glock-18|Weasel|1.20|#8847ff
+Glock-18|Moonrise|1.50|#8847ff
+USP-S|Ticket to Hell|1.80|#8847ff
+P250|Asiimov|2.00|#8847ff
+AK-47|Elite Build|2.50|#8847ff
+M4A1-S|Night Terror|2.50|#8847ff
+AWP|Worm God|3.00|#8847ff
+USP-S|Cyrex|3.50|#8847ff
+AK-47|Slate|4.00|#8847ff
+Desert Eagle|Light Rail|4.00|#8847ff
+AWP|Mortis|4.50|#d32ee6
+Glock-18|Water Elemental|5.00|#d32ee6
+USP-S|Cortex|5.00|#d32ee6
+Desert Eagle|Conspiracy|6.00|#d32ee6
+AK-47|Phantom Disruptor|6.00|#d32ee6
+Desert Eagle|Mecha Industries|7.00|#d32ee6
+MAC-10|Neon Rider|8.00|#d32ee6
+AWP|Atheris|10.00|#8847ff
+M4A4|Desolate Space|10.00|#d32ee6
+Glock-18|Bullet Queen|12.00|#eb4b4b
+FAMAS|Commemoration|12.00|#eb4b4b
+M4A1-S|Decimator|14.00|#d32ee6
+AK-47|Redline|15.00|#d32ee6
+Glock-18|Neo-Noir|15.00|#eb4b4b
+M4A4|In Living Color|15.00|#eb4b4b
+AK-47|Ice Coaled|18.00|#d32ee6
+USP-S|Neo-Noir|18.00|#eb4b4b
+M4A4|Neo-Noir|20.00|#d32ee6
+AWP|Neo-Noir|25.00|#eb4b4b
+USP-S|Orion|25.00|#d32ee6
+M4A1-S|Hyper Beast|25.00|#eb4b4b
+M4A4|The Emperor|30.00|#eb4b4b
+AK-47|Asiimov|35.00|#eb4b4b
+M4A1-S|Player Two|35.00|#eb4b4b
+AK-47|Neon Rider|40.00|#eb4b4b
+USP-S|Kill Confirmed|45.00|#eb4b4b
+USP-S|Printstream|55.00|#d32ee6
+Desert Eagle|Printstream|60.00|#eb4b4b
+AK-47|Bloodsport|75.00|#eb4b4b
+AK-47|Vulcan|80.00|#eb4b4b
+AWP|Containment Breach|85.00|#eb4b4b
+AWP|Asiimov|110.00|#eb4b4b
+M4A1-S|Printstream|210.00|#eb4b4b
+Desert Eagle|Emerald Jörmungandr|350.00|#eb4b4b
+Bayonet|Slaughter|450.00|#ebca44
+M4A1-S|Blue Phosphor|700.00|#d32ee6
+Glock-18|Fade|800.00|#ebca44
+Desert Eagle|Blaze|900.00|#eb4b4b
+M9 Bayonet|Doppler|900.00|#ebca44
+Talon Knife|Fade|1000.00|#ebca44
+Karambit|Tiger Tooth|1000.00|#ebca44
+Karambit|Doppler|1100.00|#ebca44
+Karambit|Fade|1200.00|#ebca44
+M9 Bayonet|Lore|1200.00|#ebca44
+Driver Gloves|King Snake|1200.00|#ebca44
+Karambit|Marble Fade|1300.00|#ebca44
+Butterfly Knife|Slaughter|1400.00|#ebca44
+Karambit|Lore|1500.00|#ebca44
+M9 Bayonet|Autotronic|1500.00|#ebca44
+Butterfly Knife|Doppler|1600.00|#ebca44
+Skeleton Knife|Crimson Web|1600.00|#ebca44
+Butterfly Knife|Tiger Tooth|1700.00|#ebca44
+M9 Bayonet|Crimson Web|1800.00|#ebca44
+Skeleton Knife|Fade|1800.00|#ebca44
+Butterfly Knife|Marble Fade|2000.00|#ebca44
+Sport Gloves|Vice|2000.00|#ebca44
+Butterfly Knife|Fade|2200.00|#ebca44
+M4A1-S|Welcome to the Jungle|2500.00|#ebca44
+AWP|Medusa|3000.00|#ebca44
+AK-47|Gold Arabesque|3000.00|#ebca44
+M4A4|Howl|3500.00|#ebca44
+Sport Gloves|Pandoras Box|4000.00|#ebca44
+AK-47|Wild Lotus|4500.00|#ebca44
+AWP|Dragon Lore|5000.00|#ebca44
+AWP|Gungnir|6000.00|#ebca44`;
+
         const skinsDB = {};
+        
         rawSkinData.trim().split("\n").forEach((line, idx) => {
             const [w, n, p, c] = line.split("|");
             let folder = KNIFE_TYPES.includes(w) ? "knives" : "skins";
-            let urlWeapon = w.replace(/ /g, "_"); let urlName = n.replace(/ /g, "_").replace(/'/g, "");
+            let urlWeapon = w.replace(/ /g, "_");
+            let urlName = n.replace(/ /g, "_").replace(/'/g, "");
             skinsDB[idx + 1] = { id: idx + 1, weapon: w, skinName: n, name: `${w} | ${n}`, price: parseFloat(p), color: c, img: `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`, rarityName: c === '#ebca44' ? 'gold' : (c === '#eb4b4b' ? 'red' : (c === '#d32ee6' ? 'pink' : 'blue')) };
         });
+
         function findSkin(w, n) { return Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n) || Object.values(skinsDB)[0]; }
 
         const casesDB = [];
         setTimeout(() => {
             casesDB.push(
-                { id: "trash-or-knife", name: "1% KNIFE Risk", price: 25.00, color: "yellow-400", img: findSkin("M9 Bayonet", "Autotronic").img, contents: [{ skin: findSkin("P250", "Sand Dune"), chance: 99.0 }, { skin: findSkin("M9 Bayonet", "Autotronic"), chance: 1.0 }] },
-                { id: "coinflip", name: "50/50 Profit", price: 50.00, color: "red", img: findSkin("AK-47", "Bloodsport").img, contents: [{ skin: findSkin("AK-47", "Slate"), chance: 50.0 }, { skin: findSkin("AK-47", "Bloodsport"), chance: 50.0 }] },
-                { id: "budget", name: "Budget Grinder", price: 5.00, color: "blue", img: findSkin("AWP", "Worm God").img, contents: [{ skin: findSkin("Glock-18", "Catacombs"), chance: 60.0 }, { skin: findSkin("USP-S", "Ticket to Hell"), chance: 25.0 }, { skin: findSkin("AWP", "Mortis"), chance: 12.0 }, { skin: findSkin("M4A4", "Desolate Space"), chance: 2.5 }, { skin: findSkin("AK-47", "Redline"), chance: 0.5 }] },
-                { id: "covert", name: "Covert Dreams", price: 100.00, color: "red", img: findSkin("AWP", "Asiimov").img, contents: [{ skin: findSkin("M4A4", "The Emperor"), chance: 65.0 }, { skin: findSkin("AK-47", "Vulcan"), chance: 25.0 }, { skin: findSkin("AWP", "Asiimov"), chance: 8.0 }, { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 2.0 }] },
-                { id: "dragon", name: "Dragon Lore 1%", price: 200.00, color: "yellow-400", img: findSkin("AWP", "Dragon Lore").img, contents: [{ skin: findSkin("AWP", "Atheris"), chance: 80.0 }, { skin: findSkin("AWP", "Neo-Noir"), chance: 19.0 }, { skin: findSkin("AWP", "Dragon Lore"), chance: 1.0 }] }
+                {
+                    id: "trash-or-knife", name: "1% KNIFE Risk", price: 25.00, color: "yellow-400",
+                    img: findSkin("M9 Bayonet", "Autotronic").img,
+                    contents: [
+                        { skin: findSkin("P250", "Sand Dune"), chance: 99.0 },
+                        { skin: findSkin("M9 Bayonet", "Autotronic"), chance: 1.0 }
+                    ]
+                },
+                {
+                    id: "coinflip", name: "50/50 Profit", price: 50.00, color: "red",
+                    img: findSkin("AK-47", "Bloodsport").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Slate"), chance: 50.0 },
+                        { skin: findSkin("AK-47", "Bloodsport"), chance: 50.0 }
+                    ]
+                },
+                {
+                    id: "budget", name: "Budget Grinder", price: 5.00, color: "blue",
+                    img: findSkin("AWP", "Worm God").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 60.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Mortis"), chance: 12.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 2.5 },
+                        { skin: findSkin("AK-47", "Redline"), chance: 0.5 }
+                    ]
+                },
+                {
+                    id: "covert", name: "Covert Dreams", price: 100.00, color: "red",
+                    img: findSkin("AWP", "Asiimov").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "The Emperor"), chance: 65.0 },
+                        { skin: findSkin("AK-47", "Vulcan"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Asiimov"), chance: 8.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 2.0 }
+                    ]
+                },
+                {
+                    id: "dragon", name: "Dragon Lore 1%", price: 200.00, color: "yellow-400",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Atheris"), chance: 80.0 },
+                        { skin: findSkin("AWP", "Neo-Noir"), chance: 19.0 },
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 1.0 }
+                    ]
+                }
             );
-            renderCases(); startLiveDrops();
+            renderCases();
         }, 100);
 
-        // --- UI & LOGIKA ---
-        function openDeposit() {
-            const m = document.getElementById('deposit-modal');
-            const b = document.getElementById('deposit-box');
-            m.classList.remove('hidden');
-            setTimeout(() => { m.classList.remove('opacity-0'); b.classList.remove('scale-95'); }, 10);
-        }
-        function closeDeposit() {
-            const m = document.getElementById('deposit-modal');
-            const b = document.getElementById('deposit-box');
-            m.classList.add('opacity-0'); b.classList.add('scale-95');
-            setTimeout(() => m.classList.add('hidden'), 300);
-        }
-        function simDeposit(amount) {
-            balanceBase += amount; updateUI(); closeDeposit(); showToast(`Simulovaný vklad: ${amount} EUR`); initAudio();
+        let userInventory = [];
+        let activeCaseId = null;
+        let isSpinning = false;
+        let spinAnimationId = null;
+
+        // --- ZÁKLADY UI ---
+        function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
+        function updateUI() { document.getElementById('balance').textContent = formatMoney(balanceBase).replace(' EUR', ''); lucide.createIcons(); }
+        function showToast(text, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = text;
+            t.style.backgroundColor = isError ? '#ef4444' : '#facc15';
+            t.style.color = isError ? 'white' : 'black';
+            t.style.borderColor = isError ? '#dc2626' : '#fde047';
+            t.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 3000);
         }
 
-        // Live Dropy: Realistický posuv
-        const dropNames = ["Faker", "Pepa", "Hráč99", "Otík", "Karel", "Sniper", "NoobMaster", "ProPlayer", "Anonym", "CS2King"];
-        function startLiveDrops() {
-            const container = document.getElementById('live-drops-container');
+        function switchPage(id) {
+            if(isSpinning) return;
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            const page = document.getElementById(`page-${id}`);
+            if (page) page.classList.remove('hidden');
             
-            setInterval(() => {
-                const s = Object.values(skinsDB)[Math.floor(Math.random() * Object.values(skinsDB).length)];
-                const n = dropNames[Math.floor(Math.random() * dropNames.length)];
-                
-                const el = document.createElement('div');
-                el.className = 'live-drop-item bg-[#1a1e26] border-b-2 rounded-lg p-1.5 flex items-center gap-2 min-w-[160px] shadow-md';
-                el.style.borderColor = s.color;
-                el.innerHTML = `
-                    <img src="${s.img}" onerror="handleImgError(this)" class="w-8 h-6 object-contain drop-shadow">
-                    <div class="flex flex-col truncate">
-                        <span class="text-[9px] text-gray-500 font-bold">${n}</span>
-                        <span class="text-[10px] font-black text-white truncate" style="color: ${s.color}">${s.name}</span>
-                    </div>
-                `;
-                
-                container.prepend(el);
-                
-                // Animace vstupu
-                requestAnimationFrame(() => { el.classList.add('show'); });
-                
-                // Udržuj max 15 položek
-                if(container.children.length > 15) {
-                    const last = container.lastElementChild;
-                    last.style.opacity = '0';
-                    setTimeout(() => last.remove(), 500);
-                }
-            }, 2500); // Každých 2.5 vteřiny padne něco
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const activeNav = Array.from(document.querySelectorAll('.nav-link')).find(l => l.getAttribute('onclick').includes(`'${id}'`));
+            if(activeNav) activeNav.classList.add('active');
+
+            if(id === 'inventory') renderInventory();
+            if(id === 'upgrade') renderUpgrader();
+            activeCaseId = null; 
         }
 
-        function setOpenQty(q) {
-            openQuantity = q;
-            document.querySelectorAll('.qty-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if(activeCaseId) {
-                const c = casesDB.find(x => x.id === activeCaseId);
-                document.getElementById('view-case-price').textContent = `Cena: ${formatMoney(c.price * q)}`;
+        function addFreeMoney() {
+            balanceBase += 1000;
+            updateUI();
+            showToast("Přidáno 1000 EUR!");
+            initAudio(); // Pro sichr init z tlačítka
+        }
+
+        // --- FULL-SCREEN VÝHERNÍ POPUP A EFEKTY ---
+        function createParticles(color) {
+            const container = document.getElementById('particles-container');
+            container.innerHTML = ''; // Vyčistit staré
+            for(let i=0; i<60; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.backgroundColor = color;
+                const size = Math.random() * 8 + 4;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = '50%';
+                p.style.top = '50%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 400 + 100;
+                p.style.setProperty('--tx', `${Math.cos(angle) * velocity}px`);
+                p.style.setProperty('--ty', `${Math.sin(angle) * velocity}px`);
+                
+                container.appendChild(p);
             }
         }
 
-        // --- MULTI-WIN A EFEKTY ---
-        let currentWinnings = []; // Uchovává aktuální výhry pro modal
-
-        function showMultiWinModal(skins) {
-            currentWinnings = skins;
+        function showWinModal(skin) {
             const modal = document.getElementById('win-modal');
-            const grid = document.getElementById('win-items-grid');
-            let totalVal = skins.reduce((a,b) => a + b.price, 0);
+            const img = document.getElementById('win-image');
             
-            document.getElementById('win-total-price').textContent = formatMoney(totalVal);
-            document.getElementById('win-sell-price').textContent = formatMoney(totalVal);
+            document.getElementById('win-name').textContent = skin.name;
+            document.getElementById('win-price').textContent = formatMoney(skin.price);
+            document.getElementById('win-sell-price').textContent = formatMoney(skin.price);
+            document.getElementById('win-bg-glow').style.backgroundColor = skin.color;
             
-            // Nastav glow podle nejdražšího skinu
-            let bestSkin = skins.reduce((prev, current) => (prev.price > current.price) ? prev : current);
-            document.getElementById('win-bg-glow').style.backgroundColor = bestSkin.color;
-
-            grid.innerHTML = skins.map((s, i) => `
-                <div class="bg-[#14171c] p-4 rounded-xl border-b-4 shadow-xl flex flex-col items-center justify-center opacity-0 transform translate-y-10 transition-all duration-500" style="border-color: ${s.color}; animation: slideUp 0.5s ease forwards ${i * 0.1}s;">
-                    <img src="${s.img}" onerror="handleImgError(this)" class="h-24 object-contain drop-shadow-lg mb-2">
-                    <div class="text-[10px] font-bold text-gray-400 uppercase">${s.name}</div>
-                    <div class="text-sm font-black text-white">${formatMoney(s.price)}</div>
-                </div>
-            `).join('');
+            img.src = skin.img;
             
             modal.classList.remove('hidden');
+            // Malý delay pro CSS tranzici
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                if(bestSkin.price > 50) createParticles(bestSkin.color);
-                SoundEngine.playWin(bestSkin.rarityName);
+                img.classList.add('win-pop');
+                
+                // Efekty pokud je to red/gold
+                if(skin.color === '#eb4b4b' || skin.color === '#ebca44') {
+                    createParticles(skin.color);
+                }
+                
+                SoundEngine.playWin(skin.rarityName);
             }, 50);
 
+            // Nastavení tlačítek
             document.getElementById('btn-win-sell').onclick = () => {
-                balanceBase += totalVal; updateUI(); showToast(`Prodáno za ${formatMoney(totalVal)}`); closeWinModal();
+                balanceBase += skin.price;
+                updateUI();
+                showToast(`Získáno ${formatMoney(skin.price)}`);
+                closeWinModal();
             };
+            
             document.getElementById('btn-win-keep').onclick = () => {
-                currentWinnings.forEach(s => addToInventory(s)); showToast(`Vše uloženo do inventáře`); closeWinModal();
+                addToInventory(skin);
+                showToast(`Uloženo do inventáře`);
+                closeWinModal();
             };
         }
 
         function closeWinModal() {
             const modal = document.getElementById('win-modal');
             modal.classList.add('opacity-0');
+            document.getElementById('win-image').classList.remove('win-pop');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // --- OTEVÍRÁNÍ BEDEN ---
+        // --- BEDNY ---
         function renderCases() {
             const grid = document.getElementById('cases-grid');
             grid.innerHTML = casesDB.map(c => `
@@ -525,21 +624,16 @@
 
         function openCaseView(id) {
             activeCaseId = id;
-            setOpenQty(1); // Default reset
-            document.getElementById('fast-open-toggle').checked = false;
-            
             const c = casesDB.find(x => x.id === id);
+            
             document.getElementById('view-case-name').textContent = c.name;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
             document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
 
-            // Připrav standardní spinner
-            const area = document.getElementById('opening-area');
-            area.innerHTML = `
-                <div class="spinner-container">
-                    <div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div>
-                    <div class="spinner-selector"></div><div id="spinner-track"></div>
-                </div>`;
+            const track = document.getElementById('spinner-track');
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+            track.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
@@ -550,124 +644,284 @@
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => execCaseOpen(c);
-            btn.textContent = "OTEVŘÍT BEDNU"; btn.disabled = false; btn.classList.remove('opacity-50');
+            btn.onclick = () => startSpinner(c);
+            btn.textContent = "OTEVŘÍT BEDNU";
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
 
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-case-view').classList.remove('hidden');
         }
 
-        async function execCaseOpen(caseObj) {
+        function startSpinner(caseObj) {
             if(isSpinning) return;
-            const isFast = document.getElementById('fast-open-toggle').checked || openQuantity > 1;
+            if(balanceBase < caseObj.price) return showToast("Nemáš dostatek peněz!", true);
 
-            let winnings;
-            try {
-                // Volání backend simulátoru
-                winnings = await BackendAPI.openCase(caseObj.id, openQuantity);
-            } catch (e) {
-                return showToast(e.message, true);
-            }
-
+            balanceBase -= caseObj.price;
             updateUI();
             isSpinning = true;
+
             const btn = document.getElementById('btn-open-case');
-            btn.textContent = "Otevírám..."; btn.disabled = true; btn.classList.add('opacity-50');
+            btn.textContent = "Točí se...";
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
 
-            if(isFast) {
-                // INSTANT / MULTI OPEN Loci
-                const area = document.getElementById('opening-area');
-                area.innerHTML = `<div class="flex flex-wrap justify-center gap-4 py-4" id="multi-reveal-grid"></div>`;
-                const grid = document.getElementById('multi-reveal-grid');
-                
-                grid.innerHTML = winnings.map((_, i) => `
-                    <div class="flip-card" id="flip-card-${i}">
-                        <div class="flip-card-inner shadow-lg">
-                            <div class="flip-card-front"><i data-lucide="help-circle" class="w-10 h-10 opacity-50"></i></div>
-                            <div class="flip-card-back" style="border-color: transparent;"></div>
-                        </div>
+            // Roll
+            const roll = Math.random() * 100;
+            let sum = 0;
+            let winningSkin = caseObj.contents[0].skin;
+            for(let item of caseObj.contents) {
+                sum += item.chance;
+                if(roll <= sum) { winningSkin = item.skin; break; }
+            }
+
+            const track = document.getElementById('spinner-track');
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+            
+            const totalItems = 60;
+            const winningIndex = 50;
+            const itemWidth = 148; 
+
+            let html = '';
+            for(let i = 0; i < totalItems; i++) {
+                let skinToRender = (i === winningIndex) ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
+                html += `
+                    <div class="spinner-item" style="border-color: ${skinToRender.color}">
+                        <img src="${skinToRender.img}" onerror="handleImgError(this)">
+                        <div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skinToRender.name}</div>
                     </div>
-                `).join('');
-                lucide.createIcons();
+                `;
+            }
+            track.innerHTML = html;
 
-                // Postupné otáčení karet
-                winnings.forEach((skin, i) => {
-                    setTimeout(() => {
-                        SoundEngine.playTick();
-                        const card = document.getElementById(`flip-card-${i}`);
-                        const back = card.querySelector('.flip-card-back');
-                        back.style.borderColor = skin.color;
-                        back.innerHTML = `<img src="${skin.img}" onerror="handleImgError(this)" class="h-20 mb-2 object-contain"><div class="text-[9px] font-black uppercase text-white truncate w-full">${skin.name}</div>`;
-                        card.classList.add('flipped');
+            setTimeout(() => {
+                const containerWidth = document.querySelector('.spinner-container').clientWidth;
+                const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2); 
+                const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
+
+                // Ticking logikca přes requestAnimationFrame
+                let lastCrossed = 0;
+                function checkTick() {
+                    if(!isSpinning) return;
+                    const transform = window.getComputedStyle(track).getPropertyValue('transform');
+                    if(transform !== 'none') {
+                        const matrix = new DOMMatrix(transform);
+                        const currentX = Math.abs(matrix.m41);
+                        // Vypočte střed obrazovky + to co už ujelo
+                        const centerLine = currentX + (containerWidth / 2);
+                        const itemIndexAtCenter = Math.floor(centerLine / itemWidth);
                         
-                        // Po dotočení poslední karty
-                        if(i === winnings.length - 1) {
-                            setTimeout(() => {
-                                isSpinning = false;
-                                showMultiWinModal(winnings);
-                                btn.textContent = "HRÁT ZNOVU"; btn.disabled = false; btn.classList.remove('opacity-50');
-                            }, 800);
-                        }
-                    }, i * 200 + 100);
-                });
-
-            } else {
-                // STANDARD SPINNER (Pouze pro qty=1)
-                const area = document.getElementById('opening-area');
-                if(!document.getElementById('spinner-track')) {
-                    area.innerHTML = `<div class="spinner-container"><div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div><div class="spinner-selector"></div><div id="spinner-track"></div></div>`;
-                }
-                const track = document.getElementById('spinner-track');
-                track.style.transition = 'none'; track.style.transform = 'translateX(0px)';
-                
-                const winningSkin = winnings[0];
-                const totalItems = 60; const winningIndex = 50; const itemWidth = 148; 
-                
-                let html = '';
-                for(let i = 0; i < totalItems; i++) {
-                    let s = (i === winningIndex) ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
-                    html += `<div class="spinner-item" style="border-color: ${s.color}"><img src="${s.img}" onerror="handleImgError(this)"><div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${s.name}</div></div>`;
-                }
-                track.innerHTML = html;
-
-                setTimeout(() => {
-                    const containerWidth = document.querySelector('.spinner-container').clientWidth;
-                    const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2); 
-                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
-
-                    let lastCrossed = 0;
-                    function checkTick() {
-                        if(!isSpinning) return;
-                        const transform = window.getComputedStyle(track).getPropertyValue('transform');
-                        if(transform !== 'none') {
-                            const currentX = Math.abs(new DOMMatrix(transform).m41);
-                            const centerLine = currentX + (containerWidth / 2);
-                            const itemIndexAtCenter = Math.floor(centerLine / itemWidth);
+                        if(itemIndexAtCenter > lastCrossed) {
+                            SoundEngine.playTick();
+                            lastCrossed = itemIndexAtCenter;
                             
-                            if(itemIndexAtCenter > lastCrossed) {
-                                SoundEngine.playTick(); lastCrossed = itemIndexAtCenter;
+                            // Visual efekt problesknutí na zasaženém itemu
+                            const items = track.children;
+                            if(items[itemIndexAtCenter]) {
+                                items[itemIndexAtCenter].style.backgroundColor = '#2d3748';
+                                setTimeout(() => { if(items[itemIndexAtCenter]) items[itemIndexAtCenter].style.backgroundColor = '#14171c'; }, 100);
                             }
                         }
-                        spinAnimationId = requestAnimationFrame(checkTick);
                     }
-                    
-                    track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
-                    track.style.transform = `translateX(-${finalOffset}px)`;
-                    checkTick();
+                    spinAnimationId = requestAnimationFrame(checkTick);
+                }
+                
+                track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
+                track.style.transform = `translateX(-${finalOffset}px)`;
+                
+                checkTick();
 
-                    setTimeout(() => {
-                        isSpinning = false; cancelAnimationFrame(spinAnimationId);
-                        showMultiWinModal([winningSkin]);
-                        btn.textContent = "HRÁT ZNOVU"; btn.disabled = false; btn.classList.remove('opacity-50');
-                    }, 6500); 
-                }, 50);
+                setTimeout(() => {
+                    isSpinning = false;
+                    cancelAnimationFrame(spinAnimationId);
+                    
+                    showWinModal(winningSkin);
+                    
+                    btn.textContent = "HRÁT ZNOVU";
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+                }, 6500); 
+            }, 50);
+        }
+
+        // --- INVENTÁŘ ---
+        function addToInventory(skin) {
+            userInventory.unshift({ ...skin, uid: Date.now() + Math.random().toString(36).substring(7) });
+            updateUI();
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventory-grid');
+            const stats = document.getElementById('inv-stats');
+            if(!grid) return;
+
+            if(userInventory.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-20 font-bold uppercase">Inventář je prázdný.</div>`;
+                stats.textContent = `0 předmětů v hodnotě 0.00 EUR`;
+                return;
+            }
+
+            let totalVal = 0;
+            grid.innerHTML = userInventory.map(item => {
+                totalVal += item.price;
+                return `
+                <div class="bg-[#14171c] p-4 rounded-2xl border-b-4 group relative overflow-hidden transition-all hover:scale-105 shadow-lg" style="border-color: ${item.color}">
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style="background-color: ${item.color}"></div>
+                    <img src="${item.img}" onerror="handleImgError(this)" class="w-full h-24 object-contain drop-shadow-xl">
+                    <div class="mt-3 text-center">
+                        <div class="text-[10px] font-black uppercase text-gray-400 truncate">${item.name}</div>
+                        <div class="text-sm font-black text-white mt-1">${formatMoney(item.price)}</div>
+                    </div>
+                    <button onclick="sellSkin('${item.uid}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>`;
+            }).join('');
+            
+            stats.textContent = `${userInventory.length} předmětů v hodnotě ${formatMoney(totalVal)}`;
+            lucide.createIcons();
+        }
+
+        function sellSkin(uid) {
+            const idx = userInventory.findIndex(i => i.uid === uid);
+            if(idx > -1) {
+                balanceBase += userInventory[idx].price;
+                userInventory.splice(idx, 1);
+                updateUI(); renderInventory();
+                for(let i=0; i<3; i++) { if(upgInputs[i] && upgInputs[i].uid === uid) upgInputs[i] = null; }
             }
         }
 
-        // Přidání stylů pro SlideUp animaci v MultiWin
-        const style = document.createElement('style');
-        style.textContent = `@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }`;
-        document.head.appendChild(style);
+        function sellAllSkins() {
+            if(userInventory.length === 0) return;
+            balanceBase += userInventory.reduce((acc, curr) => acc + curr.price, 0);
+            userInventory = [];
+            updateUI(); renderInventory();
+            upgInputs = [null, null, null]; upgTarget = null;
+        }
+
+        // --- UPGRADER ---
+        let upgInputs = [null, null, null];
+        let upgTarget = null;
+
+        function renderUpgrader() {
+            const container = document.getElementById('upg-inputs-container');
+            let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+            
+            container.innerHTML = [0,1,2].map(i => upgInputs[i] ? `
+                <div onclick="removeUpgInput(${i})" class="bg-gray-800/80 border border-gray-600 hover:border-red-500 rounded-2xl h-24 flex items-center p-3 cursor-pointer group relative overflow-hidden transition-all">
+                    <img src="${upgInputs[i].img}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
+                    <div class="ml-3 flex-1 overflow-hidden">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase truncate">${upgInputs[i].name}</div>
+                        <div class="text-sm font-black text-white">${formatMoney(upgInputs[i].price)}</div>
+                    </div>
+                    <div class="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                        <i data-lucide="trash-2" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                </div>
+            ` : `
+                <div onclick="openSelector('input', ${i})" class="bg-gray-900/50 border-2 border-dashed border-gray-600 hover:border-purple-500 rounded-2xl h-24 flex items-center justify-center cursor-pointer transition-all group">
+                    <i data-lucide="plus" class="w-6 h-6 text-gray-600 group-hover:text-purple-500 transition-colors"></i>
+                </div>
+            `).join('');
+            
+            document.getElementById('upg-total-input-val').textContent = formatMoney(totalVal);
+
+            if(upgTarget && upgTarget.price <= totalVal) upgTarget = null;
+
+            const targetSlot = document.getElementById('upg-target-slot');
+            let chance = 0;
+
+            if(upgTarget) {
+                targetSlot.classList.remove('border-dashed', 'border-purple-500/50');
+                targetSlot.style.borderColor = upgTarget.color;
+                targetSlot.innerHTML = `
+                    <div class="absolute inset-0 opacity-20" style="background: linear-gradient(to top, ${upgTarget.color}, transparent);"></div>
+                    <img src="${upgTarget.img}" onerror="handleImgError(this)" class="h-32 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-2 relative z-10 group-hover:scale-110 transition-transform">
+                    <div class="text-xs font-black text-white uppercase text-center relative z-10 w-full truncate px-2" style="color: ${upgTarget.color}">${upgTarget.name}</div>
+                    <div class="text-lg font-black text-white relative z-10">${formatMoney(upgTarget.price)}</div>
+                `;
+                chance = Math.min((totalVal / upgTarget.price) * 100, 90);
+            } else {
+                targetSlot.removeAttribute('style');
+                targetSlot.classList.add('border-dashed', 'border-purple-500/50');
+                targetSlot.innerHTML = `<i data-lucide="search" class="w-10 h-10 text-purple-500/50 group-hover:text-yellow-400 mb-2"></i><span class="text-gray-500 font-bold uppercase text-xs text-center group-hover:text-white">Vyber cíl</span>`;
+            }
+
+            document.getElementById('upgrade-chance').textContent = chance.toFixed(1) + '%';
+            document.getElementById('upgrade-circle').style.strokeDashoffset = 540 - (540 * (chance / 100));
+            lucide.createIcons();
+        }
+
+        function removeUpgInput(i) { upgInputs[i] = null; renderUpgrader(); }
+
+        function openSelector(type, slotIndex = 0) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-selector').classList.remove('hidden');
+            
+            const grid = document.getElementById('selector-grid');
+            if (type === 'input') {
+                document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
+                let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+                grid.innerHTML = available.map(item => `
+                    <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4" style="border-color: ${item.color}">
+                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md">
+                        <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
+                        <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
+                    </div>
+                `).join('') || '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase">Žádné volné skiny.</div>';
+            } else {
+                document.getElementById('selector-title').textContent = "VYBER CÍLOVÝ SKIN";
+                let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+                let targets = Object.values(skinsDB).filter(s => s.price > totalVal).sort((a,b) => a.price - b.price);
+                grid.innerHTML = targets.map(item => `
+                    <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4" style="border-color: ${item.color}">
+                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md">
+                        <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
+                        <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
+                        <div class="text-[10px] text-center font-bold text-purple-400 mt-1">Šance: ${Math.min((totalVal / item.price)*100, 90).toFixed(1)}%</div>
+                    </div>
+                `).join('') || '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase">Nejprve přidej své skiny.</div>';
+            }
+        }
+
+        function attemptUpgrade() {
+            if(isSpinning) return;
+            let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+            if(totalVal === 0) return showToast("Vlož alespoň jeden skin!", true);
+            if(!upgTarget) return showToast("Vyber cílový skin!", true);
+
+            isSpinning = true;
+            document.getElementById('btn-upgrade-exec').textContent = "Vylepšuji...";
+            document.getElementById('upgrade-panel').classList.add('upgrade-shake');
+            
+            // Zvuk napětí
+            const soundNode = SoundEngine.playUpgradeProcess();
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('upgrade-panel').classList.remove('upgrade-shake');
+                document.getElementById('btn-upgrade-exec').textContent = "Vylepšit";
+                if(soundNode) { soundNode.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); }
+
+                let chance = Math.min((totalVal / upgTarget.price) * 100, 90);
+                const roll = Math.random() * 100;
+                
+                upgInputs.forEach(item => { if(item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
+
+                if (roll <= chance) {
+                    showWinModal(upgTarget);
+                } else {
+                    SoundEngine.playUpgradeFail();
+                    showToast("Upgrade selhal. Skiny shořely.", true);
+                }
+
+                upgInputs = [null, null, null];
+                upgTarget = null;
+                renderUpgrader();
+            }, 2000);
+        }
 
         window.onload = () => { lucide.createIcons(); switchPage('cases'); };
     </script>
