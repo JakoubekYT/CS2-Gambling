@@ -424,6 +424,10 @@
                     <button onclick="saveLocalProfile()" class="bg-green-600 hover:bg-green-500 text-white font-black uppercase rounded-xl py-3">Uložit profil</button>
                     <button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
                 </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button id="steam-login-btn" onclick="socialLogin('steam')" class="bg-[#171a21] hover:bg-[#2a475e] text-white font-black uppercase rounded-xl py-3 border border-white/10">Steam Login</button>
+                    <button id="google-login-btn" onclick="socialLogin('google')" class="bg-white hover:bg-gray-200 text-black font-black uppercase rounded-xl py-3">Google Login</button>
+                </div>
                 <p id="admin-hint" class="text-[11px] text-yellow-300 hidden">Jsi admin. Přehled hráčů: <code>GET /api/admin/users</code></p>
             </div>
         </div>
@@ -1204,6 +1208,25 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         let currentUser = null;
         let stateSaveTimer = null;
+        let authProviders = { steam: true, google: true };
+
+        function sanitizeDuplicateSocialButtons() {
+            const authModal = document.getElementById('auth-modal');
+            if (!authModal) return;
+
+            const selectors = [
+                '#steam-login-btn',
+                '#google-login-btn',
+                "button[onclick=\"socialLogin('steam')\"]",
+                "button[onclick=\"socialLogin('google')\"]"
+            ];
+
+            selectors.forEach((selector) => {
+                const nodes = Array.from(authModal.querySelectorAll(selector));
+                if (nodes.length <= 1) return;
+                nodes.slice(1).forEach((node) => node.remove());
+            });
+        }
 
         async function apiRequest(url, method = 'GET', payload) {
             const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -1218,6 +1241,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         async function loadSessionFromBackend() {
             try {
+                sanitizeDuplicateSocialButtons();
+                const providerState = await apiRequest('/api/auth/providers');
+                if (providerState?.providers) {
+                    authProviders = {
+                        steam: Boolean(providerState.providers.steam),
+                        google: Boolean(providerState.providers.google)
+                    };
+                }
                 const auth = await apiRequest('/api/auth/session');
                 if (!auth.user) return;
                 currentUser = auth.user;
@@ -1236,6 +1267,21 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
             } catch (err) {
                 console.warn('Nepovedlo se načíst session:', err.message);
+            } finally {
+                const steamBtn = document.getElementById('steam-login-btn');
+                const googleBtn = document.getElementById('google-login-btn');
+                if (steamBtn) {
+                    steamBtn.disabled = !authProviders.steam;
+                    steamBtn.classList.toggle('opacity-60', !authProviders.steam);
+                    steamBtn.classList.toggle('cursor-not-allowed', !authProviders.steam);
+                    steamBtn.title = authProviders.steam ? '' : 'Steam login není nakonfigurovaný na serveru';
+                }
+                if (googleBtn) {
+                    googleBtn.disabled = !authProviders.google;
+                    googleBtn.classList.toggle('opacity-60', !authProviders.google);
+                    googleBtn.classList.toggle('cursor-not-allowed', !authProviders.google);
+                    googleBtn.title = authProviders.google ? '' : 'Google login není nakonfigurovaný na serveru';
+                }
             }
         }
 
@@ -1261,6 +1307,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function openAuthModal() {
             const modal = document.getElementById('auth-modal');
             if(!modal) return;
+            sanitizeDuplicateSocialButtons();
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.getElementById('profile-nickname').value = userProfile.nickname || '';
@@ -1344,6 +1391,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             updateUI();
             renderInventory();
             showToast('Odhlášeno');
+        }
+
+        function socialLogin(provider) {
+            if (provider !== 'steam' && provider !== 'google') return;
+            if (!authProviders[provider]) {
+                return showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není nastavený na serveru.`, true);
+            }
+            window.location.href = `/auth/${provider}`;
         }
 
         const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
@@ -1944,6 +1999,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         window.onload = async () => { 
+            sanitizeDuplicateSocialButtons();
             lucide.createIcons();
             switchPage('cases');
             await loadSessionFromBackend();
