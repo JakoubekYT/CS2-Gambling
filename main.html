@@ -73,6 +73,7 @@
             --bg-dark: #0b0d11;
             --bg-panel: #14171c;
             --accent: #facc15;
+            --accent-hot: #fb7185;
             --rarity-blue: #4b69ff;
             --rarity-purple: #8847ff;
             --rarity-pink: #d32ee6;
@@ -80,9 +81,9 @@
             --rarity-gold: #ebca44;
         }
 
-        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow: hidden; }
-        .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
-        .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 150s linear infinite; padding: 0.5rem; }
+        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
+        .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
+        .live-drop-scroll { display: flex; gap: 1rem; padding: 0.5rem 0.75rem; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
         .live-drop-item { 
@@ -95,8 +96,8 @@
             background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
             border-radius: 16px;
             border: 2px solid rgba(250,204,21,0.5);
-            min-width: 120px;
-            height: 140px;
+            min-width: 152px;
+            height: 182px;
             flex-shrink: 0;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -124,8 +125,8 @@
             box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
             animation: none !important;
         }
-        .live-drop-item img { max-height: 60px; max-width: 100px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 10px; font-weight: bold; text-white; text-center; line-height: 1.2; max-width: 110px; word-wrap: break-word; }
+        .live-drop-item img { max-height: 78px; max-width: 132px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 11px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 30px; }
         .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
@@ -165,7 +166,7 @@
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
         }
-        #spinner-track { display: flex; position: absolute; left: 0; height: 100%; align-items: center; will-change: transform; }
+        .spinner-track { display: flex; position: absolute; left: 0; height: 100%; align-items: center; will-change: transform; }
         .spinner-item {
             min-width: 140px; height: 140px; margin: 0 4px;
             background: #14171c; border-bottom: 4px solid;
@@ -234,14 +235,20 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-16 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-center overflow-hidden z-40">
+    <div class="h-56 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
         <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
             🔴 LIVE DROPS
         </div>
-        <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+        <div class="flex-1 overflow-hidden py-2">
+            <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+        </div>
         <!-- Live chat (simulovaný) -->
-        <div id="live-chat" class="ml-auto mr-6 w-80 h-40 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden sm:block">
-            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto h-full pr-2"></div>
+        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden lg:flex flex-col">
+            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
+            <div class="flex gap-2">
+                <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
+                <button id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+            </div>
         </div>
     </div>
 
@@ -290,9 +297,23 @@
                 </div>
             </div>
 
+            <button onclick="claimDailyReward()" id="daily-reward-btn" class="bg-gradient-to-r from-fuchsia-600 to-pink-500 hover:from-fuchsia-500 hover:to-pink-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-pink-300/40 shadow-[0_0_25px_rgba(236,72,153,0.35)] active:scale-95 hover:scale-105">
+                🎁 DAILY ODMĚNA
+            </button>
             <button onclick="addFreeMoney()" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
                 💰 + PENÍZE ZDARMA
             </button>
+            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
+                <i data-lucide="user-round" class="w-4 h-4"></i>
+                <span id="auth-open-label">Přihlásit</span>
+            </button>
+            <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
+                <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
+                <div class="leading-tight">
+                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                    <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -300,16 +321,16 @@
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
             
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
-                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/20 to-[#0b0d11] border border-yellow-400/20 shadow-2xl flex items-center px-12 mb-8">
+                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/25 via-pink-500/10 to-[#0b0d11] border border-yellow-400/30 shadow-[0_0_80px_rgba(250,204,21,0.16)] flex items-center px-12 mb-8">
                     <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
                     <div class="relative z-10 max-w-2xl space-y-4">
                         <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
                         <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
                         <p class="text-gray-400 text-md font-medium leading-relaxed drop-shadow-md">Otevři bedny se zvukem asmr tikání, hrej mini-hry nebo použij 3-slotový Upgrader a získej svůj vysněný knife! 💎</p>
                     </div>
-                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/5 animate-pulse"></i>
+                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="cases-grid"></div>
+                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-4"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="space-y-8" id="cases-grid"></div>
             </section>
 
 
@@ -325,16 +346,29 @@
                         <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
                     </div>
 
-                    <div class="spinner-container relative mb-8">
-                        <div class="blur-edges blur-left"></div>
-                        <div class="blur-edges blur-right"></div>
-                        <div class="spinner-selector"></div>
-                        <div id="spinner-track"></div>
+                    <div id="spinner-stack" class="space-y-4 mb-8">
+                        <div class="spinner-container relative" data-spin-row="0">
+                            <div class="blur-edges blur-left"></div>
+                            <div class="blur-edges blur-right"></div>
+                            <div class="spinner-selector"></div>
+                            <div id="spinner-track-0" class="spinner-track"></div>
+                        </div>
                     </div>
+                    <div id="spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"></div>
 
-                    <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
-                        OTEVŘÍT BEDNU
-                    </button>
+                    <div class="flex flex-wrap gap-3 justify-center items-center">
+                        <label for="open-count" class="text-xs font-black uppercase tracking-widest text-purple-300">Počet spinů</label>
+                        <select id="open-count" class="bg-[#0b0d11] border border-purple-500/40 text-white rounded-xl px-4 py-3 font-black">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                        </select>
+                        <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
+                            OTEVŘÍT BEDNU
+                        </button>
+                    </div>
                 </div>
 
                 <div>
@@ -426,10 +460,33 @@
                         <h2 id="selector-title" class="text-4xl font-black uppercase italic tracking-tighter text-white">VYBER SKIN</h2>
                     </div>
                 </div>
-                <div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+                <div class="flex justify-end"><select id="selector-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-bold text-xs uppercase" onchange="openSelector(window.currentSelectorType || 'input', window.currentSelectorSlot || 0)"><option value="price-low">Cena: nejnižší</option><option value="price-high">Cena: nejvyšší</option><option value="name">Jméno A-Z</option></select></div><div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
 
         </main>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Přihlášení / Profil</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <a href="http://localhost:3000/auth/steam" target="_blank" class="bg-[#1b2838] hover:bg-[#223a52] text-white rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-blue-300/20">Steam Login</a>
+                <a href="http://localhost:3000/auth/google" target="_blank" class="bg-white/90 hover:bg-white text-black rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-white/30">Google Login</a>
+            </div>
+            <p class="text-[11px] text-gray-400 mb-4">Bez backendu můžeš použít lokální demo profil níže.</p>
+            <div class="space-y-3">
+                <input id="profile-nickname" type="text" maxlength="24" placeholder="Nickname" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-display-name" type="text" maxlength="32" placeholder="Display jméno" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-avatar" type="url" placeholder="URL profilové fotky" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <div class="flex gap-3 pt-1">
+                    <button onclick="saveLocalProfile()" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Uložit profil</button>
+                    <button onclick="logoutLocalProfile()" class="flex-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 right-10 bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black shadow-2xl opacity-0 transform translate-y-10 transition-all duration-300 z-[100] uppercase italic tracking-tighter text-lg border-2 border-yellow-300">
@@ -533,8 +590,8 @@
         };
 
         // --- STAV A DATABÁZE ---
-        let balanceBase = 0.00;
-        const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
+        let balanceBase = 100.00;
+        const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
         const rawSkinData = `
@@ -747,6 +804,7 @@ Hand Wraps|Cobalt Skulls|1100.00|#ebca44
 Moto Gloves|Eclipse|1000.00|#ebca44
 Moto Gloves|Polygon|1050.00|#ebca44
 Moto Gloves|Blood Pressure|1100.00|#ebca44
+Broken Fang Gloves|Needle Point|950.00|#ebca44
 M4A1-S|Emphorosaur-S|8.00|#8847ff
 M4A1-S|Nightmare|9.00|#d32ee6
 M4A1-S|Blue Phosphor|12.00|#d32ee6
@@ -772,17 +830,31 @@ Butterfly Knife|Case Hardened|1050.00|#ebca44
 Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         const skinsDB = {};
-        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
+        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves", "Broken Fang Gloves", "Hydra Gloves"];
         
         rawSkinData.trim().split("\n").forEach((line, idx) => {
-            const [w, n, p, c] = line.split("|");
+            const parts = line.split("|");
+            if(parts.length < 4) return;
+            const w = parts[0].trim();
+            const c = parts[parts.length - 1].trim();
+            const p = parts[parts.length - 2].trim();
+            const n = parts.slice(1, parts.length - 2).join("|").trim();
             let folder = "skins";
-            if(KNIFE_TYPES.includes(w)) folder = "knives";
-            else if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            else if(KNIFE_TYPES.includes(w)) folder = "knives";
             
+            const imgOverrides = {
+                "AWP|Man-o'-war": "https://www.csgodatabase.com/images/skins/webp/AWP_Man-o'-war.webp",
+                "M4A4|龍王 (Dragon King)": "https://www.csgodatabase.com/images/skins/webp/M4A4_%E9%BE%8D%E7%8E%8B_(Dragon_King).webp",
+                "Driver Gloves|Crimson Weave": "https://www.csgodatabase.com/images/gloves/webp/Driver_Gloves_Crimson_Weave.webp",
+                "Broken Fang Gloves|Needle Point": "https://www.csgodatabase.com/images/gloves/webp/Broken_Fang_Gloves_Needle_Point.webp",
+                "Sport Gloves|Pandora's Box": "https://www.csgodatabase.com/images/gloves/webp/Sport_Gloves_Pandora's_Box.webp"
+            };
+
             let urlWeapon = w.replace(/ /g, "_");
             let urlName = n.replace(/ /g, "_").replace(/'/g, "");
-            const primaryImg = `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
+            const overrideKey = `${w}|${n}`;
+            const primaryImg = imgOverrides[overrideKey] || `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
             // Alternate patterns (some gloves/rare items have different naming on CDN)
             const alt1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
             const alt2 = primaryImg.replace('/webp/', '/').replace('.webp', '.png');
@@ -799,7 +871,17 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             };
         });
 
-        function findSkin(w, n) { return Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n) || Object.values(skinsDB)[0]; }
+        function normalizeName(v) {
+            return (v || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        function findSkin(w, n) {
+            const exact = Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n);
+            if(exact) return exact;
+            const nw = normalizeName(w);
+            const nn = normalizeName(n);
+            return Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn) || Object.values(skinsDB)[0];
+        }
 
         const casesDB = [];
         setTimeout(() => {
@@ -976,34 +1058,147 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
             );
 
-            // Přidat extra bedny z Casehug snippet (hezké obrázky a názvy)
+            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
             const extraCases = [
-                { id: 'crazy-love', name: 'CRAZY LOVE', price: 1.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/1_CRAZY_LOVE_1769696421.png?width=640&quality=85', color: 'blue' },
-                { id: 'aftermath', name: 'AFTERMATH', price: 2.50, img: 'https://cdn.casehug.com/content/case/stupid_cupid/2_AFTERMATH_1769696421.png?width=640&quality=85', color: 'blue' },
-                { id: 'my-valentine', name: 'MY VALENTINE', price: 5.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/3_MY_VALENTINE_1769696421.png?width=640&quality=85', color: 'purple' },
-                { id: 'charmy', name: 'CHARMY', price: 20.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/4_CHARMY_1769696421.png?width=640&quality=85', color: 'purple' },
-                { id: 'put-it-together', name: 'PUT IT TOGETHER', price: 50.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/5_PUT_IT_TOGETHER_1769696421.png?width=640&quality=85', color: 'red' },
-                { id: 'frosty', name: 'FROSTY', price: 0.80, img: 'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', color: 'blue' },
-                { id: 'game-on', name: 'GAME ON', price: 4.50, img: 'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', color: 'purple' },
-                { id: 'bank-heist', name: 'BANK HEIST', price: 11.00, img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', color: 'red' },
-                { id: 'gambit', name: 'GAMBIT', price: 18.00, img: 'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', color: 'yellow-400' },
-                { id: 'chinatown', name: 'CHINATOWN', price: 97.50, img: 'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', color: 'red' },
-                { id: 'tiger', name: 'TIGER', price: 3.80, img: 'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', color: 'purple' },
-                { id: 'demolition', name: 'DEMOLITION', price: 11.00, img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', color: 'red' },
-                { id: 'electronic', name: 'ELECTRONIC', price: 33.00, img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', color: 'purple' },
-                { id: 'lab', name: 'LAB', price: 150.00, img: 'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', color: 'red' },
-                { id: 'howl', name: 'HOWL', price: 300.00, img: 'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', color: 'yellow-400' }
+                { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['Glock-18','Neo-Noir']] },
+                { id:'organic', name:'ORGANIC', price:0.30, color:'blue', img:'https://cdn.casehug.com/cases/ORGANIC.png?width=640&quality=85', top:[['USP-S','Cortex'],['AK-47','Slate']] },
+                { id:'candy-drop', name:'CANDY DROP', price:0.40, color:'purple', img:'https://cdn.casehug.com/cases/candy_drop_1.png?width=640&quality=85', top:[['Glock-18','Bullet Queen'],['MAC-10','Neon Rider']] },
+                { id:'double-cheese', name:'DOUBLE CHEESE', price:0.45, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['P250','Asiimov'],['USP-S','Ticket to Hell']] },
+                { id:'ritual', name:'RITUAL', price:0.50, color:'purple', img:'https://cdn.casehug.com/cases/RITUAL.png?width=640&quality=85', top:[['M4A1-S','Night Terror'],['AWP','Mortis']] },
+                { id:'hellfire', name:'HELLFIRE', price:0.70, color:'red', img:'https://cdn.casehug.com/cases/HELLFIRE_NEW.png?width=640&quality=85', top:[['M4A4','The Emperor'],['AK-47','Redline']] },
+                { id:'frosty', name:'FROSTY', price:0.80, color:'blue', img:'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['AK-47','Vulcan']] },
+                { id:'sweet-tooth', name:'SWEET TOOTH', price:1.00, color:'purple', img:'https://cdn.casehug.com/content/case/regular/01/SWEET_TOOTH_1758194472.png?width=640&quality=85', top:[['Karambit','Tiger Tooth'],['Desert Eagle','Printstream']] },
+                { id:'duck-luck', name:'DUCK LUCK', price:1.00, color:'blue', img:'https://cdn.casehug.com/cases/DUCK_LUCK.png?width=640&quality=85', top:[['AWP','Atheris'],['M4A4','Desolate Space']] },
+                { id:'alien', name:'ALIEN', price:1.25, color:'purple', img:'https://cdn.casehug.com/cases/ALIEN.png?width=640&quality=85', top:[['USP-S','Neo-Noir'],['AWP','Neo-Noir']] },
+                { id:'savanna', name:'SAVANNA', price:2.00, color:'blue', img:'https://cdn.casehug.com/cases/SAVANNA.png?width=640&quality=85', top:[['AK-47','Point Disarray'],['M4A1-S','Icarus Fell']] },
+                { id:'wild-west', name:'WILD WEST', price:2.00, color:'purple', img:'https://cdn.casehug.com/cases/WILD_WEST.png?width=640&quality=85', top:[['Desert Eagle','Conspiracy'],['AK-47','Redline']] },
+                { id:'insector', name:'INSECTOR', price:2.50, color:'blue', img:'https://cdn.casehug.com/cases/INSECTOR.png?width=640&quality=85', top:[['M4A4','Temukau'],['AWP','Oni Taiji']] },
+                { id:'toxic', name:'TOXIC', price:2.60, color:'purple', img:'https://cdn.casehug.com/cases/TOXIC.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Hyper Beast']] },
+                { id:'workshop', name:'WORKSHOP', price:2.75, color:'blue', img:'https://cdn.casehug.com/cases/WORKSHOP.png?width=640&quality=85', top:[['M4A4','In Living Color'],['Glock-18','Water Elemental']] },
+                { id:'game-on', name:'GAME ON', price:4.50, color:'purple', img:'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', top:[['Glock-18','Gamma Doppler'],['M4A4','Temukau']] },
+                { id:'bank-heist', name:'BANK HEIST', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', top:[['Desert Eagle','Printstream'],['AWP','Asiimov']] },
+                { id:'retro', name:'RETRO', price:11.50, color:'purple', img:'https://cdn.casehug.com/cases/RETRO.png?width=640&quality=85', top:[['USP-S','Printstream'],['AK-47','Bloodsport']] },
+                { id:'bunny-hop', name:'BUNNY HOP', price:12.75, color:'purple', img:'https://cdn.casehug.com/cases/BUNNY_HOP.png?width=640&quality=85', top:[['Skeleton Knife','Crimson Web'],['M4A1-S','Printstream']] },
+                { id:'titan', name:'TITAN', price:14.50, color:'red', img:'https://cdn.casehug.com/cases/TITAN.png?width=640&quality=85', top:[['M9 Bayonet','Doppler'],['AK-47','Vulcan']] },
+                { id:'gambit', name:'GAMBIT', price:18.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', top:[['Skeleton Knife','Tiger Tooth'],['Butterfly Knife','Tiger Tooth']] },
+                { id:'savage', name:'SAVAGE', price:25.00, color:'red', img:'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['AWP','Containment Breach']] },
+                { id:'golderra', name:'GOLDERRA', price:26.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GOLDERRA.png?width=640&quality=85', top:[['M9 Bayonet','Lore'],['Karambit','Lore']] },
+                { id:'ferro', name:'FERRO', price:30.00, color:'red', img:'https://cdn.casehug.com/cases/FERRO.png?width=640&quality=85', top:[['Desert Eagle','Blaze'],['M4A1-S','Blue Phosphor']] },
+                { id:'plant-b', name:'PLANT B', price:36.00, color:'red', img:'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['AK-47','Bloodsport']] },
+                { id:'buzzer-blade', name:'BUZZER BLADE', price:42.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/BUZZER_BLADE.png?width=640&quality=85', top:[['Talon Knife','Fade'],['Karambit','Doppler']] },
+                { id:'candy-shop', name:'CANDY SHOP', price:45.00, color:'red', img:'https://cdn.casehug.com/cases/CANDY_SHOP.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Player Two']] },
+                { id:'kingdom', name:'KINGDOM', price:46.50, color:'red', img:'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85', top:[['AWP','Medusa'],['Karambit','Fade']] },
+                { id:'sushi-master', name:'SUSHI MASTER', price:50.00, color:'red', img:'https://cdn.casehug.com/content/case/regular/01/SUSHI_MASTER_1758194472.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] },
+                { id:'warzone', name:'WARZONE', price:75.00, color:'red', img:'https://cdn.casehug.com/cases/WARZONE.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A4','Howl']] },
+                { id:'circus', name:'CIRCUS', price:80.00, color:'red', img:'https://cdn.casehug.com/cases/CIRCUS.png?width=640&quality=85', top:[['Butterfly Knife','Fade'],['Karambit','Marble Fade']] },
+                { id:'vac-attack', name:'VAC ATTACK', price:85.00, color:'red', img:'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['Sport Gloves',"Pandora's Box"]] },
+                { id:'chinatown', name:'CHINATOWN', price:97.50, color:'red', img:'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', top:[['AK-47','Wild Lotus'],['M4A1-S','Welcome to the Jungle']] },
+                { id:'el-dorado', name:'EL DORADO', price:100.00, color:'yellow-400', img:'https://cdn.casehug.com/content/case/regular/01/EL_DORADO_1758194472.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['Desert Eagle','Blaze']] },
+                { id:'arcana', name:'ARCANA', price:120.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85', top:[['Karambit','Lore'],['Sport Gloves','Vice']] },
+                { id:'babushka', name:'BABUSHKA', price:152.50, color:'red', img:'https://cdn.casehug.com/cases/BABUSHKA.png?width=640&quality=85', top:[['M9 Bayonet','Autotronic'],['M4A1-S','Printstream']] },
+                { id:'quantum', name:'QUANTUM', price:358.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/QUANTUM.png?width=640&quality=85', top:[['AWP','Gungnir'],['Karambit','Fade']] },
+                { id:'tiger', name:'TIGER', price:3.80, color:'purple', img:'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', top:[['M9 Bayonet','Tiger Tooth'],['Karambit','Tiger Tooth']] },
+                { id:'demolition', name:'DEMOLITION', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', top:[['AWP','Asiimov'],['M4A4','The Emperor']] },
+                { id:'electronic', name:'ELECTRONIC', price:33.00, color:'purple', img:'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Bloodsport']] },
+                { id:'lab', name:'LAB', price:150.00, color:'red', img:'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A1-S','Blue Phosphor']] },
+                { id:'howl-case', name:'HOWL', price:300.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] }
             ];
 
+            const chanceProfiles = [
+                [30, 25, 18, 14, 9, 4],
+                [22, 24, 21, 16, 12, 5],
+                [12, 20, 24, 22, 16, 6],
+                [6, 14, 24, 24, 22, 10],
+                [2.5, 7.5, 18, 27, 28, 17],
+                [0.8, 3.2, 10, 22, 31, 33],
+                [0.1, 1.9, 8, 20, 30, 40]
+            ];
+
+            const allSkins = Object.values(skinsDB);
+            const pickRange = (minPrice, maxPrice, exclude = []) => {
+                const pool = allSkins.filter(s => s.price >= minPrice && s.price <= maxPrice && !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            };
+            const pickAny = (exclude = []) => {
+                const pool = allSkins.filter(s => !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            };
+
+            const hash = (str) => str.split('').reduce((a, ch) => ((a * 31) + ch.charCodeAt(0)) % 9973, 7);
+            const normalizeProfile = (arr) => {
+                const sum = arr.reduce((a,b)=>a+b,0);
+                const scaled = arr.map(v => (v / sum) * 100);
+                const rounded = scaled.map(v => Math.round(v * 10) / 10);
+                const diff = Math.round((100 - rounded.reduce((a,b)=>a+b,0)) * 10) / 10;
+                rounded[rounded.length - 1] = Math.round((rounded[rounded.length - 1] + diff) * 10) / 10;
+                return rounded;
+            };
+
+            const chooseChancePattern = (caseObj, jackpotPrice) => {
+                const ratio = jackpotPrice / Math.max(0.01, caseObj.price);
+                let tier = 0;
+                if(ratio >= 120) tier = 6;
+                else if(ratio >= 50) tier = 5;
+                else if(ratio >= 20) tier = 4;
+                else if(ratio >= 10) tier = 3;
+                else if(ratio >= 5) tier = 2;
+                else if(ratio >= 2) tier = 1;
+                const variability = hash(caseObj.id + caseObj.name) % 3;
+                const idx = Math.max(0, Math.min(chanceProfiles.length - 1, tier - (variability === 0 ? 0 : (variability === 1 ? 1 : -1))));
+                return normalizeProfile([...chanceProfiles[idx]]);
+            };
+
             extraCases.forEach(ec => {
-                // pokud case s tímto id už neexistuje
-                if(!casesDB.find(x => x.id === ec.id)) {
-                    // vytvoř jednoduchý obsah z náhodných skinů
-                    const allSkins = Object.values(skinsDB);
-                    const contents = [];
-                    for(let i=0;i<4;i++) contents.push({ skin: allSkins[Math.floor(Math.random()*allSkins.length)], chance: Math.round(100/4) });
-                    casesDB.push({ id: ec.id, name: ec.name, price: ec.price, color: ec.color, img: ec.img, contents });
+                if(casesDB.find(c => c.id === ec.id)) return;
+
+                const price = ec.price;
+                const top1 = findSkin(ec.top[0][0], ec.top[0][1]);
+                const top2 = findSkin(ec.top[1][0], ec.top[1][1]);
+                const picks = [];
+                const used = [];
+
+                const low1 = pickRange(0.01, Math.max(0.05, price * 0.20), used) || pickAny(used);
+                if(low1) { picks.push(low1); used.push(low1); }
+
+                const low2 = pickRange(Math.max(0.02, price * 0.15), Math.max(0.15, price * 0.45), used) || pickAny(used);
+                if(low2) { picks.push(low2); used.push(low2); }
+
+                const mid = pickRange(Math.max(0.05, price * 0.40), Math.max(0.3, price * 0.95), used) || pickAny(used);
+                if(mid) { picks.push(mid); used.push(mid); }
+
+                const hi = top2 && !used.find(x => x.id === top2.id)
+                    ? top2
+                    : (pickRange(Math.max(0.2, price * 0.9), Math.max(1, price * 1.8), used) || pickAny(used));
+                if(hi) { picks.push(hi); used.push(hi); }
+
+                const superHi = pickRange(Math.max(0.5, price * 1.3), Math.max(2, price * 3.0), used) || pickAny(used);
+                if(superHi) { picks.push(superHi); used.push(superHi); }
+
+                const jackpot = top1 && !used.find(x => x.id === top1.id)
+                    ? top1
+                    : (pickRange(Math.max(1, price * 2.0), Math.max(5, price * 20), used) || pickAny(used));
+                if(jackpot) { picks.push(jackpot); used.push(jackpot); }
+
+                while(picks.length < 6) {
+                    const extra = pickAny(used);
+                    if(!extra) break;
+                    picks.push(extra);
+                    used.push(extra);
                 }
+
+                const sortedByPrice = picks.slice(0, 6).sort((a, b) => b.price - a.price);
+                const chances = chooseChancePattern(ec, sortedByPrice[0]?.price || price);
+
+                casesDB.push({
+                    id: ec.id,
+                    name: ec.name,
+                    price: ec.price,
+                    color: ec.color,
+                    img: ec.img,
+                    contents: sortedByPrice.map((skin, idx) => ({ skin, chance: chances[idx] || 0.1 }))
+                });
             });
 
             renderCases();
@@ -1013,6 +1208,13 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         let activeCaseId = null;
         let isSpinning = false;
         let spinAnimationId = null;
+        let casesAffordableOnly = false;
+        let userProfile = {
+            nickname: '',
+            displayName: '',
+            avatar: '',
+            provider: 'Guest'
+        };
 
         // --- ZÁKLADY UI ---
         function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
@@ -1027,8 +1229,96 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('balance').textContent = `${formatted} ${cur}`;
             const lbl = document.getElementById('balance-currency-label');
             if(lbl) lbl.textContent = `Zůstatek (${cur})`;
+            const authLabel = document.getElementById('auth-open-label');
+            const pill = document.getElementById('profile-pill');
+            const pillName = document.getElementById('profile-pill-name');
+            const pillNick = document.getElementById('profile-pill-nick');
+            const pillAvatar = document.getElementById('profile-pill-avatar');
+            if(authLabel) authLabel.textContent = userProfile.nickname ? 'Profil' : 'Přihlásit';
+            if(pill && pillName && pillNick && pillAvatar) {
+                if(userProfile.nickname) {
+                    pill.classList.remove('hidden');
+                    pill.classList.add('flex');
+                    pillName.textContent = userProfile.displayName || userProfile.nickname;
+                    pillNick.textContent = `@${userProfile.nickname} • ${userProfile.provider || 'User'}`;
+                    pillAvatar.src = userProfile.avatar || FALLBACK_IMG;
+                } else {
+                    pill.classList.add('hidden');
+                    pill.classList.remove('flex');
+                }
+            }
             lucide.createIcons();
         }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('profile-nickname').value = userProfile.nickname || '';
+            document.getElementById('profile-display-name').value = userProfile.displayName || '';
+            document.getElementById('profile-avatar').value = userProfile.avatar || '';
+            lucide.createIcons();
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveLocalProfile() {
+            const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
+            if(!nickname) return showToast('Vyplň nickname.', true);
+            userProfile = {
+                nickname,
+                displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
+                avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                provider: 'Local Demo'
+            };
+            localStorage.setItem('otodropProfile', JSON.stringify(userProfile));
+            updateUI();
+            closeAuthModal();
+            showToast('Profil uložen ✅');
+        }
+
+        function logoutLocalProfile() {
+            userProfile = { nickname: '', displayName: '', avatar: '', provider: 'Guest' };
+            localStorage.removeItem('otodropProfile');
+            updateUI();
+            showToast('Odhlášeno');
+        }
+
+        const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
+        function claimDailyReward() {
+            const now = Date.now();
+            const last = parseInt(localStorage.getItem('lastDailyReward') || '0', 10);
+            const diff = now - last;
+            if(diff < DAILY_REWARD_COOLDOWN) {
+                const sec = Math.ceil((DAILY_REWARD_COOLDOWN - diff) / 1000);
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                return showToast(`Další odměna za ${h}h ${m}m`, true);
+            }
+            const reward = Math.floor(200 + Math.random() * 600);
+            balanceBase += reward;
+            localStorage.setItem('lastDailyReward', String(now));
+            updateUI();
+            showToast(`Daily odměna: +${reward} EUR 🔥`);
+        }
+
+        function toggleAffordableCases() {
+            casesAffordableOnly = !casesAffordableOnly;
+            const btn = document.getElementById('cases-affordable-btn');
+            if(btn) {
+                btn.textContent = casesAffordableOnly ? 'Dostupné: ON' : 'Jen dostupné';
+                btn.classList.toggle('bg-green-500/20', casesAffordableOnly);
+                btn.classList.toggle('text-green-300', casesAffordableOnly);
+            }
+            renderCases();
+        }
+
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
@@ -1134,7 +1424,24 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         // --- BEDNY ---
         function renderCases() {
             const grid = document.getElementById('cases-grid');
-            grid.innerHTML = casesDB.map((c, idx) => {
+            if(!grid) return;
+            const sortSel = document.getElementById('cases-sort');
+            const sortMode = sortSel ? sortSel.value : 'default';
+            const groups = [
+                { key: 'budget', title: '💙 BUDGET CASEKY', min: 0, max: 4.99 },
+                { key: 'standard', title: '💜 STANDARD CASEKY', min: 5, max: 24.99 },
+                { key: 'premium', title: '❤️ PREMIUM CASEKY', min: 25, max: 99.99 },
+                { key: 'legendary', title: '💛 LEGENDARY CASEKY', min: 100, max: Infinity }
+            ];
+
+            const sortCases = (arr) => {
+                if(sortMode === 'price-asc') return arr.sort((a,b)=>a.price-b.price);
+                if(sortMode === 'price-desc') return arr.sort((a,b)=>b.price-a.price);
+                if(sortMode === 'name') return arr.sort((a,b)=>a.name.localeCompare(b.name));
+                return arr;
+            };
+
+            const renderCard = (c, idx) => {
                 let glowClass = '';
                 if(c.color === 'blue') glowClass = 'glow-blue';
                 else if(c.color === 'red') glowClass = 'glow-red';
@@ -1142,39 +1449,194 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 else if(c.color === 'pink') glowClass = 'glow-pink';
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
+                const affordable = balanceBase >= c.price;
                 return `
-                <div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-transparent hover:border-${c.color}/50 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 100}ms;">
-                    <div class="absolute inset-0 bg-${c.color}/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <img src="${c.img}" data-alts="${(c.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
-                    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
-                    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
-                </div>
-            `}).join('');
+<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 ${affordable ? 'border-yellow-400/25 hover:border-yellow-400' : 'border-gray-700/70 hover:border-gray-500'} cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 ${affordable ? 'bg-yellow-400/5 group-hover:opacity-100' : 'bg-gray-600/5 group-hover:opacity-70'} opacity-0 transition-opacity"></div>
+    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
+    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
+    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
+</div>
+`;
+            };
+
+            grid.innerHTML = groups.map(g => {
+                let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
+                items = sortCases(items.slice());
+                if(items.length === 0) return '';
+                return `
+                    <section>
+                        <h3 class="text-lg font-black uppercase tracking-widest text-yellow-300 mb-4 border-b border-yellow-400/20 pb-2">${g.title}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            ${items.map((c, idx) => renderCard(c, idx)).join('')}
+                        </div>
+                    </section>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500 font-black uppercase">Žádné bedny pro tento filtr.</div>';
+        }
+
+        // Vlož pod funkci renderCases (kolem řádku 815)
+        document.addEventListener('click', (e) => {
+            // Najde nejbližší rodičovský element, který má ID bedny
+            const caseCard = e.target.closest('[onclick^="openCaseView"]');
+            if (caseCard && !isSpinning) {
+                // Získá ID bedny z onclick atributu
+                const match = caseCard.getAttribute('onclick').match(/'([^']+)'/);
+                if (match) {
+                    openCaseView(match[1]);
+                }
+            }
+        });
+
+        function rollCaseSkin(caseObj) {
+            const roll = Math.random() * 100;
+            let sum = 0;
+            let win = caseObj.contents[0].skin;
+            for(const item of caseObj.contents) {
+                sum += item.chance;
+                if(roll <= sum) { win = item.skin; break; }
+            }
+            return win;
+        }
+
+        function renderMultiResultCard(skin) {
+            return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
+        }
+
+        function getOpenCount() {
+            const countSel = document.getElementById('open-count');
+            return Math.max(1, Math.min(5, parseInt(countSel?.value || '1', 10)));
+        }
+
+        function fillTrackWithCaseSkins(track, caseObj, winningSkin = null) {
+            const totalItems = 60;
+            const winningIndex = 50;
+            let html = '';
+            for(let j=0;j<totalItems;j++) {
+                const skin = (winningSkin && j === winningIndex)
+                    ? winningSkin
+                    : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
+                html += `<div class="spinner-item" style="border-color:${skin.color}"><img src="${skin.img}" data-alts="${(skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)"><div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skin.name}</div></div>`;
+            }
+            track.innerHTML = html;
+        }
+
+        function ensureSpinnerRows(count, caseObj = null) {
+            const stack = document.getElementById('spinner-stack');
+            if(!stack) return [];
+            if(stack.children.length !== count) {
+                stack.innerHTML = Array.from({ length: count }, (_, i) => `
+                    <div class="spinner-container relative" data-spin-row="${i}">
+                        <div class="blur-edges blur-left"></div>
+                        <div class="blur-edges blur-right"></div>
+                        <div class="spinner-selector"></div>
+                        <div id="spinner-track-${i}" class="spinner-track"></div>
+                    </div>
+                `).join('');
+            }
+            const tracks = Array.from(stack.querySelectorAll('.spinner-track'));
+            tracks.forEach(track => {
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(0px)';
+                if(caseObj) fillTrackWithCaseSkins(track, caseObj);
+            });
+            return tracks;
+        }
+
+        function spinCase(caseObj, count = 1) {
+            if(isSpinning) return;
+            const totalCost = caseObj.price * count;
+            if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
+
+            balanceBase -= totalCost;
+            updateUI();
+            isSpinning = true;
+
+            const btn = document.getElementById('btn-open-case');
+            const countSel = document.getElementById('open-count');
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
+
+            if(btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+                btn.textContent = count > 1 ? `Točí se ${count}x...` : 'Točí se...';
+            }
+            if(countSel) countSel.disabled = true;
+
+            const tracks = ensureSpinnerRows(count);
+            const rowMeta = [];
+            const winningIndex = 50;
+            const itemWidth = 148;
+
+            for(let i = 0; i < count; i++) {
+                const winningSkin = rollCaseSkin(caseObj);
+                const track = tracks[i];
+                if(!track) continue;
+                fillTrackWithCaseSkins(track, caseObj, winningSkin);
+                rowMeta.push({ track, row: track.parentElement, winningSkin });
+            }
+
+            setTimeout(() => {
+                rowMeta.forEach((m) => {
+                    const containerWidth = m.row.clientWidth;
+                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
+                    m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
+                    m.track.style.transform = `translateX(-${finalOffset}px)`;
+                });
+
+                setTimeout(() => {
+                    let totalWin = 0;
+                    rowMeta.forEach(m => {
+                        addToInventory(m.winningSkin);
+                        totalWin += m.winningSkin.price;
+                        if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+                    });
+
+                    if(count === 1 && rowMeta[0]) {
+                        showWinModal(rowMeta[0].winningSkin);
+                    } else {
+                        showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
+                    }
+
+                    isSpinning = false;
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                        btn.textContent = 'HRÁT ZNOVU';
+                    }
+                    if(countSel) countSel.disabled = false;
+                }, 6500);
+            }, 50);
         }
 
         function openCaseView(id) {
             activeCaseId = id;
             const c = casesDB.find(x => x.id === id);
+            if(!c) { showToast('Bedna nebyla nalezena', true); return; }
             
             document.getElementById('view-case-name').textContent = c.name;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
             document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
 
-            // Populuj Case Changer
             const changer = document.getElementById('case-changer');
-            changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
-            casesDB.forEach(caseItem => {
-                const opt = document.createElement('option');
-                opt.value = caseItem.id;
-                opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
-                opt.selected = caseItem.id === id;
-                changer.appendChild(opt);
-            });
+            if(changer) {
+                changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
+                casesDB.forEach(caseItem => {
+                    const opt = document.createElement('option');
+                    opt.value = caseItem.id;
+                    opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
+                    opt.selected = caseItem.id === id;
+                    changer.appendChild(opt);
+                });
+            }
 
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            track.innerHTML = '';
+            const countSel = document.getElementById('open-count');
+            const selectedCount = () => getOpenCount();
+            ensureSpinnerRows(selectedCount(), c);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
@@ -1185,7 +1647,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => startSpinner(c);
+            btn.onclick = () => spinCase(c, selectedCount());
+            if(countSel) {
+                countSel.onchange = () => {
+                    ensureSpinnerRows(selectedCount(), c);
+                    if(results) results.innerHTML = '';
+                };
+                countSel.disabled = false;
+            }
             btn.textContent = "OTEVŘÍT BEDNU";
             btn.disabled = false;
             btn.classList.remove('opacity-50');
@@ -1194,97 +1663,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('page-case-view').classList.remove('hidden');
         }
 
-        function startSpinner(caseObj) {
-            if(isSpinning) return;
-            if(balanceBase < caseObj.price) return showToast("Nemáš dostatek peněz!", true);
-
-            balanceBase -= caseObj.price;
-            updateUI();
-            isSpinning = true;
-
-            const btn = document.getElementById('btn-open-case');
-            btn.textContent = "Točí se...";
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-
-            // Roll
-            const roll = Math.random() * 100;
-            let sum = 0;
-            let winningSkin = caseObj.contents[0].skin;
-            for(let item of caseObj.contents) {
-                sum += item.chance;
-                if(roll <= sum) { winningSkin = item.skin; break; }
-            }
-
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            
-            const totalItems = 60;
-            const winningIndex = 50;
-            const itemWidth = 148; 
-
-            let html = '';
-            for(let i = 0; i < totalItems; i++) {
-                let skinToRender = (i === winningIndex) ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
-                html += `
-                    <div class="spinner-item" style="border-color: ${skinToRender.color}">
-                        <img src="${skinToRender.img}" data-alts="${(skinToRender.imgAlts||[]).join('|')}" onerror="handleImgError(this)">
-                        <div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skinToRender.name}</div>
-                    </div>
-                `;
-            }
-            track.innerHTML = html;
-
-            setTimeout(() => {
-                const containerWidth = document.querySelector('.spinner-container').clientWidth;
-                const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2); 
-                const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
-
-                // Ticking logikca přes requestAnimationFrame
-                let lastCrossed = 0;
-                function checkTick() {
-                    if(!isSpinning) return;
-                    const transform = window.getComputedStyle(track).getPropertyValue('transform');
-                    if(transform !== 'none') {
-                        const matrix = new DOMMatrix(transform);
-                        const currentX = Math.abs(matrix.m41);
-                        // Vypočte střed obrazovky + to co už ujelo
-                        const centerLine = currentX + (containerWidth / 2);
-                        const itemIndexAtCenter = Math.floor(centerLine / itemWidth);
-                        
-                        if(itemIndexAtCenter > lastCrossed) {
-                            SoundEngine.playTick();
-                            lastCrossed = itemIndexAtCenter;
-                            
-                            // Visual efekt problesknutí na zasaženém itemu
-                            const items = track.children;
-                            if(items[itemIndexAtCenter]) {
-                                items[itemIndexAtCenter].style.backgroundColor = '#2d3748';
-                                setTimeout(() => { if(items[itemIndexAtCenter]) items[itemIndexAtCenter].style.backgroundColor = '#14171c'; }, 100);
-                            }
-                        }
-                    }
-                    spinAnimationId = requestAnimationFrame(checkTick);
-                }
-                
-                track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
-                track.style.transform = `translateX(-${finalOffset}px)`;
-                
-                checkTick();
-
-                setTimeout(() => {
-                    isSpinning = false;
-                    cancelAnimationFrame(spinAnimationId);
-                    
-                    showWinModal(winningSkin);
-                    
-                    btn.textContent = "HRÁT ZNOVU";
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50');
-                }, 6500); 
-            }, 50);
-        }
+        function startSpinner(caseObj) { spinCase(caseObj, 1); }
 
         // --- INVENTÁŘ ---
         function addToInventory(skin) {
@@ -1423,6 +1802,8 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function removeUpgInput(i) { upgInputs[i] = null; renderUpgrader(); }
 
         function openSelector(type, slotIndex = 0) {
+            window.currentSelectorType = type;
+            window.currentSelectorSlot = slotIndex;
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-selector').classList.remove('hidden');
             
@@ -1430,6 +1811,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if (type === 'input') {
                 document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
                 let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') available.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') available.sort((a,b)=>a.name.localeCompare(b.name));
+                else available.sort((a,b)=>a.price-b.price);
                 grid.innerHTML = available.map((item, idx) => `
                     <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                         <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
@@ -1440,7 +1825,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             } else {
                 document.getElementById('selector-title').textContent = "VYBER CÍLOVÝ SKIN";
                 let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
-                let targets = Object.values(skinsDB).filter(s => s.price > totalVal).sort((a,b) => a.price - b.price);
+                let targets = Object.values(skinsDB).filter(s => s.price > totalVal);
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') targets.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') targets.sort((a,b)=>a.name.localeCompare(b.name));
+                else targets.sort((a,b)=>a.price-b.price);
                 grid.innerHTML = targets.map((item, idx) => `
                     <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                         <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
@@ -1492,55 +1881,76 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         window.onload = () => { 
             lucide.createIcons();
             switchPage('cases');
-            // Inicializuj live drops
-            initializeLiveDrops();
-            // Inicializuj simulovaný chat
-            simulateLiveChat();
+            try {
+                const raw = localStorage.getItem('otodropProfile');
+                if(raw) {
+                    const parsed = JSON.parse(raw);
+                    if(parsed && parsed.nickname) userProfile = { ...userProfile, ...parsed };
+                }
+            } catch(e) { console.warn('profile load failed', e); }
+            // Inicializuj live drops + chat (fail-safe)
+            try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
+            try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
             // Currency selector handler
             const cur = document.getElementById('currency-select');
             if(cur) {
                 cur.addEventListener('change', updateUI);
             }
+            const modal = document.getElementById('auth-modal');
+            if(modal) {
+                modal.addEventListener('click', (e) => {
+                    if(e.target === modal) closeAuthModal();
+                });
+            }
             // Inicialní UI update
             updateUI();
         };
 
-        // --- Simulovaný live chat (ukázka) ---
-        function simulateLiveChat() {
-            const messages = [
-                'No way, just got a Karambit!🔥',
-                'Anyone selling AWP Asiimov?',
-                'Nice pull man!',
-                'Buying low-tier for upgrade',
-                'GG, bot just lost everything',
-                'Free case worked for me 😎',
-                'Where are the gloves images? lol',
-                'That spin looked sick!'
-            ];
-            const names = ['Alpha','Beta','Gamer','Pro','Lucky','Hunter','Trader','Baller','BOT Nope','BOT Jarvis'];
-            const container = document.getElementById('live-chat-messages');
-            if(!container) return;
-            function pushMsg() {
-                const n = names[Math.floor(Math.random()*names.length)];
-                const m = messages[Math.floor(Math.random()*messages.length)];
-                const el = document.createElement('div');
-                el.className = 'text-[12px] text-gray-200';
-                el.innerHTML = `<strong class="text-yellow-300">${n}:</strong> <span class="text-gray-300">${m}</span>`;
-                container.appendChild(el);
-                if(container.children.length > 40) container.removeChild(container.firstChild);
-                container.scrollTop = container.scrollHeight;
+        // --- Live chat (uživatel + AI odpovědi, fallback bez API) ---
+        async function maybeGeminiReply(userMessage) {
+            const apiKey = localStorage.getItem('geminiApiKey') || '';
+            if(!apiKey) return null;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${userMessage}` }] }],
+                        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
+                    })
+                });
+                if(!res.ok) return null;
+                const data = await res.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+            } catch {
+                return null;
             }
-            setInterval(pushMsg, 2200 + Math.random()*2000);
-            // push a few initial
-            for(let i=0;i<6;i++) setTimeout(pushMsg, i*300);
         }
 
         function initializeLiveDrops() {
             const dropsContainer = document.getElementById('live-drops');
+            if(!dropsContainer) return;
+            dropsContainer.style.animation = 'none';
             const skinList = Object.values(skinsDB);
-            let lastSkinId = null;
+            const cheapPool = skinList.filter(s => s.price <= 15);
+            const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
+            const expensivePool = skinList.filter(s => s.price > 120 && s.price <= 700);
+            const ultraPool = skinList.filter(s => s.price > 700 || KNIFE_TYPES.includes(s.weapon) || GLOVE_TYPES.includes(s.weapon));
 
-            // Small list of sample Steam profiles (name + avatar). You can expand or replace with real data later.
+            function pickWeightedLiveSkin() {
+                const roll = Math.random() * 100;
+                let pool = cheapPool;
+                // Realističtější feed: drtivá většina dropů je levná, drahé/nože jsou vzácné
+                if(roll < 82) pool = cheapPool;
+                else if(roll < 95) pool = midPool.length ? midPool : cheapPool;
+                else if(roll < 99.2) pool = expensivePool.length ? expensivePool : (midPool.length ? midPool : cheapPool);
+                else pool = ultraPool.length ? ultraPool : (expensivePool.length ? expensivePool : cheapPool);
+                return pool[Math.floor(Math.random() * pool.length)] || skinList[Math.floor(Math.random() * skinList.length)];
+            }
+            let lastSkinId = null;
+            let offsetX = 0;
+            let paused = false;
+
             const steamProfiles = [
                 { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
                 { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
@@ -1555,20 +1965,17 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             function addRandomDrop() {
                 if(skinList.length === 0) return;
                 let attempts = 0;
-                let randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                let randomSkin = pickWeightedLiveSkin();
                 while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
-                    randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                    randomSkin = pickWeightedLiveSkin();
                     attempts++;
                 }
                 lastSkinId = randomSkin.id;
 
-                // pick a random steam profile
                 const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
-
                 const item = document.createElement('div');
                 item.className = 'live-drop-item';
 
-                // avatar
                 const avatarWrap = document.createElement('div');
                 avatarWrap.className = 'live-drop-avatar';
                 const avatarImg = document.createElement('img');
@@ -1592,7 +1999,6 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 userDiv.className = 'live-drop-item-user';
                 userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
 
-                // tooltip element
                 const tooltip = document.createElement('div');
                 tooltip.className = 'live-drop-tooltip';
                 tooltip.innerHTML = `
@@ -1611,29 +2017,110 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 item.appendChild(userDiv);
                 item.appendChild(tooltip);
 
-                // hover behavior: pause and show tooltip
-                item.addEventListener('mouseenter', (e) => {
-                    dropsContainer.style.animationPlayState = 'paused';
-                    item.style.zIndex = '100';
-                    tooltip.classList.add('visible');
-                });
-                item.addEventListener('mouseleave', () => {
-                    dropsContainer.style.animationPlayState = 'running';
-                    item.style.zIndex = '1';
-                    tooltip.classList.remove('visible');
-                });
+                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; });
+                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
 
                 dropsContainer.appendChild(item);
-
-                if(dropsContainer.children.length > 50) {
-                    dropsContainer.removeChild(dropsContainer.firstChild);
-                }
+                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
             }
 
-            setInterval(addRandomDrop, 2200);
-            addRandomDrop();
+            for(let i=0;i<18;i++) addRandomDrop();
+            setInterval(addRandomDrop, 1700);
+            setInterval(() => {
+                if(dropsContainer.children.length < 6) {
+                    for(let i=0;i<12;i++) addRandomDrop();
+                }
+            }, 4000);
+
+            let lastTs = performance.now();
+            const speed = 34;
+            const gapPx = 16;
+            function getItemWidth(el) {
+                if(!el) return 0;
+                return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;
+            }
+            function animate(ts) {
+                const dt = Math.min(0.05, (ts - lastTs) / 1000);
+                lastTs = ts;
+                if(!paused) {
+                    offsetX -= speed * dt;
+                    let first = dropsContainer.firstElementChild;
+                    let firstWidth = getItemWidth(first);
+                    while(first && firstWidth > 0 && -offsetX >= firstWidth) {
+                        offsetX += firstWidth;
+                        dropsContainer.appendChild(first);
+                        first = dropsContainer.firstElementChild;
+                        firstWidth = getItemWidth(first);
+                    }
+                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
+                }
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
         }
 
+        function simulateLiveChat() {
+            const container = document.getElementById('live-chat-messages');
+            const input = document.getElementById('live-chat-input');
+            const sendBtn = document.getElementById('live-chat-send');
+            if(!container || !input || !sendBtn) return;
+
+            const firstNames = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel','Fanda','Kuba','Jana','Erik','Misa','Roman','Patrik','Alex'];
+            const intros = ['právě', 'teď', 'dneska', 'upřímně', 'lol', 'ngl', 'wtf', 'bro', 'tyjo', 'mega'];
+            const actions = ['dropnul', 'vytáhl', 'spálil', 'otočil', 'prodal', 'nechal v invu', 'přidal do upgradu', 'zkusil free case', 'risknul all-in'];
+            const items = ['Karambit Fade', 'M4A4 Howl', 'AWP Asiimov', 'AK-47 Bloodsport', 'Sport Gloves Vice', 'Desert Eagle Printstream', 'Butterfly Doppler', 'M9 Tiger Tooth', 'AWP Dragon Lore', 'USP-S Neo-Noir'];
+            const reactions = ['to je šílený', 'tohle bolí', 'dneska to padá', 'rip bankroll', 'easy profit', 'casino mě miluje', 'casino mě nenávidí', 'točím dál', 'jdu ještě jednu'];
+            const emotes = ['🔥','💀','😎','😂','🎯','💸','🧊','👀','🚀','🤯'];
+
+            const addMessage = (name, message, mine = false) => {
+                const row = document.createElement('div');
+                row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
+                row.innerHTML = mine
+                    ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${message}</span>`
+                    : `<span class="text-yellow-300 font-bold">${name}:</span> <span class="text-gray-300">${message}</span>`;
+                container.appendChild(row);
+                if(container.children.length > 120) container.removeChild(container.firstChild);
+                container.scrollTop = container.scrollHeight;
+            };
+
+            const randomName = () => `${firstNames[Math.floor(Math.random()*firstNames.length)]}#${1000 + Math.floor(Math.random()*9000)}`;
+            const randomEmotes = () => Array.from({length: 1 + Math.floor(Math.random()*2)}, () => emotes[Math.floor(Math.random()*emotes.length)]).join('');
+            const generateHumanLikeMessage = () => {
+                const i = intros[Math.floor(Math.random()*intros.length)];
+                const a = actions[Math.floor(Math.random()*actions.length)];
+                const it = items[Math.floor(Math.random()*items.length)];
+                const r = reactions[Math.floor(Math.random()*reactions.length)];
+                const patterns = [
+                    `${i} jsem ${a} ${it} ${randomEmotes()}`,
+                    `${a} jsem ${it}, ${r} ${randomEmotes()}`,
+                    `${i} free case a ${a} ${it}`,
+                    `${it}? ${r} ${randomEmotes()}`,
+                    `${i} točím ${a} a ${r}`
+                ];
+                return patterns[Math.floor(Math.random() * patterns.length)];
+            };
+
+            const pushNaturalMessage = () => addMessage(randomName(), generateHumanLikeMessage());
+
+            const sendUserMessage = () => {
+                const text = input.value.trim();
+                if(!text) return;
+                input.value = '';
+                addMessage('Ty', text, true);
+                maybeGeminiReply(text).then((ai) => {
+                    if(ai) addMessage(randomName(), ai);
+                    else setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
+                });
+            };
+
+            sendBtn.onclick = sendUserMessage;
+            input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
+
+            for(let i=0;i<12;i++) setTimeout(pushNaturalMessage, i*220);
+            setInterval(pushNaturalMessage, 1200 + Math.random()*1900);
+        }
+
+        // --- FREE CASE SYSTEM ---
         // --- FREE CASE SYSTEM ---
         const FREE_CASE_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hodin
         
@@ -1669,10 +2156,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
             document.getElementById('view-case-price').textContent = '0 EUR';
             
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            track.innerHTML = '';
+            const countSel = document.getElementById('open-count');
+            if(countSel) {
+                countSel.value = '1';
+                countSel.disabled = false;
+            }
+            ensureSpinnerRows(1, randomCase);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
@@ -1683,7 +2174,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => startSpinner(randomCase);
+            btn.onclick = () => spinCase(randomCase, getOpenCount());
             btn.textContent = "OTEVŘÍT ZDARMA";
             btn.disabled = false;
             btn.classList.remove('opacity-50');
