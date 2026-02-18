@@ -165,3 +165,38 @@ Vytvořeno s ❤️ a spoustou CSS animací!
 **Verze**: 2.0  
 **Poslední aktualizace**: Březen 2025  
 **Status**: ✅ Hotovo a otestováno
+
+
+## 🔐 Login, účty a databáze (backend + OAuth)
+
+Aplikace teď používá **reálný backend** (`server.js`) a SQLite databázi (`otodrop.db`).
+
+### Co je nově
+- Přihlášení přes **Google OAuth**.
+- Přihlášení přes **Steam OpenID**.
+- Přihlašovací údaje nikdy neprochází frontendem (řeší je provider + backend session).
+- Ukládání stavu hráče do DB:
+  - balance
+  - inventář skinů
+  - cooldown na FREE case
+- Admin endpoint pro připisování prostředků hráčům podle emailu.
+
+### FREE CASE
+- FREE case dává pouze **0.01 až 0.03 EUR**.
+- Cooldown je server-side 24h.
+
+### Výdělek kasina (RTP)
+- Všechny case jsou po načtení automaticky přepočtené na RTP cca **49 % pro hráče / 51 % pro kasino**.
+
+### Spuštění
+1. Vytvoř `.env` podle `.env.example`.
+2. Doplň OAuth klíče (Google + Steam) a `SESSION_SECRET`.
+3. `npm install`
+4. `npm start`
+5. Otevři `http://localhost:3000`
+
+### Důležité ENV
+- `BASE_URL` (např. `http://localhost:3000`) – musí sedět s OAuth callback URL.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `STEAM_API_KEY`
+- `ADMIN_EMAIL`

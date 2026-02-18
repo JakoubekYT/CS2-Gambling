@@ -2,14 +2,14 @@
     =====================================================
     OTODROP - CS2 GAMBLING SITE v2.0 - VYLEPŠENÁ VERZE
     =====================================================
-    
+
     VYLEPŠENÍ A NOVÉ FUNKCE:
-    
+
     ✅ 150+ SKINŮ A NOŽŮ
        - Přidáno 50+ nových skinů (klasické i exotické)
        - Všechny typy nožů (Karambit, M9 Bayonet, Butterfly atd.)
        - Vzácné doplňky (rukavice, wrapy)
-    
+
     ✅ 6 MINI-HER
        1. COINFLIP - 50/50 zdvojení sázky
        2. CRASH - Akcelerující výnos s rizikem
@@ -17,13 +17,13 @@
        4. DICE - Tipování hodu kostkou
        5. ROULETTE - Ruleta s barevnými poli
        6. SLOTS - Klasické automaty s jackpotem
-    
+
     ✅ 15+ BEDNY
        - Budget bedny (2.50-5.00 EUR)
        - Mid-tier bedny (50-100 EUR)
        - Top-tier bedny (200-1000 EUR)
        - Speciální bedny (Knives, Gloves, Legendary)
-    
+
     ✅ VYLEPŠENÁ ANIMACE
        - Item float efekty
        - Pulse animace na vzácných položkách
@@ -31,31 +31,31 @@
        - Dynamické glowing pro raritu
        - Transition effects na všech interakcích
        - Vylepšené spinner animace
-    
+
     ✅ ZLEPŠENÝ INVENTÁŘ
        - Filtrování dle barvy/rarity (Modré, Fialové, Růžové, Červené, Zlaté)
        - Filtrování dle typu (Nože, Zbraně)
        - Třídění (Nejnovější, Cena vysoká/nízka, Jméno)
        - Animované položky s cascade efektem
-    
+
     ✅ LIVE DROPS TICKER
        - Real-time simulace výher jiných hráčů
        - Scrollující banner s nabídkou
        - Animované zápisy
-    
+
     ✅ PROFESIONÁLNÍ VZHLED
        - Lepší header s hover efekty
        - Vylepšené popup okno s animacemi
        - Gradientní tlačítka s shadow efekty
        - Lepší responsivnost
        - Casino-style design elementy
-    
+
     ✅ ZVUKOVÝ ENGINE
        - Web Audio API pro zvuky
        - Tick zvuky během otáčení
        - Zvuky výhry/prohry
        - Upgrade procesuální zvuk
-    
+
     =====================================================
 -->
 
@@ -84,8 +84,8 @@
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
         .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 150s linear infinite; padding: 0.5rem; }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        
-        .live-drop-item { 
+
+        .live-drop-item {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -129,7 +129,7 @@
         .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes dropPulse {
             0%, 100% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -138,19 +138,19 @@
         ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
 
         /* Vylepšené item animace */
         .item-float { animation: none; opacity: 1; transform: scale(1) !important; }
         @keyframes floatItem { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(0px); } }
-        
+
         .item-pulse { animation: itemPulse 2s ease-in-out infinite; }
         @keyframes itemPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
-        
+
         .item-shine { animation: shine 3s ease-in-out infinite; }
         @keyframes shine { 0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0); } 50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); } }
-        
+
         .glow-blue { box-shadow: 0 0 20px rgba(75, 105, 255, 0.4); }
         .glow-purple { box-shadow: 0 0 20px rgba(136, 71, 255, 0.4); }
         .glow-pink { box-shadow: 0 0 20px rgba(211, 46, 230, 0.4); }
@@ -189,11 +189,11 @@
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .win-glow-rotate { animation: spin 10s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        
+
         .particle { position: absolute; border-radius: 50%; pointer-events: none; animation: flyOut 1.5s ease-out forwards; }
-        @keyframes flyOut { 
-            0% { transform: translate(0, 0) scale(1); opacity: 1; } 
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
+        @keyframes flyOut {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
 
         /* Upgrade efekty */
@@ -204,7 +204,7 @@
         .spinner-item {
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
+
         .spinner-item:hover {
             transform: translateY(-8px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.8);
@@ -215,13 +215,13 @@
 
     <div id="win-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300 opacity-0">
         <div id="win-bg-glow" class="absolute w-[800px] h-[800px] blur-[150px] opacity-40 win-glow-rotate rounded-full"></div>
-        
+
         <div class="text-center relative z-10 w-full max-w-3xl px-8 flex flex-col items-center">
             <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-4 animate-pulse">Padlo ti</h3>
             <img id="win-image" class="h-80 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] scale-0 mb-8" src="" alt="Skin">
             <h2 id="win-name" class="text-6xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl mb-2"></h2>
             <div id="win-price" class="text-3xl font-bold text-yellow-400 mb-12 drop-shadow-lg">0.00 EUR</div>
-            
+
             <div class="flex gap-6 justify-center w-full max-w-lg">
                 <button id="btn-win-sell" class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-black py-4 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
                     Prodat za <span id="win-sell-price"></span>
@@ -290,15 +290,30 @@
                 </div>
             </div>
 
-            <button onclick="addFreeMoney()" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
-                💰 + PENÍZE ZDARMA
-            </button>
+            <div class="flex items-center gap-3">
+                <div id="auth-status" class="text-right hidden lg:block">
+                    <div id="auth-user-name" class="font-black text-sm text-white">Nepřihlášený hráč</div>
+                    <div id="auth-user-email" class="text-[10px] uppercase tracking-wider text-gray-500">Přihlaste se přes Google</div>
+                </div>
+                <button id="google-login-btn" onclick="loginWithGoogle()" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95 hover:scale-105">
+                    Google Login
+                </button>
+                <button id="steam-login-btn" onclick="loginWithSteam()" class="bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-slate-400/50 shadow-[0_0_20px_rgba(100,116,139,0.3)] active:scale-95 hover:scale-105">
+                    Steam Login
+                </button>
+                <button id="logout-btn" onclick="logoutUser()" class="hidden bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-gray-500/50 active:scale-95 hover:scale-105">
+                    Odhlásit
+                </button>
+                <button id="admin-open-btn" onclick="switchPage('admin')" class="hidden bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
+                    Admin rozhraní
+                </button>
+            </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
-            
+
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
                 <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/20 to-[#0b0d11] border border-yellow-400/20 shadow-2xl flex items-center px-12 mb-8">
                     <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
@@ -348,7 +363,7 @@
                     <h2 class="text-5xl font-black uppercase italic tracking-tighter text-white">OTODROP <span class="text-purple-500">UPGRADER</span></h2>
                     <p class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Slož až 3 skiny dohromady a vyber si cokoliv z databáze</p>
                 </div>
-                
+
                 <div class="bg-[#14171c] p-10 rounded-3xl border border-white/5 shadow-2xl relative upgrade-glow" id="upgrade-panel">
                     <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-12 items-center">
                         <div class="space-y-4">
@@ -359,7 +374,7 @@
                                 <div id="upg-total-input-val" class="text-purple-400 font-black text-xl drop-shadow-lg">0.00 EUR</div>
                             </div>
                         </div>
-                        
+
                         <div class="text-center space-y-6">
                             <div class="relative">
                                 <svg class="w-48 h-48 mx-auto transform -rotate-90">
@@ -375,7 +390,7 @@
                                 Vylepšit
                             </button>
                         </div>
-                        
+
                         <div class="space-y-4 h-full flex flex-col justify-center">
                             <h3 class="text-gray-400 font-black uppercase text-sm tracking-widest text-center mb-2">Cílový skin</h3>
                             <div id="upg-target-slot" onclick="openSelector('target')" class="bg-gradient-to-b from-purple-950/30 to-black/30 border-2 border-dashed border-purple-500/50 hover:border-yellow-400 rounded-3xl h-64 flex flex-col items-center justify-center p-4 relative overflow-hidden cursor-pointer transition-all group">
@@ -427,6 +442,28 @@
                     </div>
                 </div>
                 <div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+            </section>
+
+            <section id="page-admin" class="page hidden max-w-3xl mx-auto space-y-6 fade-in">
+                <div class="bg-[#14171c] rounded-3xl border border-green-400/20 p-8 shadow-2xl space-y-6">
+                    <div>
+                        <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white">ADMIN <span class="text-green-400">PANEL</span></h2>
+                        <p class="text-gray-400 text-sm mt-2">Pouze admin účet může připisovat prostředky hráčům.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="admin-target-email" class="block text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Email hráče</label>
+                            <input id="admin-target-email" type="email" placeholder="hrac@email.com" class="w-full bg-[#0b0d11] border border-gray-700 rounded-xl px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label for="admin-topup-amount" class="block text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Částka (EUR)</label>
+                            <input id="admin-topup-amount" type="number" min="0.01" step="0.01" value="10" class="w-full bg-[#0b0d11] border border-gray-700 rounded-xl px-4 py-3 text-white">
+                        </div>
+                        <button onclick="adminAddFunds()" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-4 rounded-2xl uppercase tracking-wider">Připsat prostředky</button>
+                    </div>
+                    <p class="text-xs text-gray-500">Admin email nastavíš v backendu přes proměnnou <span class="text-yellow-400">ADMIN_EMAIL</span> v .env.</p>
+                </div>
             </section>
 
         </main>
@@ -492,12 +529,12 @@
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.type = 'square';
-                
+
                 let baseFreq = rarity === 'gold' ? 523.25 : (rarity === 'red' ? 440 : 329.63); // C5, A4, E4
                 osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
                 osc.frequency.setValueAtTime(baseFreq * 1.25, audioCtx.currentTime + 0.1);
                 osc.frequency.setValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.2);
-                
+
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
                 osc.start();
@@ -534,6 +571,131 @@
 
         // --- STAV A DATABÁZE ---
         let balanceBase = 0.00;
+        let currentUser = null;
+        let saveTimer = null;
+
+        async function apiFetch(url, options = {}) {
+            const res = await fetch(url, {
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                ...options
+            });
+            const isJson = (res.headers.get('content-type') || '').includes('application/json');
+            const data = isJson ? await res.json() : null;
+            if(!res.ok) {
+                const err = new Error((data && data.error) || `HTTP ${res.status}`);
+                err.data = data;
+                throw err;
+            }
+            return data;
+        }
+
+        async function bootstrapAuth() {
+            try {
+                const me = await apiFetch('/api/auth/me');
+                currentUser = me.authenticated ? me.user : null;
+                if(currentUser) {
+                    const state = await apiFetch('/api/player/state');
+                    balanceBase = Number(state.balanceBase || 0);
+                    userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                } else {
+                    balanceBase = 0;
+                    userInventory = [];
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Backend není dostupný. Spusť server.js', true);
+            }
+            updateAuthUI();
+            updateUI();
+            renderInventory();
+        }
+
+        function scheduleUserSave() {
+            if(!currentUser) return;
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(async () => {
+                try {
+                    await apiFetch('/api/player/state', {
+                        method: 'POST',
+                        body: JSON.stringify({ balanceBase, inventory: userInventory })
+                    });
+                } catch (e) {
+                    console.error('save failed', e);
+                }
+            }, 250);
+        }
+
+        function loginWithGoogle() {
+            window.location.href = '/auth/google';
+        }
+
+        function loginWithSteam() {
+            window.location.href = '/auth/steam';
+        }
+
+        async function logoutUser() {
+            await apiFetch('/auth/logout', { method: 'POST' });
+            currentUser = null;
+            balanceBase = 0;
+            userInventory = [];
+            updateAuthUI();
+            updateUI();
+            showToast('Odhlášeno');
+        }
+
+        function isAdmin() {
+            return !!(currentUser && currentUser.isAdmin);
+        }
+
+        function updateAuthUI() {
+            const nameEl = document.getElementById('auth-user-name');
+            const emailEl = document.getElementById('auth-user-email');
+            const loginBtn = document.getElementById('google-login-btn');
+            const steamBtn = document.getElementById('steam-login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const adminBtn = document.getElementById('admin-open-btn');
+
+            if(currentUser) {
+                nameEl.textContent = currentUser.displayName || 'Přihlášený hráč';
+                emailEl.textContent = (currentUser.email || currentUser.provider || '').toUpperCase();
+                loginBtn.classList.add('hidden');
+                steamBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                adminBtn.classList.toggle('hidden', !isAdmin());
+            } else {
+                nameEl.textContent = 'Nepřihlášený hráč';
+                emailEl.textContent = 'Přihlaste se přes Google nebo Steam';
+                loginBtn.classList.remove('hidden');
+                steamBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                adminBtn.classList.add('hidden');
+            }
+        }
+
+        async function adminAddFunds() {
+            if(!isAdmin()) return showToast('Toto může dělat jen admin.', true);
+
+            const targetEmail = (document.getElementById('admin-target-email').value || '').trim().toLowerCase();
+            const amount = Number(document.getElementById('admin-topup-amount').value || 0);
+            if(!targetEmail || amount <= 0) return showToast('Vyplň email a částku > 0.', true);
+
+            try {
+                await apiFetch('/api/admin/funds', {
+                    method: 'POST',
+                    body: JSON.stringify({ email: targetEmail, amount })
+                });
+                showToast(`Připsáno ${amount.toFixed(2)} EUR hráči ${targetEmail}`);
+            } catch (e) {
+                showToast('Nepodařilo se připsat prostředky.', true);
+            }
+        }
+
+        function requireLogin() {
+            if(currentUser) return true;
+            showToast('Nejdřív se přihlaš přes Google/Steam.', true);
+            return false;
+        }
         const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
@@ -773,13 +935,13 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         const skinsDB = {};
         const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
-        
+
         rawSkinData.trim().split("\n").forEach((line, idx) => {
             const [w, n, p, c] = line.split("|");
             let folder = "skins";
             if(KNIFE_TYPES.includes(w)) folder = "knives";
             else if(GLOVE_TYPES.includes(w)) folder = "gloves";
-            
+
             let urlWeapon = w.replace(/ /g, "_");
             let urlName = n.replace(/ /g, "_").replace(/'/g, "");
             const primaryImg = `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
@@ -1006,6 +1168,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
             });
 
+            rebalanceAllCases();
             renderCases();
         }, 100);
 
@@ -1028,6 +1191,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const lbl = document.getElementById('balance-currency-label');
             if(lbl) lbl.textContent = `Zůstatek (${cur})`;
             lucide.createIcons();
+            if(currentUser) scheduleUserSave();
         }
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
@@ -1041,24 +1205,23 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         function switchPage(id) {
             if(isSpinning) return;
+            if(['upgrade', 'inventory', 'admin'].includes(id) && !requireLogin()) return;
+            if(id === 'admin' && !isAdmin()) return showToast('Toto může dělat jen admin.', true);
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             const page = document.getElementById(`page-${id}`);
             if (page) page.classList.remove('hidden');
-            
+
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const activeNav = Array.from(document.querySelectorAll('.nav-link')).find(l => l.getAttribute('onclick').includes(`'${id}'`));
             if(activeNav) activeNav.classList.add('active');
 
             if(id === 'inventory') renderInventory();
             if(id === 'upgrade') renderUpgrader();
-            activeCaseId = null; 
+            activeCaseId = null;
         }
 
         function addFreeMoney() {
-            balanceBase += 1000;
-            updateUI();
-            showToast("Přidáno 1000 EUR!");
-            initAudio(); // Pro sichr init z tlačítka
+            showToast('Přidávání prostředků je jen přes admin panel.', true);
         }
 
         // --- FULL-SCREEN VÝHERNÍ POPUP A EFEKTY ---
@@ -1074,12 +1237,12 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 p.style.height = size + 'px';
                 p.style.left = '50%';
                 p.style.top = '50%';
-                
+
                 const angle = Math.random() * Math.PI * 2;
                 const velocity = Math.random() * 400 + 100;
                 p.style.setProperty('--tx', `${Math.cos(angle) * velocity}px`);
                 p.style.setProperty('--ty', `${Math.sin(angle) * velocity}px`);
-                
+
                 container.appendChild(p);
             }
         }
@@ -1087,25 +1250,25 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function showWinModal(skin) {
             const modal = document.getElementById('win-modal');
             const img = document.getElementById('win-image');
-            
+
             document.getElementById('win-name').textContent = skin.name;
             document.getElementById('win-price').textContent = formatMoney(skin.price);
             document.getElementById('win-sell-price').textContent = formatMoney(skin.price);
             document.getElementById('win-bg-glow').style.backgroundColor = skin.color;
-            
+
             img.src = skin.img;
-            
+
             modal.classList.remove('hidden');
             // Malý delay pro CSS tranzici
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 img.classList.add('win-pop');
-                
+
                 // Efekty pokud je to red/gold
                 if(skin.color === '#eb4b4b' || skin.color === '#ebca44') {
                     createParticles(skin.color);
                 }
-                
+
                 SoundEngine.playWin(skin.rarityName);
             }, 50);
 
@@ -1113,10 +1276,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('btn-win-sell').onclick = () => {
                 balanceBase += skin.price;
                 updateUI();
+                if(currentUser) scheduleUserSave();
                 showToast(`Získáno ${formatMoney(skin.price)}`);
                 closeWinModal();
             };
-            
+
             document.getElementById('btn-win-keep').onclick = () => {
                 addToInventory(skin);
                 showToast(`Uloženo do inventáře`);
@@ -1132,6 +1296,49 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         // --- BEDNY ---
+
+        function rebalanceCaseToRTP(caseObj, targetRtp = 0.49) {
+            const items = (caseObj.contents || []).filter(c => c && c.skin && Number.isFinite(c.skin.price));
+            if(items.length === 0) return;
+
+            const target = caseObj.price * targetRtp;
+            const prices = items.map(i => i.skin.price);
+            const minP = Math.min(...prices);
+            const maxP = Math.max(...prices);
+            const clampedTarget = Math.min(Math.max(target, minP), maxP);
+
+            const expectedWithLambda = (lambda) => {
+                const ws = prices.map(v => Math.exp(-lambda * v));
+                const sumW = ws.reduce((a,b)=>a+b,0);
+                return ws.reduce((acc,w,i)=>acc + (w/sumW)*prices[i], 0);
+            };
+
+            let lo = 0;
+            let hi = 2;
+            while(expectedWithLambda(hi) > clampedTarget && hi < 50) hi *= 1.8;
+            for(let i=0;i<50;i++) {
+                const mid = (lo+hi)/2;
+                if(expectedWithLambda(mid) > clampedTarget) lo = mid;
+                else hi = mid;
+            }
+            const lambda = hi;
+
+            const weights = prices.map(v => Math.exp(-lambda * v));
+            const sumW = weights.reduce((a,b)=>a+b,0);
+            let chances = weights.map(w => (w/sumW)*100);
+
+            chances = chances.map(v => Number(v.toFixed(3)));
+            const diff = 100 - chances.reduce((a,b)=>a+b,0);
+            const minIdx = prices.indexOf(minP);
+            chances[minIdx] = Number((chances[minIdx] + diff).toFixed(3));
+
+            caseObj.contents = items.map((item, idx) => ({ ...item, chance: chances[idx] }));
+        }
+
+        function rebalanceAllCases() {
+            casesDB.forEach(c => rebalanceCaseToRTP(c, 0.49));
+        }
+
         function renderCases() {
             const grid = document.getElementById('cases-grid');
             grid.innerHTML = casesDB.map((c, idx) => {
@@ -1155,7 +1362,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function openCaseView(id) {
             activeCaseId = id;
             const c = casesDB.find(x => x.id === id);
-            
+
             document.getElementById('view-case-name').textContent = c.name;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
             document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
@@ -1175,7 +1382,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             track.style.transition = 'none';
             track.style.transform = 'translateX(0px)';
             track.innerHTML = '';
-            
+
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
                     <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
@@ -1195,6 +1402,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         function startSpinner(caseObj) {
+            if(!requireLogin()) return;
             if(isSpinning) return;
             if(balanceBase < caseObj.price) return showToast("Nemáš dostatek peněz!", true);
 
@@ -1219,10 +1427,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const track = document.getElementById('spinner-track');
             track.style.transition = 'none';
             track.style.transform = 'translateX(0px)';
-            
+
             const totalItems = 60;
             const winningIndex = 50;
-            const itemWidth = 148; 
+            const itemWidth = 148;
 
             let html = '';
             for(let i = 0; i < totalItems; i++) {
@@ -1238,7 +1446,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
             setTimeout(() => {
                 const containerWidth = document.querySelector('.spinner-container').clientWidth;
-                const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2); 
+                const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2);
                 const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
 
                 // Ticking logikca přes requestAnimationFrame
@@ -1252,11 +1460,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                         // Vypočte střed obrazovky + to co už ujelo
                         const centerLine = currentX + (containerWidth / 2);
                         const itemIndexAtCenter = Math.floor(centerLine / itemWidth);
-                        
+
                         if(itemIndexAtCenter > lastCrossed) {
                             SoundEngine.playTick();
                             lastCrossed = itemIndexAtCenter;
-                            
+
                             // Visual efekt problesknutí na zasaženém itemu
                             const items = track.children;
                             if(items[itemIndexAtCenter]) {
@@ -1267,22 +1475,22 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     }
                     spinAnimationId = requestAnimationFrame(checkTick);
                 }
-                
+
                 track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
                 track.style.transform = `translateX(-${finalOffset}px)`;
-                
+
                 checkTick();
 
                 setTimeout(() => {
                     isSpinning = false;
                     cancelAnimationFrame(spinAnimationId);
-                    
+
                     showWinModal(winningSkin);
-                    
+
                     btn.textContent = "HRÁT ZNOVU";
                     btn.disabled = false;
                     btn.classList.remove('opacity-50');
-                }, 6500); 
+                }, 6500);
             }, 50);
         }
 
@@ -1304,7 +1512,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             }
 
             let displayItems = userInventory;
-            
+
             // Aplikuj filtr
             const filterVal = document.getElementById('inv-filter')?.value || 'all';
             if(filterVal === 'blue') displayItems = displayItems.filter(i => i.color === '#4b69ff');
@@ -1336,7 +1544,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     </button>
                 </div>`;
             }).join('');
-            
+
             stats.textContent = `${displayItems.length} předmětů v hodnotě ${formatMoney(totalVal)}`;
             lucide.createIcons();
         }
@@ -1354,7 +1562,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if(idx > -1) {
                 balanceBase += userInventory[idx].price;
                 userInventory.splice(idx, 1);
-                updateUI(); renderInventory();
+                updateUI(); scheduleUserSave(); renderInventory();
                 for(let i=0; i<3; i++) { if(upgInputs[i] && upgInputs[i].uid === uid) upgInputs[i] = null; }
             }
         }
@@ -1363,7 +1571,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if(userInventory.length === 0) return;
             balanceBase += userInventory.reduce((acc, curr) => acc + curr.price, 0);
             userInventory = [];
-            updateUI(); renderInventory();
+            updateUI(); scheduleUserSave(); renderInventory();
             upgInputs = [null, null, null]; upgTarget = null;
         }
 
@@ -1374,7 +1582,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function renderUpgrader() {
             const container = document.getElementById('upg-inputs-container');
             let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
-            
+
             container.innerHTML = [0,1,2].map(i => upgInputs[i] ? `
                 <div onclick="removeUpgInput(${i})" class="bg-gray-800/80 border border-gray-600 hover:border-red-500 rounded-2xl h-24 flex items-center p-3 cursor-pointer group relative overflow-hidden transition-all">
                     <img src="${upgInputs[i].img}" data-alts="${(upgInputs[i].imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
@@ -1391,7 +1599,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     <i data-lucide="plus" class="w-6 h-6 text-gray-600 group-hover:text-purple-500 transition-colors"></i>
                 </div>
             `).join('');
-            
+
             document.getElementById('upg-total-input-val').textContent = formatMoney(totalVal);
 
             if(upgTarget && upgTarget.price <= totalVal) upgTarget = null;
@@ -1425,7 +1633,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         function openSelector(type, slotIndex = 0) {
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-selector').classList.remove('hidden');
-            
+
             const grid = document.getElementById('selector-grid');
             if (type === 'input') {
                 document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
@@ -1453,6 +1661,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         function attemptUpgrade() {
+            if(!requireLogin()) return;
             if(isSpinning) return;
             let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
             if(totalVal === 0) return showToast("Vlož alespoň jeden skin!", true);
@@ -1461,7 +1670,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             isSpinning = true;
             document.getElementById('btn-upgrade-exec').textContent = "Vylepšuji...";
             document.getElementById('upgrade-panel').classList.add('upgrade-shake');
-            
+
             // Zvuk napětí
             const soundNode = SoundEngine.playUpgradeProcess();
 
@@ -1473,7 +1682,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
                 let chance = Math.min((totalVal / upgTarget.price) * 100, 90);
                 const roll = Math.random() * 100;
-                
+
                 upgInputs.forEach(item => { if(item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
 
                 if (roll <= chance) {
@@ -1485,24 +1694,22 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
                 upgInputs = [null, null, null];
                 upgTarget = null;
+                if(currentUser) scheduleUserSave();
                 renderUpgrader();
             }, 2000);
         }
 
-        window.onload = () => { 
+        window.onload = async () => {
             lucide.createIcons();
             switchPage('cases');
-            // Inicializuj live drops
             initializeLiveDrops();
-            // Inicializuj simulovaný chat
             simulateLiveChat();
-            // Currency selector handler
             const cur = document.getElementById('currency-select');
             if(cur) {
                 cur.addEventListener('change', updateUI);
             }
-            // Inicialní UI update
             updateUI();
+            await bootstrapAuth();
         };
 
         // --- Simulovaný live chat (ukázka) ---
@@ -1634,65 +1841,26 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             addRandomDrop();
         }
 
-        // --- FREE CASE SYSTEM ---
-        const FREE_CASE_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hodin
-        
-        function getFreeCaseStatus() {
-            const lastFreeCase = localStorage.getItem('lastFreeCase');
-            if(!lastFreeCase) return { available: true, nextTime: 0 };
-            
-            const lastTime = parseInt(lastFreeCase);
-            const now = Date.now();
-            const nextTime = lastTime + FREE_CASE_COOLDOWN;
-            
-            return {
-                available: now >= nextTime,
-                nextTime: Math.max(0, Math.ceil((nextTime - now) / 1000))
-            };
-        }
+        // --- FREE CASE SYSTEM (server-side cooldown + reward 0.01-0.03 EUR) ---
 
-        function openFreeCase() {
-            const status = getFreeCaseStatus();
-            if(!status.available) {
-                const hours = Math.floor(status.nextTime / 3600);
-                const mins = Math.floor((status.nextTime % 3600) / 60);
-                showToast(`Další FREE bedna za ${hours}h ${mins}m`, true);
-                return;
+        async function openFreeCase() {
+            if(!requireLogin()) return;
+            try {
+                const data = await apiFetch('/api/free-case/open', { method: 'POST' });
+                balanceBase += Number(data.reward || 0);
+                updateUI();
+                showToast(`FREE CASE: +${Number(data.reward).toFixed(2)} EUR`);
+            } catch (e) {
+                if(e.data && e.data.error === 'cooldown') {
+                    const remainMs = Math.max(0, Number(e.data.nextTime) - Date.now());
+                    const hours = Math.floor(remainMs / 1000 / 3600);
+                    const mins = Math.floor((remainMs / 1000 % 3600) / 60);
+                    showToast(`Další FREE bedna za ${hours}h ${mins}m`, true);
+                    return;
+                }
+                showToast('FREE case se nepodařilo otevřít.', true);
             }
-
-            // Otevri náhodnou bednu
-            const randomCase = casesDB[Math.floor(Math.random() * casesDB.length)];
-            localStorage.setItem('lastFreeCase', Date.now().toString());
-            
-            // Bez poplatku
-            activeCaseId = randomCase.id;
-            document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
-            document.getElementById('view-case-price').textContent = '0 EUR';
-            
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            track.innerHTML = '';
-            
-            document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
-                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
-                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
-                    <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
-                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
-                </div>
-            `).join('');
-
-            const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => startSpinner(randomCase);
-            btn.textContent = "OTEVŘÍT ZDARMA";
-            btn.disabled = false;
-            btn.classList.remove('opacity-50');
-
-            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-case-view').classList.remove('hidden');
-            
-            showToast('FREE bedna dostupná!');
         }
     </script>
 </body>
-</html> 
+</html>
