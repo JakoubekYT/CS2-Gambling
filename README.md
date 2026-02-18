@@ -6,6 +6,8 @@
 - Uložení profilu (`PUT /api/profile`).
 - Uložení herního stavu (`GET/POST /api/state`) – balance + inventory.
 - Steam login (`/auth/steam`, `/auth/steam/return`).
+- Google login (`/auth/google`, `/auth/google/callback`) pokud jsou vyplněné Google OAuth ENV.
+- Kontrola serveru (`GET /api/health`) pro rychlé ověření Render + Mongo spojení.
 - Admin endpointy:
   - `GET /api/admin/users`
   - `POST /api/admin/set-balance`
@@ -25,9 +27,35 @@ Aplikace běží na `http://localhost:3000`.
 - `STEAM_API_KEY` – Steam Web API key.
 - `ADMIN_EMAIL` – email admina (volitelné, ale doporučené).
 
-## Nejčastější důvod HTTP 404 při registraci
-Frontend volá endpointy `/api/auth/register`, `/api/auth/login`, `/api/auth/session`.
-Pokud backend tyto cesty nemá, vrací to 404. Tento repozitář je už obsahuje v `server.js`.
+## Google OAuth (volitelné)
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL` (volitelné, default je `${DOMAIN}/auth/google/callback`)
 
-## Poznámka ke Google loginu
-V tomhle serveru je hotový email/heslo + Steam. Google OAuth tu zatím není přidaný.
+## Nejčastější důvody problémů na Renderu
+1. Frontend volá `/api/auth/register`, `/api/auth/login`, `/api/auth/session`, ale backend je nemá → HTTP 404.
+2. `DOMAIN` má špatný tvar (např. s trailing slash) → rozbité OAuth callbacky.
+3. MongoDB Atlas nemá povolený přístup z Renderu (`0.0.0.0/0`) → backend se nepřipojí.
+
+Pro rychlou kontrolu použij:
+```bash
+curl https://TVUJ-WEB.onrender.com/api/health
+```
+
+## Když GitHub u PR hlásí `stale` / konflikty
+Pokud GitHub ukazuje konflikt ve `README.md`, `server.js` nebo `package-lock.json`, je potřeba na větvi PR udělat merge/rebase proti aktuální `main` a pushnout výsledek:
+
+```bash
+git fetch origin
+git checkout <tvoje-pr-vetev>
+git merge origin/main
+# nebo: git rebase origin/main
+```
+
+Pak případné konflikty ručně oprav, commitni a pushni:
+
+```bash
+git add README.md server.js package-lock.json
+git commit -m "Resolve merge conflicts with main"
+git push
+```

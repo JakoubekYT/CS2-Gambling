@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const cors = require('cors');
@@ -11,9 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/, '');
 const START_BALANCE = 10;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/google/callback`;
 
 // --- DB ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
 
 mongoose
   .connect(MONGO_URI)
@@ -138,6 +142,47 @@ passport.use(
   )
 );
 
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL
+      },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          const email = (profile.emails?.[0]?.value || '').trim().toLowerCase();
+          if (!email) return done(new Error('Google účet neposlal email.'));
+
+          let user = await User.findOne({ email });
+          if (!user) {
+            user = await User.create({
+              email,
+              nickname: profile.displayName || email.split('@')[0] || 'google-user',
+              displayName: profile.displayName || 'Google User',
+              avatar: profile.photos?.[0]?.value || '',
+              balance: START_BALANCE,
+              inventory: []
+            });
+          } else {
+            user.displayName = user.displayName || profile.displayName || 'Google User';
+            user.nickname = user.nickname || profile.displayName || email.split('@')[0] || 'google-user';
+            if (!user.avatar && profile.photos?.[0]?.value) user.avatar = profile.photos[0].value;
+            await user.save();
+          }
+
+          return done(null, user);
+        } catch (err) {
+          return done(err);
+        }
+      }
+    )
+  );
+} else {
+  console.warn('Google OAuth is disabled (missing GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET).');
+}
+
 // --- AUTH ROUTES (EMAIL/PASSWORD) ---
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -220,6 +265,12 @@ app.post('/api/auth/logout', (req, res) => {
     if (err) return res.status(500).json({ ok: false, message: 'Logout error.' });
     req.session.destroy(() => res.json({ ok: true }));
   });
+});
+
+app.get('/api/health', (_req, res) => {
+  const state = mongoose.connection.readyState;
+  const dbState = state === 1 ? 'connected' : state === 2 ? 'connecting' : state === 3 ? 'disconnecting' : 'disconnected';
+  return res.json({ ok: true, mongo: dbState, domain: DOMAIN });
 });
 
 // --- PROFILE + STATE ---
@@ -316,8 +367,30 @@ app.get(
   (_req, res) => res.redirect('/')
 );
 
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  app.get(
+    '/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/?auth=google-failed' }),
+    (_req, res) => res.redirect('/')
+  );
+} else {
+  app.get('/auth/google', (_req, res) => {
+    res.status(503).json({ ok: false, message: 'Google login není nastavený na serveru.' });
+  });
+}
+
 app.get('/api/user', (req, res) => {
-  if (req.isAuthenticated()) return res.json({ ok: true, user: toClientUser(req.user) });
+  if (req.isAuthenticated()) {
+    return res.json({
+      ok: true,
+      user: {
+        ...toClientUser(req.user),
+        balance: Number(req.user.balance || START_BALANCE),
+        inventory: Array.isArray(req.user.inventory) ? req.user.inventory : []
+      }
+    });
+  }
   return res.json({ ok: false });
 });
 
