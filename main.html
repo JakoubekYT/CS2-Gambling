@@ -1115,9 +1115,6 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 });
             });
 
-            const onlyCasehug = casesDB.filter(c => (c.img || "").includes("cdn.casehug.com"));
-            casesDB.splice(0, casesDB.length, ...onlyCasehug);
-
             renderCases();
         }, 100);
 
@@ -1262,13 +1259,13 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
                 return `
-                <div data-case-id="${c.id}" onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/20 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
-                    <div class="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <img src="${c.img}" data-alts="${(c.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
-                    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
-                    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
-                </div>
-            `;
+<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/20 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
+    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
+    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
+</div>
+`;
             };
 
             grid.innerHTML = groups.map(g => {
@@ -1285,15 +1282,18 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             }).join('');
         }
 
-        const casesGrid = document.getElementById('cases-grid');
-        if(casesGrid && !casesGrid.dataset.boundClick) {
-            casesGrid.dataset.boundClick = '1';
-            casesGrid.addEventListener('click', (e) => {
-                const card = e.target.closest('[data-case-id]');
-                if(!card) return;
-                openCaseView(card.dataset.caseId);
-            });
-        }
+        // Vlož pod funkci renderCases (kolem řádku 815)
+        document.addEventListener('click', (e) => {
+            // Najde nejbližší rodičovský element, který má ID bedny
+            const caseCard = e.target.closest('[onclick^="openCaseView"]');
+            if (caseCard && !isSpinning) {
+                // Získá ID bedny z onclick atributu
+                const match = caseCard.getAttribute('onclick').match(/'([^']+)'/);
+                if (match) {
+                    openCaseView(match[1]);
+                }
+            }
+        });
 
         function openCaseView(id) {
             activeCaseId = id;
