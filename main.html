@@ -165,7 +165,7 @@
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
         }
-        #spinner-track { display: flex; position: absolute; left: 0; height: 100%; align-items: center; will-change: transform; }
+        .spinner-track { display: flex; position: absolute; left: 0; height: 100%; align-items: center; will-change: transform; }
         .spinner-item {
             min-width: 140px; height: 140px; margin: 0 4px;
             background: #14171c; border-bottom: 4px solid;
@@ -331,12 +331,15 @@
                         <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
                     </div>
 
-                    <div class="spinner-container relative mb-8">
-                        <div class="blur-edges blur-left"></div>
-                        <div class="blur-edges blur-right"></div>
-                        <div class="spinner-selector"></div>
-                        <div id="spinner-track"></div>
+                    <div id="spinner-stack" class="space-y-4 mb-8">
+                        <div class="spinner-container relative" data-spin-row="0">
+                            <div class="blur-edges blur-left"></div>
+                            <div class="blur-edges blur-right"></div>
+                            <div class="spinner-selector"></div>
+                            <div id="spinner-track-0" class="spinner-track"></div>
+                        </div>
                     </div>
+                    <div id="spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"></div>
 
                     <div class="flex flex-wrap gap-3 justify-center items-center">
                         <label for="open-count" class="text-xs font-black uppercase tracking-widest text-purple-300">Počet spinů</label>
@@ -350,11 +353,6 @@
                         <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
                             OTEVŘÍT BEDNU
                         </button>
-                    </div>
-                    <div id="multi-spin-area" class="mt-6 hidden text-left">
-                        <h4 id="multi-spin-title" class="text-sm font-black uppercase tracking-widest text-purple-300 mb-3">MULTI SPIN</h4>
-                        <div id="multi-spinner-list" class="space-y-3"></div>
-                        <div id="multi-spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4"></div>
                     </div>
                 </div>
 
@@ -1360,8 +1358,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
         }
 
-        function buildSpinRow(trackId) {
-            return `<div class="spinner-container relative" style="height:116px"><div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div><div class="spinner-selector"></div><div id="${trackId}" class="flex absolute left-0 h-full items-center"></div></div>`;
+        function getOpenCount() {
+            const countSel = document.getElementById('open-count');
+            return Math.max(1, Math.min(5, parseInt(countSel?.value || '1', 10)));
         }
 
         function fillTrackWithCaseSkins(track, caseObj, winningSkin = null) {
@@ -1372,33 +1371,34 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 const skin = (winningSkin && j === winningIndex)
                     ? winningSkin
                     : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
-                html += `<div class="spinner-item" style="min-width:124px;height:96px;border-color:${skin.color};margin:0 2px;padding:6px"><img src="${skin.img}" onerror="handleImgError(this)" style="max-height:56px"><div class="text-[8px] font-black uppercase text-gray-300 mt-1 truncate w-full text-center">${skin.name}</div></div>`;
+                html += `<div class="spinner-item" style="border-color:${skin.color}"><img src="${skin.img}" data-alts="${(skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)"><div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skin.name}</div></div>`;
             }
             track.innerHTML = html;
         }
 
-        function previewMultiRows(caseObj, count) {
-            const area = document.getElementById('multi-spin-area');
-            const list = document.getElementById('multi-spinner-list');
-            const title = document.getElementById('multi-spin-title');
-            const results = document.getElementById('multi-spin-results');
-            if(!area || !list || !title || !results) return;
-
-            if(count <= 1) {
-                area.classList.add('hidden');
-                list.innerHTML = '';
-                results.innerHTML = '';
-                return;
+        function ensureSpinnerRows(count, caseObj = null) {
+            const stack = document.getElementById('spinner-stack');
+            if(!stack) return [];
+            if(stack.children.length !== count) {
+                stack.innerHTML = Array.from({ length: count }, (_, i) => `
+                    <div class="spinner-container relative" data-spin-row="${i}">
+                        <div class="blur-edges blur-left"></div>
+                        <div class="blur-edges blur-right"></div>
+                        <div class="spinner-selector"></div>
+                        <div id="spinner-track-${i}" class="spinner-track"></div>
+                    </div>
+                `).join('');
             }
-
-            title.textContent = `MULTI SPIN (${count}x)`;
-            area.classList.remove('hidden');
-            results.innerHTML = '';
-            list.innerHTML = Array.from({length: count}, (_, i) => buildSpinRow(`multi-track-${i}`)).join('');
-            list.querySelectorAll('[id^="multi-track-"]').forEach(track => fillTrackWithCaseSkins(track, caseObj));
+            const tracks = Array.from(stack.querySelectorAll('.spinner-track'));
+            tracks.forEach(track => {
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(0px)';
+                if(caseObj) fillTrackWithCaseSkins(track, caseObj);
+            });
+            return tracks;
         }
 
-        function startMultiSpinner(caseObj, count = 5) {
+        function spinCase(caseObj, count = 1) {
             if(isSpinning) return;
             const totalCost = caseObj.price * count;
             if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
@@ -1407,42 +1407,36 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             updateUI();
             isSpinning = true;
 
-            const btn1 = document.getElementById('btn-open-case');
-            const selectCount = document.getElementById('open-count');
-            btn1.disabled = true;
-            if(selectCount) selectCount.disabled = true;
-            btn1.classList.add('opacity-50');
-            btn1.textContent = `Točí se ${count}x...`;
+            const btn = document.getElementById('btn-open-case');
+            const countSel = document.getElementById('open-count');
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
 
-            const area = document.getElementById('multi-spin-area');
-            const list = document.getElementById('multi-spinner-list');
-            const results = document.getElementById('multi-spin-results');
-            const title = document.getElementById('multi-spin-title');
-            area.classList.remove('hidden');
-            title.textContent = `MULTI SPIN (${count}x)`;
-            results.innerHTML = '';
-            if(!list.children.length || list.children.length !== count) {
-                list.innerHTML = Array.from({length: count}, (_, i) => buildSpinRow(`multi-track-${i}`)).join('');
+            if(btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+                btn.textContent = count > 1 ? `Točí se ${count}x...` : 'Točí se...';
             }
+            if(countSel) countSel.disabled = true;
 
+            const tracks = ensureSpinnerRows(count);
             const rowMeta = [];
             const winningIndex = 50;
-            const itemWidth = 132;
+            const itemWidth = 148;
 
-            for(let i=0;i<count;i++) {
+            for(let i = 0; i < count; i++) {
                 const winningSkin = rollCaseSkin(caseObj);
-                const track = list.querySelector(`#multi-track-${i}`);
+                const track = tracks[i];
                 if(!track) continue;
                 fillTrackWithCaseSkins(track, caseObj, winningSkin);
-                rowMeta.push({ row: track.parentElement, track, winningSkin });
+                rowMeta.push({ track, row: track.parentElement, winningSkin });
             }
 
             setTimeout(() => {
-                rowMeta.forEach((m, idx) => {
+                rowMeta.forEach((m) => {
                     const containerWidth = m.row.clientWidth;
-                    const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2);
-                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
-                    m.track.style.transition = `transform ${5.2 + idx * 0.12}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
+                    m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
                     m.track.style.transform = `translateX(-${finalOffset}px)`;
                 });
 
@@ -1451,15 +1445,22 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     rowMeta.forEach(m => {
                         addToInventory(m.winningSkin);
                         totalWin += m.winningSkin.price;
-                        results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+                        if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
                     });
-                    showToast(`Multi spin hotový: ${count} skinů (${formatMoney(totalWin)})`);
+
+                    if(count === 1 && rowMeta[0]) {
+                        showWinModal(rowMeta[0].winningSkin);
+                    } else {
+                        showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
+                    }
 
                     isSpinning = false;
-                    btn1.disabled = false;
-                    if(selectCount) selectCount.disabled = false;
-                    btn1.classList.remove('opacity-50');
-                    btn1.textContent = 'HRÁT ZNOVU';
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                        btn.textContent = 'HRÁT ZNOVU';
+                    }
+                    if(countSel) countSel.disabled = false;
                 }, 6500);
             }, 50);
         }
@@ -1473,7 +1474,6 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
             document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
 
-            // Populuj Case Changer
             const changer = document.getElementById('case-changer');
             if(changer) {
                 changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
@@ -1486,10 +1486,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 });
             }
 
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            track.innerHTML = '';
+            const countSel = document.getElementById('open-count');
+            const selectedCount = () => getOpenCount();
+            ensureSpinnerRows(selectedCount(), c);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
@@ -1500,16 +1501,12 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            const countSel = document.getElementById('open-count');
-            const selectedCount = () => Math.max(1, Math.min(5, parseInt(countSel?.value || '1', 10)));
-            btn.onclick = () => {
-                const cnt = selectedCount();
-                if(cnt === 1) startSpinner(c);
-                else startMultiSpinner(c, cnt);
-            };
+            btn.onclick = () => spinCase(c, selectedCount());
             if(countSel) {
-                countSel.onchange = () => previewMultiRows(c, selectedCount());
-                previewMultiRows(c, selectedCount());
+                countSel.onchange = () => {
+                    ensureSpinnerRows(selectedCount(), c);
+                    if(results) results.innerHTML = '';
+                };
                 countSel.disabled = false;
             }
             btn.textContent = "OTEVŘÍT BEDNU";
@@ -1520,102 +1517,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('page-case-view').classList.remove('hidden');
         }
 
-        function startSpinner(caseObj) {
-            if(isSpinning) return;
-            if(balanceBase < caseObj.price) return showToast("Nemáš dostatek peněz!", true);
-
-            balanceBase -= caseObj.price;
-            updateUI();
-            isSpinning = true;
-
-            const btn = document.getElementById('btn-open-case');
-            const area = document.getElementById('multi-spin-area');
-            const countSel = document.getElementById('open-count');
-            if(area) area.classList.add('hidden');
-            if(countSel) countSel.disabled = true;
-            btn.textContent = "Točí se...";
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-
-            // Roll
-            const roll = Math.random() * 100;
-            let sum = 0;
-            let winningSkin = caseObj.contents[0].skin;
-            for(let item of caseObj.contents) {
-                sum += item.chance;
-                if(roll <= sum) { winningSkin = item.skin; break; }
-            }
-
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            
-            const totalItems = 60;
-            const winningIndex = 50;
-            const itemWidth = 148; 
-
-            let html = '';
-            for(let i = 0; i < totalItems; i++) {
-                let skinToRender = (i === winningIndex) ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
-                html += `
-                    <div class="spinner-item" style="border-color: ${skinToRender.color}">
-                        <img src="${skinToRender.img}" data-alts="${(skinToRender.imgAlts||[]).join('|')}" onerror="handleImgError(this)">
-                        <div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skinToRender.name}</div>
-                    </div>
-                `;
-            }
-            track.innerHTML = html;
-
-            setTimeout(() => {
-                const containerWidth = document.querySelector('.spinner-container').clientWidth;
-                const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2); 
-                const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
-
-                // Ticking logikca přes requestAnimationFrame
-                let lastCrossed = 0;
-                function checkTick() {
-                    if(!isSpinning) return;
-                    const transform = window.getComputedStyle(track).getPropertyValue('transform');
-                    if(transform !== 'none') {
-                        const matrix = new DOMMatrix(transform);
-                        const currentX = Math.abs(matrix.m41);
-                        // Vypočte střed obrazovky + to co už ujelo
-                        const centerLine = currentX + (containerWidth / 2);
-                        const itemIndexAtCenter = Math.floor(centerLine / itemWidth);
-                        
-                        if(itemIndexAtCenter > lastCrossed) {
-                            SoundEngine.playTick();
-                            lastCrossed = itemIndexAtCenter;
-                            
-                            // Visual efekt problesknutí na zasaženém itemu
-                            const items = track.children;
-                            if(items[itemIndexAtCenter]) {
-                                items[itemIndexAtCenter].style.backgroundColor = '#2d3748';
-                                setTimeout(() => { if(items[itemIndexAtCenter]) items[itemIndexAtCenter].style.backgroundColor = '#14171c'; }, 100);
-                            }
-                        }
-                    }
-                    spinAnimationId = requestAnimationFrame(checkTick);
-                }
-                
-                track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
-                track.style.transform = `translateX(-${finalOffset}px)`;
-                
-                checkTick();
-
-                setTimeout(() => {
-                    isSpinning = false;
-                    cancelAnimationFrame(spinAnimationId);
-                    
-                    showWinModal(winningSkin);
-                    
-                    btn.textContent = "HRÁT ZNOVU";
-                    btn.disabled = false;
-                    if(countSel) countSel.disabled = false;
-                    btn.classList.remove('opacity-50');
-                }, 6500); 
-            }, 50);
-        }
+        function startSpinner(caseObj) { spinCase(caseObj, 1); }
 
         // --- INVENTÁŘ ---
         function addToInventory(skin) {
@@ -1958,18 +1860,23 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
             let lastTs = performance.now();
             const speed = 34;
+            const gapPx = 16;
+            function getItemWidth(el) {
+                if(!el) return 0;
+                return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;
+            }
             function animate(ts) {
                 const dt = Math.min(0.05, (ts - lastTs) / 1000);
                 lastTs = ts;
                 if(!paused) {
                     offsetX -= speed * dt;
-                    const first = dropsContainer.firstElementChild;
-                    if(first) {
-                        const firstWidth = first.getBoundingClientRect().width + 16;
-                        if(-offsetX >= firstWidth) {
-                            offsetX += firstWidth;
-                            dropsContainer.appendChild(first);
-                        }
+                    let first = dropsContainer.firstElementChild;
+                    let firstWidth = getItemWidth(first);
+                    while(first && firstWidth > 0 && -offsetX >= firstWidth) {
+                        offsetX += firstWidth;
+                        dropsContainer.appendChild(first);
+                        first = dropsContainer.firstElementChild;
+                        firstWidth = getItemWidth(first);
                     }
                     dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
                 }
@@ -2075,10 +1982,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
             document.getElementById('view-case-price').textContent = '0 EUR';
             
-            const track = document.getElementById('spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0px)';
-            track.innerHTML = '';
+            const countSel = document.getElementById('open-count');
+            if(countSel) {
+                countSel.value = '1';
+                countSel.disabled = false;
+            }
+            ensureSpinnerRows(1, randomCase);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
@@ -2089,7 +2000,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => startSpinner(randomCase);
+            btn.onclick = () => spinCase(randomCase, getOpenCount());
             btn.textContent = "OTEVŘÍT ZDARMA";
             btn.disabled = false;
             btn.classList.remove('opacity-50');
