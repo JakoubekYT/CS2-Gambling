@@ -19,6 +19,15 @@ npm start
 ```
 Aplikace běží na `http://localhost:3000`.
 
+## Nejjednodušší checklist (aby login + databáze fakt fungovaly)
+1. V Render ENV musí být minimálně: `MONGO_URI`, `SESSION_SECRET`, `DOMAIN`.
+2. V MongoDB Atlas musí být povolený přístup z Renderu: **Network Access = `0.0.0.0/0`**.
+3. Ověř stav na produkci:
+```bash
+curl https://TVUJ-WEB.onrender.com/api/setup/check
+```
+Když je `mongoConnected: false`, login/registrace nemůžou fungovat.
+
 ## Povinné ENV na Renderu
 - `MONGO_URI` – MongoDB connection string.
 - `SESSION_SECRET` – dlouhý náhodný secret.
@@ -57,6 +66,11 @@ Ukázka odpovědi:
 Pro rychlou kontrolu použij:
 ```bash
 curl https://TVUJ-WEB.onrender.com/api/health
+```
+
+Auth providery ověříš:
+```bash
+curl https://TVUJ-WEB.onrender.com/api/auth/providers
 ```
 
 ## Když GitHub u PR hlásí `stale` / konflikty
