@@ -536,7 +536,7 @@
 
         // --- STAV A DATABÁZE ---
         let balanceBase = 0.00;
-        const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
+        const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
         const rawSkinData = `
@@ -749,6 +749,7 @@ Hand Wraps|Cobalt Skulls|1100.00|#ebca44
 Moto Gloves|Eclipse|1000.00|#ebca44
 Moto Gloves|Polygon|1050.00|#ebca44
 Moto Gloves|Blood Pressure|1100.00|#ebca44
+Broken Fang Gloves|Needle Point|950.00|#ebca44
 M4A1-S|Emphorosaur-S|8.00|#8847ff
 M4A1-S|Nightmare|9.00|#d32ee6
 M4A1-S|Blue Phosphor|12.00|#d32ee6
@@ -774,7 +775,7 @@ Butterfly Knife|Case Hardened|1050.00|#ebca44
 Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         const skinsDB = {};
-        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
+        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves", "Broken Fang Gloves", "Hydra Gloves"];
         
         rawSkinData.trim().split("\n").forEach((line, idx) => {
             const parts = line.split("|");
@@ -784,12 +785,20 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const p = parts[parts.length - 2].trim();
             const n = parts.slice(1, parts.length - 2).join("|").trim();
             let folder = "skins";
-            if(KNIFE_TYPES.includes(w)) folder = "knives";
-            else if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            else if(KNIFE_TYPES.includes(w)) folder = "knives";
             
+            const imgOverrides = {
+                "AWP|Man-o'-war": "https://www.csgodatabase.com/images/skins/webp/AWP_Man-o'-war.webp",
+                "M4A4|龍王 (Dragon King)": "https://www.csgodatabase.com/images/skins/webp/M4A4_%E9%BE%8D%E7%8E%8B_(Dragon_King).webp",
+                "Driver Gloves|Crimson Weave": "https://www.csgodatabase.com/images/gloves/webp/Driver_Gloves_Crimson_Weave.webp",
+                "Broken Fang Gloves|Needle Point": "https://www.csgodatabase.com/images/gloves/webp/Broken_Fang_Gloves_Needle_Point.webp"
+            };
+
             let urlWeapon = w.replace(/ /g, "_");
             let urlName = n.replace(/ /g, "_").replace(/'/g, "");
-            const primaryImg = `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
+            const overrideKey = `${w}|${n}`;
+            const primaryImg = imgOverrides[overrideKey] || `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
             // Alternate patterns (some gloves/rare items have different naming on CDN)
             const alt1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
             const alt2 = primaryImg.replace('/webp/', '/').replace('.webp', '.png');
@@ -993,51 +1002,78 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
             );
 
-            // Přidat extra bedny z Casehug snippet (bez nefunkčních valentine casek)
-            const casehugTemplates = [
-                { id: 'frosty', name: 'FROSTY', price: 0.80, img: 'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', color: 'blue', topDrop: ['Karambit', 'Tiger Tooth'] },
-                { id: 'game-on', name: 'GAME ON', price: 4.50, img: 'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4', 'Temukau'] },
-                { id: 'bank-heist', name: 'BANK HEIST', price: 11.00, img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', color: 'red', topDrop: ['Desert Eagle', 'Printstream'] },
-                { id: 'gambit', name: 'GAMBIT', price: 18.00, img: 'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', color: 'yellow-400', topDrop: ['Butterfly Knife', 'Tiger Tooth'] },
-                { id: 'chinatown', name: 'CHINATOWN', price: 97.50, img: 'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', color: 'red', topDrop: ['AK-47', 'Wild Lotus'] },
-                { id: 'tiger', name: 'TIGER', price: 3.80, img: 'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', color: 'purple', topDrop: ['Karambit', 'Tiger Tooth'] },
-                { id: 'demolition', name: 'DEMOLITION', price: 11.00, img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', color: 'red', topDrop: ['AWP', 'Asiimov'] },
-                { id: 'electronic', name: 'ELECTRONIC', price: 33.00, img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4', 'Howl'] },
-                { id: 'lab', name: 'LAB', price: 150.00, img: 'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', color: 'red', topDrop: ['AWP', 'Gungnir'] },
-                { id: 'howl', name: 'HOWL', price: 300.00, img: 'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', color: 'yellow-400', topDrop: ['M4A4', 'Howl'] }
+            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
+            const extraCases = [
+                { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['Glock-18','Neo-Noir']] },
+                { id:'organic', name:'ORGANIC', price:0.30, color:'blue', img:'https://cdn.casehug.com/cases/ORGANIC.png?width=640&quality=85', top:[['USP-S','Cortex'],['AK-47','Slate']] },
+                { id:'candy-drop', name:'CANDY DROP', price:0.40, color:'purple', img:'https://cdn.casehug.com/cases/candy_drop_1.png?width=640&quality=85', top:[['Glock-18','Bullet Queen'],['MAC-10','Neon Rider']] },
+                { id:'double-cheese', name:'DOUBLE CHEESE', price:0.45, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['P250','Asiimov'],['USP-S','Ticket to Hell']] },
+                { id:'ritual', name:'RITUAL', price:0.50, color:'purple', img:'https://cdn.casehug.com/cases/RITUAL.png?width=640&quality=85', top:[['M4A1-S','Night Terror'],['AWP','Mortis']] },
+                { id:'hellfire', name:'HELLFIRE', price:0.70, color:'red', img:'https://cdn.casehug.com/cases/HELLFIRE_NEW.png?width=640&quality=85', top:[['M4A4','The Emperor'],['AK-47','Redline']] },
+                { id:'frosty', name:'FROSTY', price:0.80, color:'blue', img:'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['AK-47','Vulcan']] },
+                { id:'sweet-tooth', name:'SWEET TOOTH', price:1.00, color:'purple', img:'https://cdn.casehug.com/content/case/regular/01/SWEET_TOOTH_1758194472.png?width=640&quality=85', top:[['Karambit','Tiger Tooth'],['Desert Eagle','Printstream']] },
+                { id:'duck-luck', name:'DUCK LUCK', price:1.00, color:'blue', img:'https://cdn.casehug.com/cases/DUCK_LUCK.png?width=640&quality=85', top:[['AWP','Atheris'],['M4A4','Desolate Space']] },
+                { id:'alien', name:'ALIEN', price:1.25, color:'purple', img:'https://cdn.casehug.com/cases/ALIEN.png?width=640&quality=85', top:[['USP-S','Neo-Noir'],['AWP','Neo-Noir']] },
+                { id:'savanna', name:'SAVANNA', price:2.00, color:'blue', img:'https://cdn.casehug.com/cases/SAVANNA.png?width=640&quality=85', top:[['AK-47','Point Disarray'],['M4A1-S','Icarus Fell']] },
+                { id:'wild-west', name:'WILD WEST', price:2.00, color:'purple', img:'https://cdn.casehug.com/cases/WILD_WEST.png?width=640&quality=85', top:[['Desert Eagle','Conspiracy'],['AK-47','Redline']] },
+                { id:'insector', name:'INSECTOR', price:2.50, color:'blue', img:'https://cdn.casehug.com/cases/INSECTOR.png?width=640&quality=85', top:[['M4A4','Temukau'],['AWP','Oni Taiji']] },
+                { id:'toxic', name:'TOXIC', price:2.60, color:'purple', img:'https://cdn.casehug.com/cases/TOXIC.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Hyper Beast']] },
+                { id:'workshop', name:'WORKSHOP', price:2.75, color:'blue', img:'https://cdn.casehug.com/cases/WORKSHOP.png?width=640&quality=85', top:[['M4A4','In Living Color'],['Glock-18','Water Elemental']] },
+                { id:'game-on', name:'GAME ON', price:4.50, color:'purple', img:'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', top:[['Glock-18','Gamma Doppler'],['M4A4','Temukau']] },
+                { id:'bank-heist', name:'BANK HEIST', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', top:[['Desert Eagle','Printstream'],['AWP','Asiimov']] },
+                { id:'retro', name:'RETRO', price:11.50, color:'purple', img:'https://cdn.casehug.com/cases/RETRO.png?width=640&quality=85', top:[['USP-S','Printstream'],['AK-47','Bloodsport']] },
+                { id:'bunny-hop', name:'BUNNY HOP', price:12.75, color:'purple', img:'https://cdn.casehug.com/cases/BUNNY_HOP.png?width=640&quality=85', top:[['Skeleton Knife','Crimson Web'],['M4A1-S','Printstream']] },
+                { id:'titan', name:'TITAN', price:14.50, color:'red', img:'https://cdn.casehug.com/cases/TITAN.png?width=640&quality=85', top:[['M9 Bayonet','Doppler'],['AK-47','Vulcan']] },
+                { id:'gambit', name:'GAMBIT', price:18.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', top:[['Skeleton Knife','Tiger Tooth'],['Butterfly Knife','Tiger Tooth']] },
+                { id:'savage', name:'SAVAGE', price:25.00, color:'red', img:'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['AWP','Containment Breach']] },
+                { id:'golderra', name:'GOLDERRA', price:26.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GOLDERRA.png?width=640&quality=85', top:[['M9 Bayonet','Lore'],['Karambit','Lore']] },
+                { id:'ferro', name:'FERRO', price:30.00, color:'red', img:'https://cdn.casehug.com/cases/FERRO.png?width=640&quality=85', top:[['Desert Eagle','Blaze'],['M4A1-S','Blue Phosphor']] },
+                { id:'plant-b', name:'PLANT B', price:36.00, color:'red', img:'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['AK-47','Bloodsport']] },
+                { id:'buzzer-blade', name:'BUZZER BLADE', price:42.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/BUZZER_BLADE.png?width=640&quality=85', top:[['Talon Knife','Fade'],['Karambit','Doppler']] },
+                { id:'candy-shop', name:'CANDY SHOP', price:45.00, color:'red', img:'https://cdn.casehug.com/cases/CANDY_SHOP.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Player Two']] },
+                { id:'kingdom', name:'KINGDOM', price:46.50, color:'red', img:'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85', top:[['AWP','Medusa'],['Karambit','Fade']] },
+                { id:'sushi-master', name:'SUSHI MASTER', price:50.00, color:'red', img:'https://cdn.casehug.com/content/case/regular/01/SUSHI_MASTER_1758194472.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] },
+                { id:'warzone', name:'WARZONE', price:75.00, color:'red', img:'https://cdn.casehug.com/cases/WARZONE.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A4','Howl']] },
+                { id:'circus', name:'CIRCUS', price:80.00, color:'red', img:'https://cdn.casehug.com/cases/CIRCUS.png?width=640&quality=85', top:[['Butterfly Knife','Fade'],['Karambit','Marble Fade']] },
+                { id:'vac-attack', name:'VAC ATTACK', price:85.00, color:'red', img:'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['Sport Gloves',"Pandora's Box"]] },
+                { id:'chinatown', name:'CHINATOWN', price:97.50, color:'red', img:'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', top:[['AK-47','Wild Lotus'],['M4A1-S','Welcome to the Jungle']] },
+                { id:'el-dorado', name:'EL DORADO', price:100.00, color:'yellow-400', img:'https://cdn.casehug.com/content/case/regular/01/EL_DORADO_1758194472.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['Desert Eagle','Blaze']] },
+                { id:'arcana', name:'ARCANA', price:120.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85', top:[['Karambit','Lore'],['Sport Gloves','Vice']] },
+                { id:'babushka', name:'BABUSHKA', price:152.50, color:'red', img:'https://cdn.casehug.com/cases/BABUSHKA.png?width=640&quality=85', top:[['M9 Bayonet','Autotronic'],['M4A1-S','Printstream']] },
+                { id:'quantum', name:'QUANTUM', price:358.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/QUANTUM.png?width=640&quality=85', top:[['AWP','Gungnir'],['Karambit','Fade']] },
+                { id:'tiger', name:'TIGER', price:3.80, color:'purple', img:'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', top:[['M9 Bayonet','Tiger Tooth'],['Karambit','Tiger Tooth']] },
+                { id:'demolition', name:'DEMOLITION', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', top:[['AWP','Asiimov'],['M4A4','The Emperor']] },
+                { id:'electronic', name:'ELECTRONIC', price:33.00, color:'purple', img:'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Bloodsport']] },
+                { id:'lab', name:'LAB', price:150.00, color:'red', img:'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A1-S','Blue Phosphor']] },
+                { id:'howl-case', name:'HOWL', price:300.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] }
             ];
 
+            const baseChance = [48, 26, 14, 8, 4];
             const allSkins = Object.values(skinsDB);
-            const pickRandomUniqueSkins = (count) => {
-                const picks = [];
-                while(picks.length < count && allSkins.length > 0) {
+            const pickRandomUniqueSkins = (count, used = []) => {
+                const picks = [...used];
+                let guard = 0;
+                while(picks.length < count && guard < 200) {
                     const candidate = allSkins[Math.floor(Math.random() * allSkins.length)];
-                    if(!picks.find(x => x.id === candidate.id)) picks.push(candidate);
+                    if(candidate && !picks.find(x => x.id === candidate.id)) picks.push(candidate);
+                    guard++;
                 }
                 return picks;
             };
 
-            const chances = [52, 24, 13, 8, 3];
-            for(let i = 0; i < 40; i++) {
-                const t = casehugTemplates[i % casehugTemplates.length];
-                const variant = Math.floor(i / casehugTemplates.length) + 1;
-                const id = `${t.id}-${variant}`;
-                if(casesDB.find(x => x.id === id)) continue;
-
-                const name = variant === 1 ? t.name : `${t.name} ${variant}`;
-                const price = Number((t.price * (1 + (variant - 1) * 0.15) + (i % 3) * 0.25).toFixed(2));
-                const contents = pickRandomUniqueSkins(5);
-                contents[contents.length - 1] = findSkin(t.topDrop[0], t.topDrop[1]);
-
+            extraCases.forEach(ec => {
+                if(casesDB.find(c => c.id === ec.id)) return;
+                const topSkins = ec.top.map(([w, n]) => findSkin(w, n));
+                const contents = pickRandomUniqueSkins(5, topSkins).slice(0, 5);
                 casesDB.push({
-                    id,
-                    name,
-                    price,
-                    color: t.color,
-                    img: t.img,
-                    contents: contents.map((skin, idx) => ({ skin, chance: chances[idx] || 1 }))
+                    id: ec.id,
+                    name: ec.name,
+                    price: ec.price,
+                    color: ec.color,
+                    img: ec.img,
+                    contents: contents.map((skin, idx) => ({ skin, chance: baseChance[idx] || 1 }))
                 });
-            }
+            });
 
             renderCases();
         }, 100);
