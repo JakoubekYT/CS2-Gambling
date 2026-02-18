@@ -41,3 +41,21 @@ Pro rychlou kontrolu použij:
 ```bash
 curl https://TVUJ-WEB.onrender.com/api/health
 ```
+
+## Když GitHub u PR hlásí `stale` / konflikty
+Pokud GitHub ukazuje konflikt ve `README.md`, `server.js` nebo `package-lock.json`, je potřeba na větvi PR udělat merge/rebase proti aktuální `main` a pushnout výsledek:
+
+```bash
+git fetch origin
+git checkout <tvoje-pr-vetev>
+git merge origin/main
+# nebo: git rebase origin/main
+```
+
+Pak případné konflikty ručně oprav, commitni a pushni:
+
+```bash
+git add README.md server.js package-lock.json
+git commit -m "Resolve merge conflicts with main"
+git push
+```
