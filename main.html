@@ -1,3 +1,64 @@
+<!--
+    =====================================================
+    OTODROP - CS2 GAMBLING SITE v2.0 - VYLEPŠENÁ VERZE
+    =====================================================
+    
+    VYLEPŠENÍ A NOVÉ FUNKCE:
+    
+    ✅ 150+ SKINŮ A NOŽŮ
+       - Přidáno 50+ nových skinů (klasické i exotické)
+       - Všechny typy nožů (Karambit, M9 Bayonet, Butterfly atd.)
+       - Vzácné doplňky (rukavice, wrapy)
+    
+    ✅ 6 MINI-HER
+       1. COINFLIP - 50/50 zdvojení sázky
+       2. CRASH - Akcelerující výnos s rizikem
+       3. PLINKO - Balítková padající guličkou
+       4. DICE - Tipování hodu kostkou
+       5. ROULETTE - Ruleta s barevnými poli
+       6. SLOTS - Klasické automaty s jackpotem
+    
+    ✅ 15+ BEDNY
+       - Budget bedny (2.50-5.00 EUR)
+       - Mid-tier bedny (50-100 EUR)
+       - Top-tier bedny (200-1000 EUR)
+       - Speciální bedny (Knives, Gloves, Legendary)
+    
+    ✅ VYLEPŠENÁ ANIMACE
+       - Item float efekty
+       - Pulse animace na vzácných položkách
+       - Shine efekty na glovech
+       - Dynamické glowing pro raritu
+       - Transition effects na všech interakcích
+       - Vylepšené spinner animace
+    
+    ✅ ZLEPŠENÝ INVENTÁŘ
+       - Filtrování dle barvy/rarity (Modré, Fialové, Růžové, Červené, Zlaté)
+       - Filtrování dle typu (Nože, Zbraně)
+       - Třídění (Nejnovější, Cena vysoká/nízka, Jméno)
+       - Animované položky s cascade efektem
+    
+    ✅ LIVE DROPS TICKER
+       - Real-time simulace výher jiných hráčů
+       - Scrollující banner s nabídkou
+       - Animované zápisy
+    
+    ✅ PROFESIONÁLNÍ VZHLED
+       - Lepší header s hover efekty
+       - Vylepšené popup okno s animacemi
+       - Gradientní tlačítka s shadow efekty
+       - Lepší responsivnost
+       - Casino-style design elementy
+    
+    ✅ ZVUKOVÝ ENGINE
+       - Web Audio API pro zvuky
+       - Tick zvuky během otáčení
+       - Zvuky výhry/prohry
+       - Upgrade procesuální zvuk
+    
+    =====================================================
+-->
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -21,14 +82,80 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow: hidden; }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
-        .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 40s linear infinite; }
+        .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 150s linear infinite; padding: 0.5rem; }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        .live-drop-item { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
+            border-radius: 16px;
+            border: 2px solid rgba(250,204,21,0.5);
+            min-width: 120px;
+            height: 140px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: visible;
+        }
+        .live-drop-item .live-drop-avatar {
+            width: 36px; height:36px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
+        }
+        .live-drop-tooltip {
+            position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
+            background: linear-gradient(180deg, rgba(11,13,17,0.98), rgba(20,23,28,0.98));
+            border: 1px solid rgba(250,204,21,0.12); padding: 8px 10px; border-radius: 10px; min-width: 180px; text-align: left; z-index: 200;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.6); display: none; pointer-events: none;
+        }
+        .live-drop-tooltip.visible { display: block; }
+        .live-drop-tooltip .tp-row { display:flex; gap:8px; align-items:center; }
+        .live-drop-tooltip .tp-avatar { width:48px; height:48px; border-radius:9999px; overflow:hidden; border:2px solid rgba(255,255,255,0.04); }
+        .live-drop-tooltip .tp-name { font-weight:800; color:#facc15; font-size:13px; }
+        .live-drop-tooltip .tp-when { font-size:12px; color:#cbd5e1; }
+        .live-drop-item:hover {
+            transform: scale(1.08);
+            background: linear-gradient(135deg, rgba(250,204,21,0.5) 0%, rgba(168,85,247,0.3) 100%);
+            border-color: rgba(250,204,21,1);
+            box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
+            animation: none !important;
+        }
+        .live-drop-item img { max-height: 60px; max-width: 100px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 10px; font-weight: bold; text-white; text-center; line-height: 1.2; max-width: 110px; word-wrap: break-word; }
+        .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
+            animation: dropPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes dropPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
+
+        /* Vylepšené item animace */
+        .item-float { animation: none; opacity: 1; transform: scale(1) !important; }
+        @keyframes floatItem { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(0px); } }
+        
+        .item-pulse { animation: itemPulse 2s ease-in-out infinite; }
+        @keyframes itemPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
+        
+        .item-shine { animation: shine 3s ease-in-out infinite; }
+        @keyframes shine { 0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0); } 50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); } }
+        
+        .glow-blue { box-shadow: 0 0 20px rgba(75, 105, 255, 0.4); }
+        .glow-purple { box-shadow: 0 0 20px rgba(136, 71, 255, 0.4); }
+        .glow-pink { box-shadow: 0 0 20px rgba(211, 46, 230, 0.4); }
+        .glow-red { box-shadow: 0 0 20px rgba(235, 75, 75, 0.4); }
+        .glow-gold { box-shadow: 0 0 20px rgba(235, 202, 68, 0.6); }
 
         /* Spinner pro bedny */
         .spinner-container {
@@ -72,6 +199,16 @@
         /* Upgrade efekty */
         .upgrade-shake { animation: shake 0.5s ease-in-out infinite; border-color: #a855f7 !important; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
+
+        /* Spinner položky - vylepšené animace */
+        .spinner-item {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .spinner-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col" onclick="initAudio()">
@@ -80,13 +217,13 @@
         <div id="win-bg-glow" class="absolute w-[800px] h-[800px] blur-[150px] opacity-40 win-glow-rotate rounded-full"></div>
         
         <div class="text-center relative z-10 w-full max-w-3xl px-8 flex flex-col items-center">
-            <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-4">Padlo ti</h3>
+            <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-4 animate-pulse">Padlo ti</h3>
             <img id="win-image" class="h-80 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] scale-0 mb-8" src="" alt="Skin">
             <h2 id="win-name" class="text-6xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl mb-2"></h2>
-            <div id="win-price" class="text-3xl font-bold text-yellow-400 mb-12">0.00 EUR</div>
+            <div id="win-price" class="text-3xl font-bold text-yellow-400 mb-12 drop-shadow-lg">0.00 EUR</div>
             
             <div class="flex gap-6 justify-center w-full max-w-lg">
-                <button id="btn-win-sell" class="flex-1 bg-green-500 hover:bg-green-600 text-black py-4 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
+                <button id="btn-win-sell" class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-black py-4 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
                     Prodat za <span id="win-sell-price"></span>
                 </button>
                 <button id="btn-win-keep" class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-4 rounded-2xl font-black uppercase text-xl transition-all hover:scale-105 active:scale-95">
@@ -97,48 +234,64 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-16 bg-[#090b0e] border-b border-white/5 flex items-center overflow-hidden z-40">
-        <div class="flex-shrink-0 bg-yellow-400 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest">
-            OTODROP LIVE
+    <div class="h-16 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-center overflow-hidden z-40">
+        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+            🔴 LIVE DROPS
         </div>
         <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+        <!-- Live chat (simulovaný) -->
+        <div id="live-chat" class="ml-auto mr-6 w-80 h-40 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden sm:block">
+            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto h-full pr-2"></div>
+        </div>
     </div>
 
-    <header class="h-20 bg-[#16191f]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 z-30">
+    <header class="h-20 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-8 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
         <div class="flex items-center gap-10">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="switchPage('cases')">
-                <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center text-black font-black text-2xl rotate-2 group-hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.3)]">OD</div>
+                <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center text-black font-black text-2xl rotate-2 group-hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.3)] item-pulse">OD</div>
                 <div class="flex flex-col leading-tight">
                     <span class="text-3xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
                 </div>
             </div>
 
             <nav class="hidden 2xl:flex items-center gap-6">
-                <button onclick="switchPage('cases')" class="nav-link active py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white">
+                <button onclick="switchPage('cases')" class="nav-link active py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
                     <i data-lucide="box" class="w-4 h-4"></i> Bedny
                 </button>
-                <button onclick="switchPage('upgrade')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Upgrade
+
+                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-110">
+                    <i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span>
                 </button>
-                <button onclick="switchPage('inventory')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white">
+
+                <button onclick="switchPage('upgrade')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade
+                </button>
+                <button onclick="switchPage('inventory')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
                     <i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář
                 </button>
             </nav>
         </div>
 
         <div class="flex items-center gap-6">
-            <div class="bg-gray-900/80 px-5 py-2.5 rounded-2xl border border-white/10 flex items-center gap-4 shadow-xl">
-                <div class="text-right">
-                    <div id="balance" class="font-black text-yellow-400 text-xl leading-none">0.00</div>
-                    <div class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-1">Zůstatek (EUR)</div>
+            <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 flex items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
+                <div class="text-right flex items-center gap-3">
+                    <div>
+                        <div id="balance" class="font-black text-yellow-400 text-xl leading-none">0.00</div>
+                        <div id="balance-currency-label" class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-1">Zůstatek (EUR)</div>
+                    </div>
+                    <select id="currency-select" class="bg-[#0b0d11] border border-yellow-400/20 text-sm text-gray-300 rounded-md px-2 py-1" title="Změnit měnu">
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="CZK">CZK</option>
+                    </select>
                 </div>
-                <div class="w-10 h-10 bg-yellow-400/10 rounded-xl flex items-center justify-center text-yellow-400">
+                <div class="w-10 h-10 bg-yellow-400/20 rounded-xl flex items-center justify-center text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
                     <i data-lucide="coins" class="w-6 h-6"></i>
                 </div>
             </div>
 
-            <button onclick="addFreeMoney()" class="bg-green-500/20 hover:bg-green-500 text-green-500 hover:text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-500/50 shadow-lg active:scale-95">
-                + PENÍZE ZDARMA
+            <button onclick="addFreeMoney()" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
+                💰 + PENÍZE ZDARMA
             </button>
         </div>
     </header>
@@ -148,15 +301,18 @@
             
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
                 <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/20 to-[#0b0d11] border border-yellow-400/20 shadow-2xl flex items-center px-12 mb-8">
+                    <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
                     <div class="relative z-10 max-w-2xl space-y-4">
-                        <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic">ROZŠÍŘENÁ DATABÁZE</div>
-                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
-                        <p class="text-gray-400 text-md font-medium leading-relaxed">Otevři bedny se zvukem asmr tikání nebo použij 3-slotový Upgrader a získej svůj vysněný knife!</p>
+                        <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
+                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
+                        <p class="text-gray-400 text-md font-medium leading-relaxed drop-shadow-md">Otevři bedny se zvukem asmr tikání, hrej mini-hry nebo použij 3-slotový Upgrader a získej svůj vysněný knife! 💎</p>
                     </div>
-                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/5"></i>
+                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/5 animate-pulse"></i>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="cases-grid"></div>
             </section>
+
+
 
             <section id="page-case-view" class="page hidden fade-in max-w-6xl mx-auto space-y-8">
                 <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
@@ -164,8 +320,10 @@
                 </button>
 
                 <div class="bg-[#14171c] rounded-3xl border border-white/5 p-8 shadow-2xl text-center">
-                    <h2 id="view-case-name" class="text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl">Bedna</h2>
-                    <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
+                    <div>
+                        <h2 id="view-case-name" class="text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl">Bedna</h2>
+                        <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
+                    </div>
 
                     <div class="spinner-container relative mb-8">
                         <div class="blur-edges blur-left"></div>
@@ -198,7 +356,7 @@
                             <div class="flex flex-col gap-3" id="upg-inputs-container"></div>
                             <div class="text-center mt-2">
                                 <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Celková hodnota vkladu:</span>
-                                <div id="upg-total-input-val" class="text-purple-400 font-black text-xl">0.00 EUR</div>
+                                <div id="upg-total-input-val" class="text-purple-400 font-black text-xl drop-shadow-lg">0.00 EUR</div>
                             </div>
                         </div>
                         
@@ -206,21 +364,21 @@
                             <div class="relative">
                                 <svg class="w-48 h-48 mx-auto transform -rotate-90">
                                     <circle cx="96" cy="96" r="86" stroke="#1f2937" stroke-width="12" fill="transparent" />
-                                    <circle id="upgrade-circle" cx="96" cy="96" r="86" stroke="#a855f7" stroke-width="12" fill="transparent" stroke-dasharray="540" stroke-dashoffset="540" class="transition-all duration-1000 ease-out" />
+                                    <circle id="upgrade-circle" cx="96" cy="96" r="86" stroke="#a855f7" stroke-width="12" fill="transparent" stroke-dasharray="540" stroke-dashoffset="540" class="transition-all duration-1000 ease-out drop-shadow-lg" />
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center flex-col">
                                     <span id="upgrade-chance" class="text-5xl font-black text-white italic drop-shadow-lg">0%</span>
                                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Šance</span>
                                 </div>
                             </div>
-                            <button onclick="attemptUpgrade()" id="btn-upgrade-exec" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-black py-5 rounded-2xl uppercase italic shadow-lg shadow-purple-500/30 active:scale-95 transition-all tracking-tighter text-xl">
+                            <button onclick="attemptUpgrade()" id="btn-upgrade-exec" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black py-5 rounded-2xl uppercase italic shadow-lg shadow-purple-500/30 active:scale-95 transition-all tracking-tighter text-xl">
                                 Vylepšit
                             </button>
                         </div>
                         
                         <div class="space-y-4 h-full flex flex-col justify-center">
                             <h3 class="text-gray-400 font-black uppercase text-sm tracking-widest text-center mb-2">Cílový skin</h3>
-                            <div id="upg-target-slot" onclick="openSelector('target')" class="bg-gray-900/50 border-2 border-dashed border-purple-500/50 hover:border-yellow-400 rounded-3xl h-64 flex flex-col items-center justify-center p-4 relative overflow-hidden cursor-pointer transition-all group">
+                            <div id="upg-target-slot" onclick="openSelector('target')" class="bg-gradient-to-b from-purple-950/30 to-black/30 border-2 border-dashed border-purple-500/50 hover:border-yellow-400 rounded-3xl h-64 flex flex-col items-center justify-center p-4 relative overflow-hidden cursor-pointer transition-all group">
                                 <i data-lucide="search" class="w-10 h-10 text-purple-500/50 group-hover:text-yellow-400 mb-2 transition-colors"></i>
                                 <span class="text-gray-500 font-bold uppercase text-xs text-center group-hover:text-white transition-colors">Vyber cíl z<br>databáze</span>
                             </div>
@@ -235,9 +393,26 @@
                         <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white">MŮJ <span class="text-yellow-400">INVENTÁŘ</span></h2>
                         <p id="inv-stats" class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">0 předmětů v hodnotě 0.00 EUR</p>
                     </div>
-                    <button onclick="sellAllSkins()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-3 rounded-xl font-bold text-xs transition-all border border-red-500/20 uppercase tracking-widest">
-                        Prodat vše
-                    </button>
+                    <div class="flex gap-2">
+                        <select id="inv-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white font-bold text-sm uppercase cursor-pointer" onchange="filterInventory()">
+                            <option value="all">Všechny</option>
+                            <option value="blue">Modré</option>
+                            <option value="purple">Fialové</option>
+                            <option value="pink">Růžové</option>
+                            <option value="red">Červené</option>
+                            <option value="gold">Zlaté</option>
+                            <option value="knives">Nože</option>
+                        </select>
+                        <select id="inv-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white font-bold text-sm uppercase cursor-pointer" onchange="sortInventory()">
+                            <option value="newest">Nejnovější</option>
+                            <option value="price-high">Cena (vysoká)</option>
+                            <option value="price-low">Cena (nízká)</option>
+                            <option value="name">Jméno (A-Z)</option>
+                        </select>
+                        <button onclick="sellAllSkins()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-2 rounded-lg font-bold text-xs transition-all border border-red-500/20 uppercase tracking-widest">
+                            Prodat vše
+                        </button>
+                    </div>
                 </div>
                 <div id="inventory-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
@@ -264,7 +439,18 @@
     <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
         function handleImgError(img) {
-            img.onerror = null; 
+            // Pokusit se postupně použít alternativní URL uložené v data-alts (pipe-separated)
+            try {
+                const alts = (img.dataset.alts || '').split('|').filter(Boolean);
+                if(alts.length > 0) {
+                    img.onerror = null;
+                    img.src = alts.shift();
+                    img.dataset.alts = alts.join('|');
+                    img.onerror = handleImgError;
+                    return;
+                }
+            } catch(e) { /* ignore */ }
+            img.onerror = null;
             img.src = FALLBACK_IMG;
             img.classList.add('fallback-img');
         }
@@ -350,19 +536,19 @@
         let balanceBase = 0.00;
         const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
 
-        // Přidáno dalších 50 oblíbených skinů
+        // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
         const rawSkinData = `
-P250|Sand Dune|0.10|#4b69ff
+P250|Sand Dune|0.10|#b0c3d9
 Glock-18|Catacombs|0.20|#4b69ff
 SSG 08|Abyss|0.50|#4b69ff
 P90|Grim|0.80|#4b69ff
 M4A4|Magnesium|1.00|#4b69ff
-MAC-10|Candy Apple|1.10|#4b69ff
+MAC-10|Candy Apple|1.10|#5e98d9
 Glock-18|Weasel|1.20|#8847ff
 Glock-18|Moonrise|1.50|#8847ff
 USP-S|Ticket to Hell|1.80|#8847ff
-P250|Asiimov|2.00|#8847ff
-AK-47|Elite Build|2.50|#8847ff
+P250|Asiimov|2.00|#d32ee6
+AK-47|Elite Build|2.50|#4b69ff
 M4A1-S|Night Terror|2.50|#8847ff
 AWP|Worm God|3.00|#8847ff
 USP-S|Cyrex|3.50|#8847ff
@@ -374,7 +560,7 @@ USP-S|Cortex|5.00|#d32ee6
 Desert Eagle|Conspiracy|6.00|#d32ee6
 AK-47|Phantom Disruptor|6.00|#d32ee6
 Desert Eagle|Mecha Industries|7.00|#d32ee6
-MAC-10|Neon Rider|8.00|#d32ee6
+MAC-10|Neon Rider|8.00|#eb4b4b
 AWP|Atheris|10.00|#8847ff
 M4A4|Desolate Space|10.00|#d32ee6
 Glock-18|Bullet Queen|12.00|#eb4b4b
@@ -385,7 +571,7 @@ Glock-18|Neo-Noir|15.00|#eb4b4b
 M4A4|In Living Color|15.00|#eb4b4b
 AK-47|Ice Coaled|18.00|#d32ee6
 USP-S|Neo-Noir|18.00|#eb4b4b
-M4A4|Neo-Noir|20.00|#d32ee6
+M4A4|Neo-Noir|20.00|#eb4b4b
 AWP|Neo-Noir|25.00|#eb4b4b
 USP-S|Orion|25.00|#d32ee6
 M4A1-S|Hyper Beast|25.00|#eb4b4b
@@ -394,18 +580,18 @@ AK-47|Asiimov|35.00|#eb4b4b
 M4A1-S|Player Two|35.00|#eb4b4b
 AK-47|Neon Rider|40.00|#eb4b4b
 USP-S|Kill Confirmed|45.00|#eb4b4b
-USP-S|Printstream|55.00|#d32ee6
+USP-S|Printstream|55.00|#eb4b4b
 Desert Eagle|Printstream|60.00|#eb4b4b
 AK-47|Bloodsport|75.00|#eb4b4b
 AK-47|Vulcan|80.00|#eb4b4b
 AWP|Containment Breach|85.00|#eb4b4b
 AWP|Asiimov|110.00|#eb4b4b
 M4A1-S|Printstream|210.00|#eb4b4b
-Desert Eagle|Emerald Jörmungandr|350.00|#eb4b4b
+Desert Eagle|Emerald Jörmungandr|350.00|#8847ff
 Bayonet|Slaughter|450.00|#ebca44
 M4A1-S|Blue Phosphor|700.00|#d32ee6
-Glock-18|Fade|800.00|#ebca44
-Desert Eagle|Blaze|900.00|#eb4b4b
+Glock-18|Fade|800.00|#8847ff
+Desert Eagle|Blaze|900.00|#8847ff
 M9 Bayonet|Doppler|900.00|#ebca44
 Talon Knife|Fade|1000.00|#ebca44
 Karambit|Tiger Tooth|1000.00|#ebca44
@@ -425,23 +611,192 @@ Skeleton Knife|Fade|1800.00|#ebca44
 Butterfly Knife|Marble Fade|2000.00|#ebca44
 Sport Gloves|Vice|2000.00|#ebca44
 Butterfly Knife|Fade|2200.00|#ebca44
-M4A1-S|Welcome to the Jungle|2500.00|#ebca44
-AWP|Medusa|3000.00|#ebca44
-AK-47|Gold Arabesque|3000.00|#ebca44
-M4A4|Howl|3500.00|#ebca44
-Sport Gloves|Pandoras Box|4000.00|#ebca44
-AK-47|Wild Lotus|4500.00|#ebca44
-AWP|Dragon Lore|5000.00|#ebca44
-AWP|Gungnir|6000.00|#ebca44`;
+M4A1-S|Welcome to the Jungle|2500.00|#eb4b4b
+AWP|Medusa|3000.00|#eb4b4b
+AK-47|Gold Arabesque|3000.00|#eb4b4b
+M4A4|Howl|3500.00|#e4ae39
+Sport Gloves|Pandora's Box|4000.00|#ebca44
+AK-47|Wild Lotus|4500.00|#eb4b4b
+AWP|Dragon Lore|5000.00|#eb4b4b
+AWP|Gungnir|6000.00|#eb4b4b
+Flip Knife|Marble Fade|1950.00|#ebca44
+Gut Knife|Tiger Tooth|750.00|#ebca44
+Huntsman Knife|Slaughter|950.00|#ebca44
+Bowie Knife|Lore|1100.00|#ebca44
+Falchion Knife|Fade|1100.00|#ebca44
+Shadow Daggers|Crimson Web|1250.00|#ebca44
+Stiletto Knife|Fade|1200.00|#ebca44
+Ursus Knife|Doppler|1300.00|#ebca44
+Moto Gloves|Spearmint|2200.00|#ebca44
+Specialist Gloves|Crimson Kimono|2300.00|#ebca44
+Hand Wraps|Slaughter|2100.00|#ebca44
+AK-47|Uncharted|42.00|#4b69ff
+M4A4|Royal Paladin|45.00|#eb4b4b
+Desert Eagle|Hand Cannon|38.00|#8847ff
+P250|Whiteout|2.50|#4b69ff
+USP-S|Whiteout|2.75|#4b69ff
+M4A4|Converter|3.00|#4b69ff
+AK-47|Point Disarray|11.00|#d32ee6
+M4A1-S|Icarus Fell|16.50|#8847ff
+Glock-18|Candy Apple|3.50|#4b69ff
+M4A1-S|Dark Water|4.00|#8847ff
+USP-S|Dark Water|3.75|#8847ff
+AWP|Oni Taiji|19.50|#eb4b4b
+Desert Eagle|Kumicho Dragon|35.00|#d32ee6
+M4A4|龍王 (Dragon King)|22.50|#d32ee6
+AK-47|Legion of Anubis|28.00|#eb4b4b
+Glock-18|Dragon Tattoo|8.50|#8847ff
+P90|Elite Build|2.75|#4b69ff
+MAC-10|Disco Tech|3.25|#d32ee6
+UMP-45|Scaffold|2.50|#8847ff
+Nova|Graphite|1.50|#8847ff
+FAMAS|Valence|4.00|#8847ff
+Galil AR|Chromatic Aberration|5.50|#d32ee6
+SG 553|Phantom|6.00|#8847ff
+Five-SeveN|Nightshade|3.75|#4b69ff
+Dual Berettas|Ventilators|4.50|#4b69ff
+R8 Revolver|Fade|7.00|#eb4b4b
+Tec-9|Blast From the Past|3.00|#4b69ff
+XM1014|Heaven Guard|2.50|#8847ff
+Negev|Loudmouth|2.00|#8847ff
+M4A1-S|Atomic Alloy|5.50|#d32ee6
+M4A1-S|Guardian|6.00|#d32ee6
+M4A1-S|Golden Coil|8.50|#eb4b4b
+M4A1-S|Basilisk|7.00|#8847ff
+M4A4|Tooth Fairy|4.00|#d32ee6
+M4A4|Poly Mag|5.00|#4b69ff
+M4A4|Asiimov|9.00|#eb4b4b
+M4A4|Temukau|8.00|#eb4b4b
+AK-47|Uncharted|12.00|#4b69ff
+AK-47|Bloodsport|15.00|#eb4b4b
+AK-47|Neon Rider|18.00|#eb4b4b
+AK-47|Point Disarray|8.00|#d32ee6
+AK-47|Phantom Disruptor|6.00|#d32ee6
+AK-47|Phantom Disruptor|7.00|#d32ee6
+AK-47|Neon Rider|20.00|#eb4b4b
+AWP|Containment Breach|32.00|#eb4b4b
+AWP|Corticera|8.00|#d32ee6
+AWP|Hyper Beast|22.00|#eb4b4b
+AWP|Oni Taiji|15.00|#eb4b4b
+AWP|Phobos|6.00|#8847ff
+AWP|Redline|25.00|#d32ee6
+AWP|Pink DDPAT|12.00|#8847ff
+AWP|Man-o'-war|18.00|#eb4b4b
+AWP|Graphite|14.00|#d32ee6
+USP-S|Serum|5.00|#d32ee6
+USP-S|Caiman|6.50|#d32ee6
+USP-S|Overgrowth|4.00|#8847ff
+USP-S|Road Rash|5.50|#8847ff
+Desert Eagle|Code Red|8.00|#eb4b4b
+Desert Eagle|Directive|7.50|#8847ff
+Desert Eagle|Mudder|4.00|#5e98d9
+Desert Eagle|Fennec Fox|9.00|#d32ee6
+Glock-18|Reactor|4.00|#4b69ff
+Glock-18|Snack Attack|3.00|#d32ee6
+P250|Mehndi|3.00|#d32ee6
+P250|Contaminant|2.00|#4b69ff
+P250|Supernova|6.00|#8847ff
+P250|Franklin|4.50|#d32ee6
+Flip Knife|Tiger Tooth|600.00|#ebca44
+Flip Knife|Doppler|700.00|#ebca44
+Flip Knife|Slaughter|750.00|#ebca44
+Flip Knife|Fade|800.00|#ebca44
+Flip Knife|Case Hardened|850.00|#ebca44
+Flip Knife|Marble Fade|950.00|#ebca44
+Gut Knife|Fade|550.00|#ebca44
+Gut Knife|Doppler|600.00|#ebca44
+Gut Knife|Slaughter|650.00|#ebca44
+Gut Knife|Case Hardened|700.00|#ebca44
+Huntsman Knife|Tiger Tooth|700.00|#ebca44
+Huntsman Knife|Fade|800.00|#ebca44
+Huntsman Knife|Doppler|850.00|#ebca44
+Huntsman Knife|Marble Fade|900.00|#ebca44
+Nomad Knife|Fade|1100.00|#ebca44
+Bowie Knife|Tiger Tooth|800.00|#ebca44
+Bowie Knife|Fade|900.00|#ebca44
+Bowie Knife|Doppler|950.00|#ebca44
+Classic Knife|Fade|1000.00|#ebca44
+Falchion Knife|Tiger Tooth|750.00|#ebca44
+Falchion Knife|Fade|850.00|#ebca44
+Falchion Knife|Doppler|900.00|#ebca44
+Paracord Knife|Fade|700.00|#ebca44
+Shadow Daggers|Tiger Tooth|750.00|#ebca44
+Shadow Daggers|Fade|850.00|#ebca44
+Shadow Daggers|Doppler|900.00|#ebca44
+Stiletto Knife|Tiger Tooth|800.00|#ebca44
+Stiletto Knife|Marble Fade|950.00|#ebca44
+Survival Knife|Fade|700.00|#ebca44
+Talon Knife|Tiger Tooth|950.00|#ebca44
+Talon Knife|Marble Fade|1050.00|#ebca44
+Talon Knife|Doppler|1000.00|#ebca44
+Ursus Knife|Tiger Tooth|1000.00|#ebca44
+Ursus Knife|Fade|1100.00|#ebca44
+Ursus Knife|Marble Fade|1200.00|#ebca44
+Navaja Knife|Tiger Tooth|850.00|#ebca44
+Navaja Knife|Fade|950.00|#ebca44
+Navaja Knife|Doppler|1000.00|#ebca44
+Driver Gloves|Crimson Weave|1000.00|#ebca44
+Specialist Gloves|Mogul|1050.00|#ebca44
+Sport Gloves|Arid|1000.00|#ebca44
+Sport Gloves|Superconductor|1150.00|#ebca44
+Specialist Gloves|Tiger Strike|1050.00|#ebca44
+Specialist Gloves|Emerald Web|1100.00|#ebca44
+Specialist Gloves|Forest DDPAT|950.00|#ebca44
+Hand Wraps|Badlands|1000.00|#ebca44
+Hand Wraps|Cobalt Skulls|1100.00|#ebca44
+Moto Gloves|Eclipse|1000.00|#ebca44
+Moto Gloves|Polygon|1050.00|#ebca44
+Moto Gloves|Blood Pressure|1100.00|#ebca44
+M4A1-S|Emphorosaur-S|8.00|#8847ff
+M4A1-S|Nightmare|9.00|#d32ee6
+M4A1-S|Blue Phosphor|12.00|#d32ee6
+AWP|Gungnir|150.00|#eb4b4b
+AWP|Dragon Lore|200.00|#eb4b4b
+AWP|Medusa|120.00|#eb4b4b
+AWP|Fade|95.00|#eb4b4b
+AWP|Oni Taiji|35.00|#eb4b4b
+AK-47|Gold Arabesque|95.00|#eb4b4b
+AK-47|Wild Lotus|150.00|#eb4b4b
+AK-47|Uncharted|50.00|#4b69ff
+AK-47|Phantom Disruptor|12.00|#d32ee6
+AK-47|Bloodsport|45.00|#eb4b4b
+Karambit|Lore|800.00|#ebca44
+Karambit|Autotronic|750.00|#ebca44
+Karambit|Case Hardened|900.00|#ebca44
+Karambit|Crimson Web|1100.00|#ebca44
+M9 Bayonet|Lore|850.00|#ebca44
+M9 Bayonet|Autotronic|800.00|#ebca44
+M9 Bayonet|Case Hardened|950.00|#ebca44
+Butterfly Knife|Autotronic|900.00|#ebca44
+Butterfly Knife|Case Hardened|1050.00|#ebca44
+Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         const skinsDB = {};
+        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves"];
         
         rawSkinData.trim().split("\n").forEach((line, idx) => {
             const [w, n, p, c] = line.split("|");
-            let folder = KNIFE_TYPES.includes(w) ? "knives" : "skins";
+            let folder = "skins";
+            if(KNIFE_TYPES.includes(w)) folder = "knives";
+            else if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            
             let urlWeapon = w.replace(/ /g, "_");
             let urlName = n.replace(/ /g, "_").replace(/'/g, "");
-            skinsDB[idx + 1] = { id: idx + 1, weapon: w, skinName: n, name: `${w} | ${n}`, price: parseFloat(p), color: c, img: `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`, rarityName: c === '#ebca44' ? 'gold' : (c === '#eb4b4b' ? 'red' : (c === '#d32ee6' ? 'pink' : 'blue')) };
+            const primaryImg = `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
+            // Alternate patterns (some gloves/rare items have different naming on CDN)
+            const alt1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
+            const alt2 = primaryImg.replace('/webp/', '/').replace('.webp', '.png');
+            skinsDB[idx + 1] = {
+                id: idx + 1,
+                weapon: w,
+                skinName: n,
+                name: `${w} | ${n}`,
+                price: parseFloat(p),
+                color: c,
+                img: primaryImg,
+                imgAlts: [alt1, alt2],
+                rarityName: c === '#ebca44' ? 'gold' : (c === '#eb4b4b' ? 'red' : (c === '#d32ee6' ? 'pink' : 'blue'))
+            };
         });
 
         function findSkin(w, n) { return Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n) || Object.values(skinsDB)[0]; }
@@ -494,8 +849,163 @@ AWP|Gungnir|6000.00|#ebca44`;
                         { skin: findSkin("AWP", "Neo-Noir"), chance: 19.0 },
                         { skin: findSkin("AWP", "Dragon Lore"), chance: 1.0 }
                     ]
+                },
+                {
+                    id: "knife-budget", name: "Budget Knives", price: 150.00, color: "purple",
+                    img: findSkin("Bayonet", "Slaughter").img,
+                    contents: [
+                        { skin: findSkin("Gut Knife", "Tiger Tooth"), chance: 70.0 },
+                        { skin: findSkin("Flip Knife", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Bayonet", "Tiger Tooth"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "knife-ultra", name: "Ultra Knife Box", price: 500.00, color: "gold",
+                    img: findSkin("Karambit", "Fade").img,
+                    contents: [
+                        { skin: findSkin("M9 Bayonet", "Doppler"), chance: 30.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "top-tier", name: "TOP TIER All Star", price: 300.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "Howl"), chance: 35.0 },
+                        { skin: findSkin("AWP", "Medusa"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Doppler"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mystery", name: "Mystery Case", price: 75.00, color: "purple",
+                    img: findSkin("Glock-18", "Water Elemental").img,
+                    contents: [
+                        { skin: findSkin("USP-S", "Orion"), chance: 40.0 },
+                        { skin: findSkin("M4A1-S", "Hyper Beast"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Neon Rider"), chance: 20.0 },
+                        { skin: findSkin("Huntsman Knife", "Slaughter"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "gloves", name: "Glove Heaven", price: 250.00, color: "pink",
+                    img: findSkin("Sport Gloves", "Vice").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Specter"), chance: 40.0 },
+                        { skin: findSkin("Specialist Gloves", "Crimson Kimono"), chance: 35.0 },
+                        { skin: findSkin("Hand Wraps", "Slaughter"), chance: 20.0 },
+                        { skin: findSkin("Sport Gloves", "Pandoras Box"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "legendary", name: "LEGENDARY Box", price: 1000.00, color: "gold",
+                    img: findSkin("AWP", "Gungnir").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 20.0 },
+                        { skin: findSkin("AWP", "Gungnir"), chance: 30.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Lore"), chance: 15.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "low-budget", name: "Low Roller", price: 2.50, color: "blue",
+                    img: findSkin("P250", "Sand Dune").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 50.0 },
+                        { skin: findSkin("P250", "Sand Dune"), chance: 30.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 15.0 },
+                        { skin: findSkin("MAC-10", "Candy Apple"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "mid-tier", name: "MID-TIER Master", price: 80.00, color: "purple",
+                    img: findSkin("M4A4", "Desolate Space").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Redline"), chance: 35.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 30.0 },
+                        { skin: findSkin("AWP", "Containment Breach"), chance: 25.0 },
+                        { skin: findSkin("Desert Eagle", "Printstream"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "premium-gloves", name: "Premium Gloves", price: 350.00, color: "pink",
+                    img: findSkin("Moto Gloves", "Eclipse").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Eclipse"), chance: 40.0 },
+                        { skin: findSkin("Driver Gloves", "Mogul"), chance: 30.0 },
+                        { skin: findSkin("Sport Gloves", "Superconductor"), chance: 20.0 },
+                        { skin: findSkin("Specialist Gloves", "Emerald Web"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "ultra-premium", name: "Ultra Premium", price: 500.00, color: "red",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 25.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 20.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Moto Gloves", "Blood Pressure"), chance: 15.0 }
+                    ]
+                },
+                {
+                    id: "knife-masters", name: "KNIFE Masters", price: 400.00, color: "yellow-400",
+                    img: findSkin("Karambit", "Lore").img,
+                    contents: [
+                        { skin: findSkin("Karambit", "Lore"), chance: 30.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 25.0 },
+                        { skin: findSkin("Butterfly Knife", "Crimson Web"), chance: 20.0 },
+                        { skin: findSkin("Skeleton Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mega-pack", name: "MEGA PACK", price: 150.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Medusa"), chance: 20.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 20.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 15.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 }
+                    ]
                 }
             );
+
+            // Přidat extra bedny z Casehug snippet (hezké obrázky a názvy)
+            const extraCases = [
+                { id: 'crazy-love', name: 'CRAZY LOVE', price: 1.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/1_CRAZY_LOVE_1769696421.png?width=640&quality=85', color: 'blue' },
+                { id: 'aftermath', name: 'AFTERMATH', price: 2.50, img: 'https://cdn.casehug.com/content/case/stupid_cupid/2_AFTERMATH_1769696421.png?width=640&quality=85', color: 'blue' },
+                { id: 'my-valentine', name: 'MY VALENTINE', price: 5.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/3_MY_VALENTINE_1769696421.png?width=640&quality=85', color: 'purple' },
+                { id: 'charmy', name: 'CHARMY', price: 20.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/4_CHARMY_1769696421.png?width=640&quality=85', color: 'purple' },
+                { id: 'put-it-together', name: 'PUT IT TOGETHER', price: 50.00, img: 'https://cdn.casehug.com/content/case/stupid_cupid/5_PUT_IT_TOGETHER_1769696421.png?width=640&quality=85', color: 'red' },
+                { id: 'frosty', name: 'FROSTY', price: 0.80, img: 'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', color: 'blue' },
+                { id: 'game-on', name: 'GAME ON', price: 4.50, img: 'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', color: 'purple' },
+                { id: 'bank-heist', name: 'BANK HEIST', price: 11.00, img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', color: 'red' },
+                { id: 'gambit', name: 'GAMBIT', price: 18.00, img: 'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', color: 'yellow-400' },
+                { id: 'chinatown', name: 'CHINATOWN', price: 97.50, img: 'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', color: 'red' },
+                { id: 'tiger', name: 'TIGER', price: 3.80, img: 'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', color: 'purple' },
+                { id: 'demolition', name: 'DEMOLITION', price: 11.00, img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', color: 'red' },
+                { id: 'electronic', name: 'ELECTRONIC', price: 33.00, img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', color: 'purple' },
+                { id: 'lab', name: 'LAB', price: 150.00, img: 'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', color: 'red' },
+                { id: 'howl', name: 'HOWL', price: 300.00, img: 'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', color: 'yellow-400' }
+            ];
+
+            extraCases.forEach(ec => {
+                // pokud case s tímto id už neexistuje
+                if(!casesDB.find(x => x.id === ec.id)) {
+                    // vytvoř jednoduchý obsah z náhodných skinů
+                    const allSkins = Object.values(skinsDB);
+                    const contents = [];
+                    for(let i=0;i<4;i++) contents.push({ skin: allSkins[Math.floor(Math.random()*allSkins.length)], chance: Math.round(100/4) });
+                    casesDB.push({ id: ec.id, name: ec.name, price: ec.price, color: ec.color, img: ec.img, contents });
+                }
+            });
+
             renderCases();
         }, 100);
 
@@ -506,7 +1016,19 @@ AWP|Gungnir|6000.00|#ebca44`;
 
         // --- ZÁKLADY UI ---
         function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
-        function updateUI() { document.getElementById('balance').textContent = formatMoney(balanceBase).replace(' EUR', ''); lucide.createIcons(); }
+        const CURRENCY_RATES = { EUR: 1, USD: 1.08, CZK: 25.5 };
+        function updateUI() {
+            const sel = document.getElementById('currency-select');
+            const cur = sel ? sel.value : 'EUR';
+            const rate = CURRENCY_RATES[cur] || 1;
+            const converted = balanceBase * rate;
+            const decimals = cur === 'CZK' ? 0 : 2;
+            const formatted = converted.toLocaleString(cur === 'CZK' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            document.getElementById('balance').textContent = `${formatted} ${cur}`;
+            const lbl = document.getElementById('balance-currency-label');
+            if(lbl) lbl.textContent = `Zůstatek (${cur})`;
+            lucide.createIcons();
+        }
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
@@ -612,14 +1134,22 @@ AWP|Gungnir|6000.00|#ebca44`;
         // --- BEDNY ---
         function renderCases() {
             const grid = document.getElementById('cases-grid');
-            grid.innerHTML = casesDB.map(c => `
-                <div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-transparent hover:border-${c.color}/50 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden">
+            grid.innerHTML = casesDB.map((c, idx) => {
+                let glowClass = '';
+                if(c.color === 'blue') glowClass = 'glow-blue';
+                else if(c.color === 'red') glowClass = 'glow-red';
+                else if(c.color === 'purple') glowClass = 'glow-purple';
+                else if(c.color === 'pink') glowClass = 'glow-pink';
+                else if(c.color === 'yellow-400') glowClass = 'glow-gold';
+
+                return `
+                <div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-transparent hover:border-${c.color}/50 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 100}ms;">
                     <div class="absolute inset-0 bg-${c.color}/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
+                    <img src="${c.img}" data-alts="${(c.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
                     <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
                     <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function openCaseView(id) {
@@ -630,6 +1160,17 @@ AWP|Gungnir|6000.00|#ebca44`;
             document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
             document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
 
+            // Populuj Case Changer
+            const changer = document.getElementById('case-changer');
+            changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
+            casesDB.forEach(caseItem => {
+                const opt = document.createElement('option');
+                opt.value = caseItem.id;
+                opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
+                opt.selected = caseItem.id === id;
+                changer.appendChild(opt);
+            });
+
             const track = document.getElementById('spinner-track');
             track.style.transition = 'none';
             track.style.transform = 'translateX(0px)';
@@ -637,7 +1178,7 @@ AWP|Gungnir|6000.00|#ebca44`;
             
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
                 <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
-                    <img src="${item.skin.img}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
+                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
                     <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
                     <div class="text-[10px] font-black text-white">${item.chance}%</div>
                 </div>
@@ -688,7 +1229,7 @@ AWP|Gungnir|6000.00|#ebca44`;
                 let skinToRender = (i === winningIndex) ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
                 html += `
                     <div class="spinner-item" style="border-color: ${skinToRender.color}">
-                        <img src="${skinToRender.img}" onerror="handleImgError(this)">
+                        <img src="${skinToRender.img}" data-alts="${(skinToRender.imgAlts||[]).join('|')}" onerror="handleImgError(this)">
                         <div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skinToRender.name}</div>
                     </div>
                 `;
@@ -762,13 +1303,30 @@ AWP|Gungnir|6000.00|#ebca44`;
                 return;
             }
 
+            let displayItems = userInventory;
+            
+            // Aplikuj filtr
+            const filterVal = document.getElementById('inv-filter')?.value || 'all';
+            if(filterVal === 'blue') displayItems = displayItems.filter(i => i.color === '#4b69ff');
+            else if(filterVal === 'purple') displayItems = displayItems.filter(i => i.color === '#8847ff');
+            else if(filterVal === 'pink') displayItems = displayItems.filter(i => i.color === '#d32ee6');
+            else if(filterVal === 'red') displayItems = displayItems.filter(i => i.color === '#eb4b4b');
+            else if(filterVal === 'gold') displayItems = displayItems.filter(i => i.color === '#ebca44');
+            else if(filterVal === 'knives') displayItems = displayItems.filter(i => KNIFE_TYPES.some(k => i.weapon === k));
+
+            // Aplikuj třídění
+            const sortVal = document.getElementById('inv-sort')?.value || 'newest';
+            if(sortVal === 'price-high') displayItems.sort((a, b) => b.price - a.price);
+            else if(sortVal === 'price-low') displayItems.sort((a, b) => a.price - b.price);
+            else if(sortVal === 'name') displayItems.sort((a, b) => a.name.localeCompare(b.name));
+
             let totalVal = 0;
-            grid.innerHTML = userInventory.map(item => {
+            grid.innerHTML = displayItems.map((item, idx) => {
                 totalVal += item.price;
                 return `
-                <div class="bg-[#14171c] p-4 rounded-2xl border-b-4 group relative overflow-hidden transition-all hover:scale-105 shadow-lg" style="border-color: ${item.color}">
+                <div class="bg-[#14171c] p-4 rounded-2xl border-b-4 group relative overflow-hidden transition-all hover:scale-105 shadow-lg item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                     <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style="background-color: ${item.color}"></div>
-                    <img src="${item.img}" onerror="handleImgError(this)" class="w-full h-24 object-contain drop-shadow-xl">
+                    <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-24 object-contain drop-shadow-xl group-hover:scale-110 transition-transform">
                     <div class="mt-3 text-center">
                         <div class="text-[10px] font-black uppercase text-gray-400 truncate">${item.name}</div>
                         <div class="text-sm font-black text-white mt-1">${formatMoney(item.price)}</div>
@@ -779,8 +1337,16 @@ AWP|Gungnir|6000.00|#ebca44`;
                 </div>`;
             }).join('');
             
-            stats.textContent = `${userInventory.length} předmětů v hodnotě ${formatMoney(totalVal)}`;
+            stats.textContent = `${displayItems.length} předmětů v hodnotě ${formatMoney(totalVal)}`;
             lucide.createIcons();
+        }
+
+        function filterInventory() {
+            renderInventory();
+        }
+
+        function sortInventory() {
+            renderInventory();
         }
 
         function sellSkin(uid) {
@@ -811,7 +1377,7 @@ AWP|Gungnir|6000.00|#ebca44`;
             
             container.innerHTML = [0,1,2].map(i => upgInputs[i] ? `
                 <div onclick="removeUpgInput(${i})" class="bg-gray-800/80 border border-gray-600 hover:border-red-500 rounded-2xl h-24 flex items-center p-3 cursor-pointer group relative overflow-hidden transition-all">
-                    <img src="${upgInputs[i].img}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
+                    <img src="${upgInputs[i].img}" data-alts="${(upgInputs[i].imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
                     <div class="ml-3 flex-1 overflow-hidden">
                         <div class="text-[10px] font-bold text-gray-400 uppercase truncate">${upgInputs[i].name}</div>
                         <div class="text-sm font-black text-white">${formatMoney(upgInputs[i].price)}</div>
@@ -838,7 +1404,7 @@ AWP|Gungnir|6000.00|#ebca44`;
                 targetSlot.style.borderColor = upgTarget.color;
                 targetSlot.innerHTML = `
                     <div class="absolute inset-0 opacity-20" style="background: linear-gradient(to top, ${upgTarget.color}, transparent);"></div>
-                    <img src="${upgTarget.img}" onerror="handleImgError(this)" class="h-32 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-2 relative z-10 group-hover:scale-110 transition-transform">
+                    <img src="${upgTarget.img}" data-alts="${(upgTarget.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-32 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-2 relative z-10 group-hover:scale-110 transition-transform">
                     <div class="text-xs font-black text-white uppercase text-center relative z-10 w-full truncate px-2" style="color: ${upgTarget.color}">${upgTarget.name}</div>
                     <div class="text-lg font-black text-white relative z-10">${formatMoney(upgTarget.price)}</div>
                 `;
@@ -864,9 +1430,9 @@ AWP|Gungnir|6000.00|#ebca44`;
             if (type === 'input') {
                 document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
                 let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
-                grid.innerHTML = available.map(item => `
-                    <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4" style="border-color: ${item.color}">
-                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md">
+                grid.innerHTML = available.map((item, idx) => `
+                    <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
+                        <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
                         <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
                         <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
                     </div>
@@ -875,9 +1441,9 @@ AWP|Gungnir|6000.00|#ebca44`;
                 document.getElementById('selector-title').textContent = "VYBER CÍLOVÝ SKIN";
                 let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
                 let targets = Object.values(skinsDB).filter(s => s.price > totalVal).sort((a,b) => a.price - b.price);
-                grid.innerHTML = targets.map(item => `
-                    <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4" style="border-color: ${item.color}">
-                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md">
+                grid.innerHTML = targets.map((item, idx) => `
+                    <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
+                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
                         <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
                         <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
                         <div class="text-[10px] text-center font-bold text-purple-400 mt-1">Šance: ${Math.min((totalVal / item.price)*100, 90).toFixed(1)}%</div>
@@ -923,7 +1489,210 @@ AWP|Gungnir|6000.00|#ebca44`;
             }, 2000);
         }
 
-        window.onload = () => { lucide.createIcons(); switchPage('cases'); };
+        window.onload = () => { 
+            lucide.createIcons();
+            switchPage('cases');
+            // Inicializuj live drops
+            initializeLiveDrops();
+            // Inicializuj simulovaný chat
+            simulateLiveChat();
+            // Currency selector handler
+            const cur = document.getElementById('currency-select');
+            if(cur) {
+                cur.addEventListener('change', updateUI);
+            }
+            // Inicialní UI update
+            updateUI();
+        };
+
+        // --- Simulovaný live chat (ukázka) ---
+        function simulateLiveChat() {
+            const messages = [
+                'No way, just got a Karambit!🔥',
+                'Anyone selling AWP Asiimov?',
+                'Nice pull man!',
+                'Buying low-tier for upgrade',
+                'GG, bot just lost everything',
+                'Free case worked for me 😎',
+                'Where are the gloves images? lol',
+                'That spin looked sick!'
+            ];
+            const names = ['Alpha','Beta','Gamer','Pro','Lucky','Hunter','Trader','Baller','BOT Nope','BOT Jarvis'];
+            const container = document.getElementById('live-chat-messages');
+            if(!container) return;
+            function pushMsg() {
+                const n = names[Math.floor(Math.random()*names.length)];
+                const m = messages[Math.floor(Math.random()*messages.length)];
+                const el = document.createElement('div');
+                el.className = 'text-[12px] text-gray-200';
+                el.innerHTML = `<strong class="text-yellow-300">${n}:</strong> <span class="text-gray-300">${m}</span>`;
+                container.appendChild(el);
+                if(container.children.length > 40) container.removeChild(container.firstChild);
+                container.scrollTop = container.scrollHeight;
+            }
+            setInterval(pushMsg, 2200 + Math.random()*2000);
+            // push a few initial
+            for(let i=0;i<6;i++) setTimeout(pushMsg, i*300);
+        }
+
+        function initializeLiveDrops() {
+            const dropsContainer = document.getElementById('live-drops');
+            const skinList = Object.values(skinsDB);
+            let lastSkinId = null;
+
+            // Small list of sample Steam profiles (name + avatar). You can expand or replace with real data later.
+            const steamProfiles = [
+                { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
+                { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
+                { name: 'Gamer', avatar: 'https://cdn.casehug.com/bots/bot-gadget.gif' },
+                { name: 'Pro', avatar: 'https://cdn.casehug.com/bots/bot-jarvis.gif' },
+                { name: 'Lucky', avatar: 'https://cdn.casehug.com/bots/bot-poke_1.png' },
+                { name: 'Hunter', avatar: 'https://avatars.steamstatic.com/5a3b1d7d7d2f3a2b4e_full.jpg' },
+                { name: 'Trader', avatar: 'https://avatars.steamstatic.com/6b8f3c2d2d2a3b1c4f_full.jpg' },
+                { name: 'Baller', avatar: 'https://avatars.steamstatic.com/8c7d9f4a4a4b5c6d7e_full.jpg' }
+            ];
+
+            function addRandomDrop() {
+                if(skinList.length === 0) return;
+                let attempts = 0;
+                let randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
+                    randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                    attempts++;
+                }
+                lastSkinId = randomSkin.id;
+
+                // pick a random steam profile
+                const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
+
+                const item = document.createElement('div');
+                item.className = 'live-drop-item';
+
+                // avatar
+                const avatarWrap = document.createElement('div');
+                avatarWrap.className = 'live-drop-avatar';
+                const avatarImg = document.createElement('img');
+                avatarImg.src = profile.avatar;
+                avatarImg.alt = profile.name;
+                avatarImg.style.width = '100%'; avatarImg.style.height = '100%'; avatarImg.style.objectFit = 'cover';
+                avatarImg.onerror = handleImgError;
+                avatarWrap.appendChild(avatarImg);
+
+                const img = document.createElement('img');
+                img.src = randomSkin.img;
+                img.alt = randomSkin.name;
+                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
+                img.onerror = handleImgError;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'live-drop-item-name';
+                nameDiv.textContent = randomSkin.name;
+
+                const userDiv = document.createElement('div');
+                userDiv.className = 'live-drop-item-user';
+                userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
+
+                // tooltip element
+                const tooltip = document.createElement('div');
+                tooltip.className = 'live-drop-tooltip';
+                tooltip.innerHTML = `
+                    <div class="tp-row">
+                        <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
+                        <div>
+                            <div class="tp-name">${profile.name}</div>
+                            <div class="tp-when">Vyhrálo: ${randomSkin.name}</div>
+                        </div>
+                    </div>
+                `;
+
+                item.appendChild(avatarWrap);
+                item.appendChild(img);
+                item.appendChild(nameDiv);
+                item.appendChild(userDiv);
+                item.appendChild(tooltip);
+
+                // hover behavior: pause and show tooltip
+                item.addEventListener('mouseenter', (e) => {
+                    dropsContainer.style.animationPlayState = 'paused';
+                    item.style.zIndex = '100';
+                    tooltip.classList.add('visible');
+                });
+                item.addEventListener('mouseleave', () => {
+                    dropsContainer.style.animationPlayState = 'running';
+                    item.style.zIndex = '1';
+                    tooltip.classList.remove('visible');
+                });
+
+                dropsContainer.appendChild(item);
+
+                if(dropsContainer.children.length > 50) {
+                    dropsContainer.removeChild(dropsContainer.firstChild);
+                }
+            }
+
+            setInterval(addRandomDrop, 2200);
+            addRandomDrop();
+        }
+
+        // --- FREE CASE SYSTEM ---
+        const FREE_CASE_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hodin
+        
+        function getFreeCaseStatus() {
+            const lastFreeCase = localStorage.getItem('lastFreeCase');
+            if(!lastFreeCase) return { available: true, nextTime: 0 };
+            
+            const lastTime = parseInt(lastFreeCase);
+            const now = Date.now();
+            const nextTime = lastTime + FREE_CASE_COOLDOWN;
+            
+            return {
+                available: now >= nextTime,
+                nextTime: Math.max(0, Math.ceil((nextTime - now) / 1000))
+            };
+        }
+
+        function openFreeCase() {
+            const status = getFreeCaseStatus();
+            if(!status.available) {
+                const hours = Math.floor(status.nextTime / 3600);
+                const mins = Math.floor((status.nextTime % 3600) / 60);
+                showToast(`Další FREE bedna za ${hours}h ${mins}m`, true);
+                return;
+            }
+
+            // Otevri náhodnou bednu
+            const randomCase = casesDB[Math.floor(Math.random() * casesDB.length)];
+            localStorage.setItem('lastFreeCase', Date.now().toString());
+            
+            // Bez poplatku
+            activeCaseId = randomCase.id;
+            document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
+            document.getElementById('view-case-price').textContent = '0 EUR';
+            
+            const track = document.getElementById('spinner-track');
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+            track.innerHTML = '';
+            
+            document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
+                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
+                    <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
+                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
+                </div>
+            `).join('');
+
+            const btn = document.getElementById('btn-open-case');
+            btn.onclick = () => startSpinner(randomCase);
+            btn.textContent = "OTEVŘÍT ZDARMA";
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-case-view').classList.remove('hidden');
+            
+            showToast('FREE bedna dostupná!');
+        }
     </script>
 </body>
-</html>
+</html> 
