@@ -5,6 +5,7 @@
 - Session endpoint pro frontend (`GET /api/auth/session`) a odhlášení (`POST /api/auth/logout`).
 - Uložení profilu (`PUT /api/profile`).
 - Uložení herního stavu (`GET/POST /api/state`) – balance + inventory.
+- Steam login (`/auth/steam`, `/auth/steam/return`) přes hardcoded Steam OpenID validaci.
 - Steam login (`/auth/steam`, `/auth/steam/return`).
 - Google login (`/auth/google`, `/auth/google/callback`) pokud jsou vyplněné Google OAuth ENV.
 - Kontrola serveru (`GET /api/health`) pro rychlé ověření Render + Mongo spojení.
@@ -24,6 +25,7 @@ Aplikace běží na `http://localhost:3000`.
 - `SESSION_SECRET` – dlouhý náhodný secret.
 - `DOMAIN` – přesná URL tvé appky, **bez koncového lomítka**, např.:
   - `https://cs2-gambling.onrender.com`
+- `STEAM_API_KEY` – Steam Web API key (volitelné; používá se pro načtení avataru/jména, samotný OpenID login funguje i bez něj).
 - `STEAM_API_KEY` – Steam Web API key.
 - `ADMIN_EMAIL` – email admina (volitelné, ale doporučené).
 
@@ -36,6 +38,34 @@ Aplikace běží na `http://localhost:3000`.
 1. Frontend volá `/api/auth/register`, `/api/auth/login`, `/api/auth/session`, ale backend je nemá → HTTP 404.
 2. `DOMAIN` má špatný tvar (např. s trailing slash) → rozbité OAuth callbacky.
 3. MongoDB Atlas nemá povolený přístup z Renderu (`0.0.0.0/0`) → backend se nepřipojí.
+4. Google OAuth nemá vyplněné ENV klíče → `/auth/google` vrací `503`.
+5. Steam OpenID callback mismatch (`DOMAIN` nesedí přesně na Render URL) → Steam login spadne na `auth=steam-failed`.
+
+Rychlá kontrola providerů:
+```bash
+curl https://TVUJ-WEB.onrender.com/api/auth/providers
+```
+
+Ukázka odpovědi:
+```json
+{"ok":true,"providers":{"steam":true,"google":false}}
+```
+
+Pro rychlou kontrolu použij:
+```bash
+curl https://TVUJ-WEB.onrender.com/api/health
+```
+
+## Když GitHub u PR hlásí `stale` / konflikty
+Pokud GitHub ukazuje konflikt ve `README.md`, `server.js` nebo `package-lock.json`, je potřeba na větvi PR udělat merge/rebase proti aktuální `main` a pushnout výsledek:
+
+```bash
+git fetch origin
+git checkout <tvoje-pr-vetev>
+git merge origin/main
+# nebo: git rebase origin/main
+```
+
 
 Pro rychlou kontrolu použij:
 ```bash

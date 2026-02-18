@@ -16,6 +16,7 @@ const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/g
 
 // --- DB ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
+const STEAM_API_KEY = (process.env.STEAM_API_KEY || '').trim();
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
 
@@ -106,6 +107,59 @@ function ensureAdmin(req, res, next) {
   return next();
 }
 
+function getSteamAuthUrl() {
+  const params = new URLSearchParams({
+    'openid.ns': 'http://specs.openid.net/auth/2.0',
+    'openid.mode': 'checkid_setup',
+    'openid.return_to': `${DOMAIN}/auth/steam/return`,
+    'openid.realm': `${DOMAIN}/`,
+    'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
+    'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select'
+  });
+
+  return `https://steamcommunity.com/openid/login?${params.toString()}`;
+}
+
+async function validateSteamOpenId(openIdParams) {
+  const args = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(openIdParams)) {
+    if (key.startsWith('openid.') && value !== undefined && value !== null) {
+      args.set(key, String(value));
+    }
+  }
+
+  args.set('openid.mode', 'check_authentication');
+
+  const response = await fetch('https://steamcommunity.com/openid/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: args.toString()
+  });
+
+  const text = await response.text();
+  return response.ok && /(?:^|\n)is_valid\s*:\s*true(?:\n|$)/i.test(text);
+}
+
+function extractSteamId(claimedId) {
+  const match = String(claimedId || '').match(/^https?:\/\/steamcommunity\.com\/openid\/id\/(\d{17,25})\/?$/i);
+  return match ? match[1] : null;
+}
+
+async function fetchSteamProfile(steamId) {
+  if (!STEAM_API_KEY || !steamId) return null;
+
+  const url = new URL('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/');
+  url.searchParams.set('key', STEAM_API_KEY);
+  url.searchParams.set('steamids', steamId);
+
+  const response = await fetch(url.toString());
+  if (!response.ok) return null;
+
+  const data = await response.json().catch(() => null);
+  return data?.response?.players?.[0] || null;
+}
+
 // --- PASSPORT ---
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
@@ -114,6 +168,9 @@ passport.deserializeUser((id, done) => {
     .catch((err) => done(err));
 });
 
+if (!STEAM_API_KEY) {
+  console.warn('Steam profile enrichment is disabled (missing STEAM_API_KEY).');
+}
 passport.use(
   new SteamStrategy(
     {
@@ -273,6 +330,16 @@ app.get('/api/health', (_req, res) => {
   return res.json({ ok: true, mongo: dbState, domain: DOMAIN });
 });
 
+app.get('/api/auth/providers', (_req, res) => {
+  return res.json({
+    ok: true,
+    providers: {
+      steam: true,
+      google: Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET)
+    }
+  });
+});
+
 // --- PROFILE + STATE ---
 app.put('/api/profile', ensureAuth, async (req, res) => {
   try {
@@ -359,6 +426,55 @@ app.post('/api/admin/set-balance', ensureAuth, ensureAdmin, async (req, res) => 
   return res.json({ ok: true, email: user.email, balance: user.balance });
 });
 
+// --- STEAM AUTH (minimal hardcoded OpenID validation) ---
+app.get('/auth/steam', (_req, res) => {
+  return res.redirect(getSteamAuthUrl());
+});
+
+app.get('/auth/steam/return', async (req, res) => {
+  try {
+    if (!req.query['openid.mode']) {
+      return res.redirect('/?auth=steam-failed');
+    }
+
+    const isValid = await validateSteamOpenId(req.query);
+    if (!isValid) {
+      return res.redirect('/?auth=steam-failed');
+    }
+
+    const steamId = extractSteamId(req.query['openid.claimed_id']);
+    if (!steamId) {
+      return res.redirect('/?auth=steam-failed');
+    }
+
+    let user = await User.findOne({ steamId });
+    const profile = await fetchSteamProfile(steamId);
+
+    if (!user) {
+      user = await User.create({
+        steamId,
+        nickname: profile?.personaname || `steam-${steamId.slice(-6)}`,
+        displayName: profile?.realname || profile?.personaname || 'Steam User',
+        avatar: profile?.avatarfull || '',
+        balance: START_BALANCE,
+        inventory: []
+      });
+    } else if (profile) {
+      user.nickname = user.nickname || profile.personaname || user.nickname;
+      user.displayName = user.displayName || profile.realname || profile.personaname || user.displayName;
+      user.avatar = user.avatar || profile.avatarfull || user.avatar;
+      await user.save();
+    }
+
+    req.login(user, (err) => {
+      if (err) return res.redirect('/?auth=steam-failed');
+      return res.redirect('/');
+    });
+  } catch (err) {
+    console.error('Steam OpenID error:', err);
+    return res.redirect('/?auth=steam-failed');
+  }
+});
 // --- STEAM AUTH ---
 app.get('/auth/steam', passport.authenticate('steam'));
 app.get(
