@@ -1773,6 +1773,21 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if(!dropsContainer) return;
             dropsContainer.style.animation = 'none';
             const skinList = Object.values(skinsDB);
+            const cheapPool = skinList.filter(s => s.price <= 15);
+            const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
+            const expensivePool = skinList.filter(s => s.price > 120 && s.price <= 700);
+            const ultraPool = skinList.filter(s => s.price > 700 || KNIFE_TYPES.includes(s.weapon) || GLOVE_TYPES.includes(s.weapon));
+
+            function pickWeightedLiveSkin() {
+                const roll = Math.random() * 100;
+                let pool = cheapPool;
+                // Realističtější feed: drtivá většina dropů je levná, drahé/nože jsou vzácné
+                if(roll < 82) pool = cheapPool;
+                else if(roll < 95) pool = midPool.length ? midPool : cheapPool;
+                else if(roll < 99.2) pool = expensivePool.length ? expensivePool : (midPool.length ? midPool : cheapPool);
+                else pool = ultraPool.length ? ultraPool : (expensivePool.length ? expensivePool : cheapPool);
+                return pool[Math.floor(Math.random() * pool.length)] || skinList[Math.floor(Math.random() * skinList.length)];
+            }
             let lastSkinId = null;
             let offsetX = 0;
             let paused = false;
@@ -1791,9 +1806,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             function addRandomDrop() {
                 if(skinList.length === 0) return;
                 let attempts = 0;
-                let randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                let randomSkin = pickWeightedLiveSkin();
                 while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
-                    randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
+                    randomSkin = pickWeightedLiveSkin();
                     attempts++;
                 }
                 lastSkinId = randomSkin.id;
