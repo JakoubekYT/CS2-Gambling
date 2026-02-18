@@ -1340,14 +1340,16 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
             // Populuj Case Changer
             const changer = document.getElementById('case-changer');
-            changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
-            casesDB.forEach(caseItem => {
-                const opt = document.createElement('option');
-                opt.value = caseItem.id;
-                opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
-                opt.selected = caseItem.id === id;
-                changer.appendChild(opt);
-            });
+            if(changer) {
+                changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
+                casesDB.forEach(caseItem => {
+                    const opt = document.createElement('option');
+                    opt.value = caseItem.id;
+                    opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
+                    opt.selected = caseItem.id === id;
+                    changer.appendChild(opt);
+                });
+            }
 
             const track = document.getElementById('spinner-track');
             track.style.transition = 'none';
@@ -1710,8 +1712,12 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const sendBtn = document.getElementById('live-chat-send');
             if(!container || !input || !sendBtn) return;
 
-            const names = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel'];
-            const topics = ['dropnul jsem tiger tooth', 'free case dnes nic', 'upgrade skoro klapnul', 'ten spin vypadal mega clean', 'hledám nějaký glove drop', 'frosty dnes docela dává'];
+            const firstNames = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel','Fanda','Kuba','Jana','Erik','Misa','Roman','Patrik','Alex'];
+            const intros = ['právě', 'teď', 'dneska', 'upřímně', 'lol', 'ngl', 'wtf', 'bro', 'tyjo', 'mega'];
+            const actions = ['dropnul', 'vytáhl', 'spálil', 'otočil', 'prodal', 'nechal v invu', 'přidal do upgradu', 'zkusil free case', 'risknul all-in'];
+            const items = ['Karambit Fade', 'M4A4 Howl', 'AWP Asiimov', 'AK-47 Bloodsport', 'Sport Gloves Vice', 'Desert Eagle Printstream', 'Butterfly Doppler', 'M9 Tiger Tooth', 'AWP Dragon Lore', 'USP-S Neo-Noir'];
+            const reactions = ['to je šílený', 'tohle bolí', 'dneska to padá', 'rip bankroll', 'easy profit', 'casino mě miluje', 'casino mě nenávidí', 'točím dál', 'jdu ještě jednu'];
+            const emotes = ['🔥','💀','😎','😂','🎯','💸','🧊','👀','🚀','🤯'];
 
             const addMessage = (name, message, mine = false) => {
                 const row = document.createElement('div');
@@ -1720,150 +1726,42 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                     ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${message}</span>`
                     : `<span class="text-yellow-300 font-bold">${name}:</span> <span class="text-gray-300">${message}</span>`;
                 container.appendChild(row);
-                if(container.children.length > 80) container.removeChild(container.firstChild);
+                if(container.children.length > 120) container.removeChild(container.firstChild);
                 container.scrollTop = container.scrollHeight;
             };
 
-            const pushNaturalMessage = () => {
-                const n = names[Math.floor(Math.random() * names.length)] + '#' + (1000 + Math.floor(Math.random()*9000));
-                const m = topics[Math.floor(Math.random() * topics.length)] + (Math.random() > 0.6 ? ' 🔥' : '');
-                addMessage(n, m);
+            const randomName = () => `${firstNames[Math.floor(Math.random()*firstNames.length)]}#${1000 + Math.floor(Math.random()*9000)}`;
+            const randomEmotes = () => Array.from({length: 1 + Math.floor(Math.random()*2)}, () => emotes[Math.floor(Math.random()*emotes.length)]).join('');
+            const generateHumanLikeMessage = () => {
+                const i = intros[Math.floor(Math.random()*intros.length)];
+                const a = actions[Math.floor(Math.random()*actions.length)];
+                const it = items[Math.floor(Math.random()*items.length)];
+                const r = reactions[Math.floor(Math.random()*reactions.length)];
+                const patterns = [
+                    `${i} jsem ${a} ${it} ${randomEmotes()}`,
+                    `${a} jsem ${it}, ${r} ${randomEmotes()}`,
+                    `${i} free case a ${a} ${it}`,
+                    `${it}? ${r} ${randomEmotes()}`,
+                    `${i} točím ${a} a ${r}`
+                ];
+                return patterns[Math.floor(Math.random() * patterns.length)];
             };
 
-            const sendUserMessage = async () => {
+            const pushNaturalMessage = () => addMessage(randomName(), generateHumanLikeMessage());
+
+            const sendUserMessage = () => {
                 const text = input.value.trim();
                 if(!text) return;
                 input.value = '';
                 addMessage('Ty', text, true);
-
-                const ai = await maybeGeminiReply(text);
-                if(ai) {
-                    addMessage('GeminiPlayer#' + (1000 + Math.floor(Math.random()*9000)), ai);
-                } else {
-                    setTimeout(() => pushNaturalMessage(), 600 + Math.random()*1200);
-                }
+                setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
             };
 
             sendBtn.onclick = sendUserMessage;
             input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
 
-            for(let i=0;i<8;i++) setTimeout(pushNaturalMessage, i*260);
-            setInterval(pushNaturalMessage, 1700 + Math.random()*1600);
-        }
-
-        function initializeLiveDrops() {
-            const dropsContainer = document.getElementById('live-drops');
-            if(!dropsContainer) return;
-            dropsContainer.style.animation = 'none';
-            const skinList = Object.values(skinsDB);
-            let lastSkinId = null;
-            let offsetX = 0;
-            let paused = false;
-
-            const steamProfiles = [
-                { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
-                { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
-                { name: 'Gamer', avatar: 'https://cdn.casehug.com/bots/bot-gadget.gif' },
-                { name: 'Pro', avatar: 'https://cdn.casehug.com/bots/bot-jarvis.gif' },
-                { name: 'Lucky', avatar: 'https://cdn.casehug.com/bots/bot-poke_1.png' },
-                { name: 'Hunter', avatar: 'https://avatars.steamstatic.com/5a3b1d7d7d2f3a2b4e_full.jpg' },
-                { name: 'Trader', avatar: 'https://avatars.steamstatic.com/6b8f3c2d2d2a3b1c4f_full.jpg' },
-                { name: 'Baller', avatar: 'https://avatars.steamstatic.com/8c7d9f4a4a4b5c6d7e_full.jpg' }
-            ];
-
-            function addRandomDrop() {
-                if(skinList.length === 0) return;
-                let attempts = 0;
-                let randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
-                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
-                    randomSkin = skinList[Math.floor(Math.random() * skinList.length)];
-                    attempts++;
-                }
-                lastSkinId = randomSkin.id;
-
-                const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
-                const item = document.createElement('div');
-                item.className = 'live-drop-item';
-
-                const avatarWrap = document.createElement('div');
-                avatarWrap.className = 'live-drop-avatar';
-                const avatarImg = document.createElement('img');
-                avatarImg.src = profile.avatar;
-                avatarImg.alt = profile.name;
-                avatarImg.style.width = '100%'; avatarImg.style.height = '100%'; avatarImg.style.objectFit = 'cover';
-                avatarImg.onerror = handleImgError;
-                avatarWrap.appendChild(avatarImg);
-
-                const img = document.createElement('img');
-                img.src = randomSkin.img;
-                img.alt = randomSkin.name;
-                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
-                img.onerror = handleImgError;
-
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'live-drop-item-name';
-                nameDiv.textContent = randomSkin.name;
-
-                const userDiv = document.createElement('div');
-                userDiv.className = 'live-drop-item-user';
-                userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
-
-                const tooltip = document.createElement('div');
-                tooltip.className = 'live-drop-tooltip';
-                tooltip.innerHTML = `
-                    <div class="tp-row">
-                        <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
-                        <div>
-                            <div class="tp-name">${profile.name}</div>
-                            <div class="tp-when">Vyhrálo: ${randomSkin.name}</div>
-                        </div>
-                    </div>
-                `;
-
-                item.appendChild(avatarWrap);
-                item.appendChild(img);
-                item.appendChild(nameDiv);
-                item.appendChild(userDiv);
-                item.appendChild(tooltip);
-
-                item.addEventListener('mouseenter', () => {
-                    paused = true;
-                    item.style.zIndex = '100';
-                    tooltip.classList.add('visible');
-                });
-                item.addEventListener('mouseleave', () => {
-                    paused = false;
-                    item.style.zIndex = '1';
-                    tooltip.classList.remove('visible');
-                });
-
-                dropsContainer.appendChild(item);
-                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
-            }
-
-            for(let i = 0; i < 18; i++) addRandomDrop();
-            setInterval(addRandomDrop, 1800);
-
-            let lastTs = performance.now();
-            const speed = 35; // px / sec
-            function animate(ts) {
-                const dt = Math.min(0.05, (ts - lastTs) / 1000);
-                lastTs = ts;
-                if(!paused) {
-                    offsetX -= speed * dt;
-                    const first = dropsContainer.firstElementChild;
-                    if(first) {
-                        const firstWidth = first.getBoundingClientRect().width + 16;
-                        if(-offsetX >= firstWidth) {
-                            offsetX += firstWidth;
-                            dropsContainer.appendChild(first);
-                        }
-                    }
-                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
-                }
-                requestAnimationFrame(animate);
-            }
-            requestAnimationFrame(animate);
+            for(let i=0;i<12;i++) setTimeout(pushNaturalMessage, i*220);
+            setInterval(pushNaturalMessage, 1200 + Math.random()*1900);
         }
 
         // --- FREE CASE SYSTEM ---
