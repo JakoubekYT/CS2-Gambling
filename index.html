@@ -237,9 +237,9 @@
             </div>
 
             <button onclick="claimDailyReward()" id="daily-reward-btn" class="bg-gradient-to-r from-fuchsia-600 to-pink-500 hover:from-fuchsia-500 hover:to-pink-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-pink-300/40 shadow-[0_0_25px_rgba(236,72,153,0.35)] active:scale-95 hover:scale-105">
-                🎁 DAILY ODMĚNA
+                🎁 DAILY ODMĚNA (DEMO)
             </button>
-            <button onclick="addFreeMoney()" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
+            <button onclick="addFreeMoney()" id="free-money-btn" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
                 💰 + PENÍZE ZDARMA
             </button>
             <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
@@ -408,22 +408,23 @@
     <div id="auth-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Přihlášení / Profil</h3>
+                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Účet (DB backend)</h3>
                 <button onclick="closeAuthModal()" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                <a href="http://localhost:3000/auth/steam" target="_blank" class="bg-[#1b2838] hover:bg-[#223a52] text-white rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-blue-300/20">Steam Login</a>
-                <a href="http://localhost:3000/auth/google" target="_blank" class="bg-white/90 hover:bg-white text-black rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-white/30">Google Login</a>
-            </div>
-            <p class="text-[11px] text-gray-400 mb-4">Bez backendu můžeš použít lokální demo profil níže.</p>
+            <p class="text-[12px] text-gray-400 mb-4">Registrace i login jsou přes backend. Nový účet startuje s 10 USD a bez možnosti dobití.</p>
             <div class="space-y-3">
+                <input id="auth-email" type="email" maxlength="120" placeholder="E-mail" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="auth-password" type="password" maxlength="120" placeholder="Heslo (min. 6 znaků)" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <input id="profile-nickname" type="text" maxlength="24" placeholder="Nickname" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <input id="profile-display-name" type="text" maxlength="32" placeholder="Display jméno" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <input id="profile-avatar" type="url" placeholder="URL profilové fotky" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
-                <div class="flex gap-3 pt-1">
-                    <button onclick="saveLocalProfile()" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Uložit profil</button>
-                    <button onclick="logoutLocalProfile()" class="flex-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button onclick="registerAccount()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Registrovat</button>
+                    <button onclick="loginAccount()" class="bg-blue-500 hover:bg-blue-400 text-white font-black uppercase rounded-xl py-3">Přihlásit</button>
+                    <button onclick="saveLocalProfile()" class="bg-green-600 hover:bg-green-500 text-white font-black uppercase rounded-xl py-3">Uložit profil</button>
+                    <button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
                 </div>
+                <p id="admin-hint" class="text-[11px] text-yellow-300 hidden">Jsi admin. Přehled hráčů: <code>GET /api/admin/users</code></p>
             </div>
         </div>
     </div>
@@ -529,7 +530,7 @@
         };
 
         // --- STAV A DATABÁZE ---
-        let balanceBase = 100.00;
+        let balanceBase = 10.00;
         const KNIFE_TYPES = ["Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife", "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers", "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
@@ -1173,7 +1174,18 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const pillName = document.getElementById('profile-pill-name');
             const pillNick = document.getElementById('profile-pill-nick');
             const pillAvatar = document.getElementById('profile-pill-avatar');
+            const dailyBtn = document.getElementById('daily-reward-btn');
+            const freeMoneyBtn = document.getElementById('free-money-btn');
+            const isDemoMode = !currentUser;
             if(authLabel) authLabel.textContent = userProfile.nickname ? 'Profil' : 'Přihlásit';
+            if(dailyBtn) {
+                dailyBtn.textContent = isDemoMode ? '🎁 DAILY ODMĚNA (DEMO)' : '🔒 DAILY OFF (ÚČET)';
+                dailyBtn.classList.toggle('opacity-70', !isDemoMode);
+                dailyBtn.classList.toggle('cursor-not-allowed', !isDemoMode);
+            }
+            if(freeMoneyBtn) {
+                freeMoneyBtn.classList.toggle('hidden', !isDemoMode);
+            }
             if(pill && pillName && pillNick && pillAvatar) {
                 if(userProfile.nickname) {
                     pill.classList.remove('hidden');
@@ -1187,6 +1199,63 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
             }
             lucide.createIcons();
+            scheduleStateSave();
+        }
+
+        let currentUser = null;
+        let stateSaveTimer = null;
+
+        async function apiRequest(url, method = 'GET', payload) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (payload !== undefined) opts.body = JSON.stringify(payload);
+            const res = await fetch(url, opts);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.ok === false) {
+                throw new Error(data.message || data.error || `HTTP ${res.status}`);
+            }
+            return data;
+        }
+
+        async function loadSessionFromBackend() {
+            try {
+                const auth = await apiRequest('/api/auth/session');
+                if (!auth.user) return;
+                currentUser = auth.user;
+                userProfile = {
+                    nickname: auth.user.nickname,
+                    displayName: auth.user.displayName || auth.user.nickname,
+                    avatar: auth.user.avatar || '',
+                    provider: auth.user.isAdmin ? 'Admin' : 'Email účet'
+                };
+                const state = await apiRequest('/api/state');
+                balanceBase = Number(state.balance || 10);
+                userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                if (auth.user.isAdmin) {
+                    const hint = document.getElementById('admin-hint');
+                    if (hint) hint.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.warn('Nepovedlo se načíst session:', err.message);
+            }
+        }
+
+        function scheduleStateSave() {
+            if (!currentUser) return;
+            clearTimeout(stateSaveTimer);
+            stateSaveTimer = setTimeout(async () => {
+                try {
+                    await apiRequest('/api/state', 'POST', { balance: Number(balanceBase.toFixed(2)), inventory: userInventory });
+                } catch (err) {
+                    console.warn('State save failed:', err.message);
+                }
+            }, 300);
+        }
+
+        function requireAuthAction() {
+            if (currentUser) return true;
+            showToast('Nejdřív se přihlas nebo registruj.', true);
+            openAuthModal();
+            return false;
         }
 
         function openAuthModal() {
@@ -1207,44 +1276,96 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             modal.classList.remove('flex');
         }
 
-        function saveLocalProfile() {
-            const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
-            if(!nickname) return showToast('Vyplň nickname.', true);
-            userProfile = {
-                nickname,
-                displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
-                avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
-                provider: 'Local Demo'
-            };
-            localStorage.setItem('otodropProfile', JSON.stringify(userProfile));
-            updateUI();
-            closeAuthModal();
-            showToast('Profil uložen ✅');
+        async function registerAccount() {
+            try {
+                const payload = {
+                    email: (document.getElementById('auth-email')?.value || '').trim(),
+                    password: document.getElementById('auth-password')?.value || '',
+                    nickname: (document.getElementById('profile-nickname')?.value || '').trim(),
+                    displayName: (document.getElementById('profile-display-name')?.value || '').trim(),
+                    avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                };
+                const result = await apiRequest('/api/auth/register', 'POST', payload);
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                renderInventory();
+                closeAuthModal();
+                showToast('Registrováno. Start máš 10 USD.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
         }
 
-        function logoutLocalProfile() {
+        async function loginAccount() {
+            try {
+                const payload = {
+                    email: (document.getElementById('auth-email')?.value || '').trim(),
+                    password: document.getElementById('auth-password')?.value || '',
+                };
+                const result = await apiRequest('/api/auth/login', 'POST', payload);
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                renderInventory();
+                closeAuthModal();
+                showToast('Přihlášení proběhlo.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function saveLocalProfile() {
+            if (!currentUser) return showToast('Nejdřív se přihlas.', true);
+            const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
+            if(!nickname) return showToast('Vyplň nickname.', true);
+            try {
+                const result = await apiRequest('/api/profile', 'PUT', {
+                    nickname,
+                    displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
+                    avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                });
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                closeAuthModal();
+                showToast('Profil uložen ✅');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function logoutLocalProfile() {
+            try { await apiRequest('/api/auth/logout', 'POST'); } catch (err) { console.warn(err.message); }
+            currentUser = null;
             userProfile = { nickname: '', displayName: '', avatar: '', provider: 'Guest' };
-            localStorage.removeItem('otodropProfile');
+            userInventory = [];
+            balanceBase = 10;
             updateUI();
+            renderInventory();
             showToast('Odhlášeno');
         }
 
         const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
         function claimDailyReward() {
+            if (currentUser) {
+                showToast('Na přihlášeném účtu je dobíjení vypnuté.', true);
+                return;
+            }
             const now = Date.now();
-            const last = parseInt(localStorage.getItem('lastDailyReward') || '0', 10);
+            const last = parseInt(localStorage.getItem('lastDailyRewardDemo') || '0', 10);
             const diff = now - last;
             if(diff < DAILY_REWARD_COOLDOWN) {
                 const sec = Math.ceil((DAILY_REWARD_COOLDOWN - diff) / 1000);
                 const h = Math.floor(sec / 3600);
                 const m = Math.floor((sec % 3600) / 60);
-                return showToast(`Další odměna za ${h}h ${m}m`, true);
+                return showToast(`Další demo odměna za ${h}h ${m}m`, true);
             }
             const reward = Math.floor(200 + Math.random() * 600);
             balanceBase += reward;
-            localStorage.setItem('lastDailyReward', String(now));
+            localStorage.setItem('lastDailyRewardDemo', String(now));
             updateUI();
-            showToast(`Daily odměna: +${reward} EUR 🔥`);
+            showToast(`Demo odměna: +${reward} EUR 🔥`);
         }
 
         function toggleAffordableCases() {
@@ -1284,10 +1405,14 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         function addFreeMoney() {
+            if (currentUser) {
+                showToast('Na přihlášeném účtu nelze přidat free peníze.', true);
+                return;
+            }
             balanceBase += 1000;
             updateUI();
-            showToast("Přidáno 1000 EUR!");
-            initAudio(); // Pro sichr init z tlačítka
+            showToast('Demo: přidáno 1000 EUR');
+            initAudio();
         }
 
         // --- FULL-SCREEN VÝHERNÍ POPUP A EFEKTY ---
@@ -1485,6 +1610,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
 
         function spinCase(caseObj, count = 1) {
             if(isSpinning) return;
+            if(!requireAuthAction()) return;
             const totalCost = caseObj.price * count;
             if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
 
@@ -1817,16 +1943,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             }, 2000);
         }
 
-        window.onload = () => { 
+        window.onload = async () => { 
             lucide.createIcons();
             switchPage('cases');
-            try {
-                const raw = localStorage.getItem('otodropProfile');
-                if(raw) {
-                    const parsed = JSON.parse(raw);
-                    if(parsed && parsed.nickname) userProfile = { ...userProfile, ...parsed };
-                }
-            } catch(e) { console.warn('profile load failed', e); }
+            await loadSessionFromBackend();
             // Inicializuj live drops + chat (fail-safe)
             try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
             try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
@@ -2078,6 +2198,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         }
 
         function openFreeCase() {
+            if(!requireAuthAction()) return;
             const status = getFreeCaseStatus();
             if(!status.available) {
                 const hours = Math.floor(status.nextTime / 3600);
