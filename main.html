@@ -73,6 +73,7 @@
             --bg-dark: #0b0d11;
             --bg-panel: #14171c;
             --accent: #facc15;
+            --accent-hot: #fb7185;
             --rarity-blue: #4b69ff;
             --rarity-purple: #8847ff;
             --rarity-pink: #d32ee6;
@@ -80,8 +81,8 @@
             --rarity-gold: #ebca44;
         }
 
-        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; }
-        .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
+        .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
         .live-drop-scroll { display: flex; gap: 1rem; padding: 0.5rem 0.75rem; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
@@ -296,9 +297,23 @@
                 </div>
             </div>
 
+            <button onclick="claimDailyReward()" id="daily-reward-btn" class="bg-gradient-to-r from-fuchsia-600 to-pink-500 hover:from-fuchsia-500 hover:to-pink-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-pink-300/40 shadow-[0_0_25px_rgba(236,72,153,0.35)] active:scale-95 hover:scale-105">
+                🎁 DAILY ODMĚNA
+            </button>
             <button onclick="addFreeMoney()" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
                 💰 + PENÍZE ZDARMA
             </button>
+            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
+                <i data-lucide="user-round" class="w-4 h-4"></i>
+                <span id="auth-open-label">Přihlásit</span>
+            </button>
+            <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
+                <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
+                <div class="leading-tight">
+                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                    <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -306,16 +321,16 @@
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
             
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
-                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/20 to-[#0b0d11] border border-yellow-400/20 shadow-2xl flex items-center px-12 mb-8">
+                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/25 via-pink-500/10 to-[#0b0d11] border border-yellow-400/30 shadow-[0_0_80px_rgba(250,204,21,0.16)] flex items-center px-12 mb-8">
                     <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
                     <div class="relative z-10 max-w-2xl space-y-4">
                         <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
                         <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
                         <p class="text-gray-400 text-md font-medium leading-relaxed drop-shadow-md">Otevři bedny se zvukem asmr tikání, hrej mini-hry nebo použij 3-slotový Upgrader a získej svůj vysněný knife! 💎</p>
                     </div>
-                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/5 animate-pulse"></i>
+                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
                 </div>
-                <div class="space-y-8" id="cases-grid"></div>
+                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-4"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="space-y-8" id="cases-grid"></div>
             </section>
 
 
@@ -449,6 +464,29 @@
             </section>
 
         </main>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Přihlášení / Profil</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <a href="http://localhost:3000/auth/steam" target="_blank" class="bg-[#1b2838] hover:bg-[#223a52] text-white rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-blue-300/20">Steam Login</a>
+                <a href="http://localhost:3000/auth/google" target="_blank" class="bg-white/90 hover:bg-white text-black rounded-xl px-4 py-3 font-black text-sm uppercase text-center border border-white/30">Google Login</a>
+            </div>
+            <p class="text-[11px] text-gray-400 mb-4">Bez backendu můžeš použít lokální demo profil níže.</p>
+            <div class="space-y-3">
+                <input id="profile-nickname" type="text" maxlength="24" placeholder="Nickname" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-display-name" type="text" maxlength="32" placeholder="Display jméno" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-avatar" type="url" placeholder="URL profilové fotky" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <div class="flex gap-3 pt-1">
+                    <button onclick="saveLocalProfile()" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Uložit profil</button>
+                    <button onclick="logoutLocalProfile()" class="flex-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 right-10 bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black shadow-2xl opacity-0 transform translate-y-10 transition-all duration-300 z-[100] uppercase italic tracking-tighter text-lg border-2 border-yellow-300">
@@ -1170,6 +1208,13 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         let activeCaseId = null;
         let isSpinning = false;
         let spinAnimationId = null;
+        let casesAffordableOnly = false;
+        let userProfile = {
+            nickname: '',
+            displayName: '',
+            avatar: '',
+            provider: 'Guest'
+        };
 
         // --- ZÁKLADY UI ---
         function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
@@ -1184,8 +1229,96 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             document.getElementById('balance').textContent = `${formatted} ${cur}`;
             const lbl = document.getElementById('balance-currency-label');
             if(lbl) lbl.textContent = `Zůstatek (${cur})`;
+            const authLabel = document.getElementById('auth-open-label');
+            const pill = document.getElementById('profile-pill');
+            const pillName = document.getElementById('profile-pill-name');
+            const pillNick = document.getElementById('profile-pill-nick');
+            const pillAvatar = document.getElementById('profile-pill-avatar');
+            if(authLabel) authLabel.textContent = userProfile.nickname ? 'Profil' : 'Přihlásit';
+            if(pill && pillName && pillNick && pillAvatar) {
+                if(userProfile.nickname) {
+                    pill.classList.remove('hidden');
+                    pill.classList.add('flex');
+                    pillName.textContent = userProfile.displayName || userProfile.nickname;
+                    pillNick.textContent = `@${userProfile.nickname} • ${userProfile.provider || 'User'}`;
+                    pillAvatar.src = userProfile.avatar || FALLBACK_IMG;
+                } else {
+                    pill.classList.add('hidden');
+                    pill.classList.remove('flex');
+                }
+            }
             lucide.createIcons();
         }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('profile-nickname').value = userProfile.nickname || '';
+            document.getElementById('profile-display-name').value = userProfile.displayName || '';
+            document.getElementById('profile-avatar').value = userProfile.avatar || '';
+            lucide.createIcons();
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveLocalProfile() {
+            const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
+            if(!nickname) return showToast('Vyplň nickname.', true);
+            userProfile = {
+                nickname,
+                displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
+                avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                provider: 'Local Demo'
+            };
+            localStorage.setItem('otodropProfile', JSON.stringify(userProfile));
+            updateUI();
+            closeAuthModal();
+            showToast('Profil uložen ✅');
+        }
+
+        function logoutLocalProfile() {
+            userProfile = { nickname: '', displayName: '', avatar: '', provider: 'Guest' };
+            localStorage.removeItem('otodropProfile');
+            updateUI();
+            showToast('Odhlášeno');
+        }
+
+        const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
+        function claimDailyReward() {
+            const now = Date.now();
+            const last = parseInt(localStorage.getItem('lastDailyReward') || '0', 10);
+            const diff = now - last;
+            if(diff < DAILY_REWARD_COOLDOWN) {
+                const sec = Math.ceil((DAILY_REWARD_COOLDOWN - diff) / 1000);
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                return showToast(`Další odměna za ${h}h ${m}m`, true);
+            }
+            const reward = Math.floor(200 + Math.random() * 600);
+            balanceBase += reward;
+            localStorage.setItem('lastDailyReward', String(now));
+            updateUI();
+            showToast(`Daily odměna: +${reward} EUR 🔥`);
+        }
+
+        function toggleAffordableCases() {
+            casesAffordableOnly = !casesAffordableOnly;
+            const btn = document.getElementById('cases-affordable-btn');
+            if(btn) {
+                btn.textContent = casesAffordableOnly ? 'Dostupné: ON' : 'Jen dostupné';
+                btn.classList.toggle('bg-green-500/20', casesAffordableOnly);
+                btn.classList.toggle('text-green-300', casesAffordableOnly);
+            }
+            renderCases();
+        }
+
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
@@ -1291,12 +1424,22 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         // --- BEDNY ---
         function renderCases() {
             const grid = document.getElementById('cases-grid');
+            if(!grid) return;
+            const sortSel = document.getElementById('cases-sort');
+            const sortMode = sortSel ? sortSel.value : 'default';
             const groups = [
                 { key: 'budget', title: '💙 BUDGET CASEKY', min: 0, max: 4.99 },
                 { key: 'standard', title: '💜 STANDARD CASEKY', min: 5, max: 24.99 },
                 { key: 'premium', title: '❤️ PREMIUM CASEKY', min: 25, max: 99.99 },
                 { key: 'legendary', title: '💛 LEGENDARY CASEKY', min: 100, max: Infinity }
             ];
+
+            const sortCases = (arr) => {
+                if(sortMode === 'price-asc') return arr.sort((a,b)=>a.price-b.price);
+                if(sortMode === 'price-desc') return arr.sort((a,b)=>b.price-a.price);
+                if(sortMode === 'name') return arr.sort((a,b)=>a.name.localeCompare(b.name));
+                return arr;
+            };
 
             const renderCard = (c, idx) => {
                 let glowClass = '';
@@ -1306,9 +1449,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 else if(c.color === 'pink') glowClass = 'glow-pink';
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
+                const affordable = balanceBase >= c.price;
                 return `
-<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/20 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
-    <div class="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 ${affordable ? 'border-yellow-400/25 hover:border-yellow-400' : 'border-gray-700/70 hover:border-gray-500'} cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 ${affordable ? 'bg-yellow-400/5 group-hover:opacity-100' : 'bg-gray-600/5 group-hover:opacity-70'} opacity-0 transition-opacity"></div>
     <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
     <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
     <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
@@ -1317,7 +1461,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             };
 
             grid.innerHTML = groups.map(g => {
-                const items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
+                items = sortCases(items.slice());
                 if(items.length === 0) return '';
                 return `
                     <section>
@@ -1327,7 +1473,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                         </div>
                     </section>
                 `;
-            }).join('');
+            }).join('') || '<div class="text-center py-12 text-gray-500 font-black uppercase">Žádné bedny pro tento filtr.</div>';
         }
 
         // Vlož pod funkci renderCases (kolem řádku 815)
@@ -1735,6 +1881,13 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         window.onload = () => { 
             lucide.createIcons();
             switchPage('cases');
+            try {
+                const raw = localStorage.getItem('otodropProfile');
+                if(raw) {
+                    const parsed = JSON.parse(raw);
+                    if(parsed && parsed.nickname) userProfile = { ...userProfile, ...parsed };
+                }
+            } catch(e) { console.warn('profile load failed', e); }
             // Inicializuj live drops + chat (fail-safe)
             try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
             try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
@@ -1742,6 +1895,12 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const cur = document.getElementById('currency-select');
             if(cur) {
                 cur.addEventListener('change', updateUI);
+            }
+            const modal = document.getElementById('auth-modal');
+            if(modal) {
+                modal.addEventListener('click', (e) => {
+                    if(e.target === modal) closeAuthModal();
+                });
             }
             // Inicialní UI update
             updateUI();
