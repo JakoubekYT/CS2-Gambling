@@ -783,7 +783,6 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             const c = parts[parts.length - 1].trim();
             const p = parts[parts.length - 2].trim();
             const n = parts.slice(1, parts.length - 2).join("|").trim();
-
             let folder = "skins";
             if(KNIFE_TYPES.includes(w)) folder = "knives";
             else if(GLOVE_TYPES.includes(w)) folder = "gloves";
@@ -791,6 +790,7 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             let urlWeapon = w.replace(/ /g, "_");
             let urlName = n.replace(/ /g, "_").replace(/'/g, "");
             const primaryImg = `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
+            // Alternate patterns (some gloves/rare items have different naming on CDN)
             const alt1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
             const alt2 = primaryImg.replace('/webp/', '/').replace('.webp', '.png');
             skinsDB[idx + 1] = {
@@ -815,48 +815,228 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             if(exact) return exact;
             const nw = normalizeName(w);
             const nn = normalizeName(n);
-            const fuzzy = Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn);
-            return fuzzy || Object.values(skinsDB)[0];
+            return Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn) || Object.values(skinsDB)[0];
         }
 
         const casesDB = [];
         setTimeout(() => {
+            casesDB.push(
+                {
+                    id: "trash-or-knife", name: "1% KNIFE Risk", price: 25.00, color: "yellow-400",
+                    img: findSkin("M9 Bayonet", "Autotronic").img,
+                    contents: [
+                        { skin: findSkin("P250", "Sand Dune"), chance: 99.0 },
+                        { skin: findSkin("M9 Bayonet", "Autotronic"), chance: 1.0 }
+                    ]
+                },
+                {
+                    id: "coinflip", name: "50/50 Profit", price: 50.00, color: "red",
+                    img: findSkin("AK-47", "Bloodsport").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Slate"), chance: 50.0 },
+                        { skin: findSkin("AK-47", "Bloodsport"), chance: 50.0 }
+                    ]
+                },
+                {
+                    id: "budget", name: "Budget Grinder", price: 5.00, color: "blue",
+                    img: findSkin("AWP", "Worm God").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 60.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Mortis"), chance: 12.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 2.5 },
+                        { skin: findSkin("AK-47", "Redline"), chance: 0.5 }
+                    ]
+                },
+                {
+                    id: "covert", name: "Covert Dreams", price: 100.00, color: "red",
+                    img: findSkin("AWP", "Asiimov").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "The Emperor"), chance: 65.0 },
+                        { skin: findSkin("AK-47", "Vulcan"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Asiimov"), chance: 8.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 2.0 }
+                    ]
+                },
+                {
+                    id: "dragon", name: "Dragon Lore 1%", price: 200.00, color: "yellow-400",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Atheris"), chance: 80.0 },
+                        { skin: findSkin("AWP", "Neo-Noir"), chance: 19.0 },
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 1.0 }
+                    ]
+                },
+                {
+                    id: "knife-budget", name: "Budget Knives", price: 150.00, color: "purple",
+                    img: findSkin("Bayonet", "Slaughter").img,
+                    contents: [
+                        { skin: findSkin("Gut Knife", "Tiger Tooth"), chance: 70.0 },
+                        { skin: findSkin("Flip Knife", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Bayonet", "Tiger Tooth"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "knife-ultra", name: "Ultra Knife Box", price: 500.00, color: "gold",
+                    img: findSkin("Karambit", "Fade").img,
+                    contents: [
+                        { skin: findSkin("M9 Bayonet", "Doppler"), chance: 30.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "top-tier", name: "TOP TIER All Star", price: 300.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "Howl"), chance: 35.0 },
+                        { skin: findSkin("AWP", "Medusa"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Doppler"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mystery", name: "Mystery Case", price: 75.00, color: "purple",
+                    img: findSkin("Glock-18", "Water Elemental").img,
+                    contents: [
+                        { skin: findSkin("USP-S", "Orion"), chance: 40.0 },
+                        { skin: findSkin("M4A1-S", "Hyper Beast"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Neon Rider"), chance: 20.0 },
+                        { skin: findSkin("Huntsman Knife", "Slaughter"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "gloves", name: "Glove Heaven", price: 250.00, color: "pink",
+                    img: findSkin("Sport Gloves", "Vice").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Specter"), chance: 40.0 },
+                        { skin: findSkin("Specialist Gloves", "Crimson Kimono"), chance: 35.0 },
+                        { skin: findSkin("Hand Wraps", "Slaughter"), chance: 20.0 },
+                        { skin: findSkin("Sport Gloves", "Pandoras Box"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "legendary", name: "LEGENDARY Box", price: 1000.00, color: "gold",
+                    img: findSkin("AWP", "Gungnir").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 20.0 },
+                        { skin: findSkin("AWP", "Gungnir"), chance: 30.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Lore"), chance: 15.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "low-budget", name: "Low Roller", price: 2.50, color: "blue",
+                    img: findSkin("P250", "Sand Dune").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 50.0 },
+                        { skin: findSkin("P250", "Sand Dune"), chance: 30.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 15.0 },
+                        { skin: findSkin("MAC-10", "Candy Apple"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "mid-tier", name: "MID-TIER Master", price: 80.00, color: "purple",
+                    img: findSkin("M4A4", "Desolate Space").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Redline"), chance: 35.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 30.0 },
+                        { skin: findSkin("AWP", "Containment Breach"), chance: 25.0 },
+                        { skin: findSkin("Desert Eagle", "Printstream"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "premium-gloves", name: "Premium Gloves", price: 350.00, color: "pink",
+                    img: findSkin("Moto Gloves", "Eclipse").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Eclipse"), chance: 40.0 },
+                        { skin: findSkin("Driver Gloves", "Mogul"), chance: 30.0 },
+                        { skin: findSkin("Sport Gloves", "Superconductor"), chance: 20.0 },
+                        { skin: findSkin("Specialist Gloves", "Emerald Web"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "ultra-premium", name: "Ultra Premium", price: 500.00, color: "red",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 25.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 20.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Moto Gloves", "Blood Pressure"), chance: 15.0 }
+                    ]
+                },
+                {
+                    id: "knife-masters", name: "KNIFE Masters", price: 400.00, color: "yellow-400",
+                    img: findSkin("Karambit", "Lore").img,
+                    contents: [
+                        { skin: findSkin("Karambit", "Lore"), chance: 30.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 25.0 },
+                        { skin: findSkin("Butterfly Knife", "Crimson Web"), chance: 20.0 },
+                        { skin: findSkin("Skeleton Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mega-pack", name: "MEGA PACK", price: 150.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Medusa"), chance: 20.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 20.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 15.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 }
+                    ]
+                }
+            );
 
+            // Přidat extra bedny z Casehug snippet (bez nefunkčních valentine casek)
             const casehugTemplates = [
-                { id: 'frosty', name: 'FROSTY', price: 0.80, img: 'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', color: 'blue', topDrop: ['Karambit','Tiger Tooth'] },
-                { id: 'game-on', name: 'GAME ON', price: 4.50, img: 'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4','Temukau'] },
-                { id: 'bank-heist', name: 'BANK HEIST', price: 11.00, img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', color: 'red', topDrop: ['Desert Eagle','Printstream'] },
-                { id: 'gambit', name: 'GAMBIT', price: 18.00, img: 'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', color: 'yellow-400', topDrop: ['Butterfly Knife','Tiger Tooth'] },
-                { id: 'chinatown', name: 'CHINATOWN', price: 97.50, img: 'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', color: 'red', topDrop: ['AK-47','Wild Lotus'] },
-                { id: 'tiger', name: 'TIGER', price: 3.80, img: 'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', color: 'purple', topDrop: ['Karambit','Tiger Tooth'] },
-                { id: 'demolition', name: 'DEMOLITION', price: 11.00, img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', color: 'red', topDrop: ['AWP','Asiimov'] },
-                { id: 'electronic', name: 'ELECTRONIC', price: 33.00, img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4','Howl'] },
-                { id: 'lab', name: 'LAB', price: 150.00, img: 'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', color: 'red', topDrop: ['AWP','Gungnir'] },
-                { id: 'howl', name: 'HOWL', price: 300.00, img: 'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', color: 'yellow-400', topDrop: ['M4A4','Howl'] }
+                { id: 'frosty', name: 'FROSTY', price: 0.80, img: 'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', color: 'blue', topDrop: ['Karambit', 'Tiger Tooth'] },
+                { id: 'game-on', name: 'GAME ON', price: 4.50, img: 'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4', 'Temukau'] },
+                { id: 'bank-heist', name: 'BANK HEIST', price: 11.00, img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', color: 'red', topDrop: ['Desert Eagle', 'Printstream'] },
+                { id: 'gambit', name: 'GAMBIT', price: 18.00, img: 'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', color: 'yellow-400', topDrop: ['Butterfly Knife', 'Tiger Tooth'] },
+                { id: 'chinatown', name: 'CHINATOWN', price: 97.50, img: 'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', color: 'red', topDrop: ['AK-47', 'Wild Lotus'] },
+                { id: 'tiger', name: 'TIGER', price: 3.80, img: 'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', color: 'purple', topDrop: ['Karambit', 'Tiger Tooth'] },
+                { id: 'demolition', name: 'DEMOLITION', price: 11.00, img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', color: 'red', topDrop: ['AWP', 'Asiimov'] },
+                { id: 'electronic', name: 'ELECTRONIC', price: 33.00, img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', color: 'purple', topDrop: ['M4A4', 'Howl'] },
+                { id: 'lab', name: 'LAB', price: 150.00, img: 'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', color: 'red', topDrop: ['AWP', 'Gungnir'] },
+                { id: 'howl', name: 'HOWL', price: 300.00, img: 'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', color: 'yellow-400', topDrop: ['M4A4', 'Howl'] }
             ];
 
-            const chances = [52, 24, 13, 8, 3];
             const allSkins = Object.values(skinsDB);
             const pickRandomUniqueSkins = (count) => {
-                const list = [];
-                while(list.length < count && allSkins.length > 0) {
+                const picks = [];
+                while(picks.length < count && allSkins.length > 0) {
                     const candidate = allSkins[Math.floor(Math.random() * allSkins.length)];
-                    if(!list.find(x => x.id === candidate.id)) list.push(candidate);
+                    if(!picks.find(x => x.id === candidate.id)) picks.push(candidate);
                 }
-                return list;
+                return picks;
             };
 
+            const chances = [52, 24, 13, 8, 3];
             for(let i = 0; i < 40; i++) {
                 const t = casehugTemplates[i % casehugTemplates.length];
                 const variant = Math.floor(i / casehugTemplates.length) + 1;
                 const id = `${t.id}-${variant}`;
+                if(casesDB.find(x => x.id === id)) continue;
+
                 const name = variant === 1 ? t.name : `${t.name} ${variant}`;
                 const price = Number((t.price * (1 + (variant - 1) * 0.15) + (i % 3) * 0.25).toFixed(2));
-                const randomPack = pickRandomUniqueSkins(5);
-                const topDrop = findSkin(t.topDrop[0], t.topDrop[1]);
-                randomPack[randomPack.length - 1] = topDrop;
-                const contents = randomPack.map((skin, idx) => ({ skin, chance: chances[idx] || 1 }));
-                casesDB.push({ id, name, price, color: t.color, img: t.img, contents });
+                const contents = pickRandomUniqueSkins(5);
+                contents[contents.length - 1] = findSkin(t.topDrop[0], t.topDrop[1]);
+
+                casesDB.push({
+                    id,
+                    name,
+                    price,
+                    color: t.color,
+                    img: t.img,
+                    contents: contents.map((skin, idx) => ({ skin, chance: chances[idx] || 1 }))
+                });
             }
 
             renderCases();
