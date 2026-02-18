@@ -82,7 +82,7 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
-        .live-drop-scroll { display: flex; gap: 1rem; animation: scroll-left 170s linear infinite; padding: 0.5rem 0.75rem; width: max-content; }
+        .live-drop-scroll { display: flex; gap: 1rem; padding: 0.5rem 0.75rem; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
         .live-drop-item { 
@@ -242,8 +242,12 @@
             <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
         </div>
         <!-- Live chat (simulovaný) -->
-        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden xl:block">
-            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto h-full pr-2"></div>
+        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden xl:flex flex-col">
+            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
+            <div class="flex gap-2">
+                <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
+                <button id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+            </div>
         </div>
     </div>
 
@@ -1075,6 +1079,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 });
             });
 
+            const onlyCasehug = casesDB.filter(c => (c.img || "").includes("cdn.casehug.com"));
+            casesDB.splice(0, casesDB.length, ...onlyCasehug);
+
             renderCases();
         }, 100);
 
@@ -1212,13 +1219,17 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
                 return `
-                <div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-transparent hover:border-${c.color}/50 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 100}ms;">
+                <div data-case-id="${c.id}" class="bg-[#14171c] p-6 rounded-3xl border-2 border-transparent hover:border-${c.color}/50 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 100}ms;">
                     <div class="absolute inset-0 bg-${c.color}/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <img src="${c.img}" data-alts="${(c.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
                     <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
                     <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
                 </div>
             `}).join('');
+
+            grid.querySelectorAll('[data-case-id]').forEach(el => {
+                el.addEventListener('click', () => openCaseView(el.dataset.caseId));
+            });
         }
 
         function openCaseView(id) {
@@ -1574,42 +1585,83 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             updateUI();
         };
 
-        // --- Simulovaný live chat (ukázka) ---
-        function simulateLiveChat() {
-            const messages = [
-                'No way, just got a Karambit!🔥',
-                'Anyone selling AWP Asiimov?',
-                'Nice pull man!',
-                'Buying low-tier for upgrade',
-                'GG, bot just lost everything',
-                'Free case worked for me 😎',
-                'Where are the gloves images? lol',
-                'That spin looked sick!'
-            ];
-            const names = ['Alpha','Beta','Gamer','Pro','Lucky','Hunter','Trader','Baller','BOT Nope','BOT Jarvis'];
-            const container = document.getElementById('live-chat-messages');
-            if(!container) return;
-            function pushMsg() {
-                const n = names[Math.floor(Math.random()*names.length)];
-                const m = messages[Math.floor(Math.random()*messages.length)];
-                const el = document.createElement('div');
-                el.className = 'text-[12px] text-gray-200';
-                el.innerHTML = `<strong class="text-yellow-300">${n}:</strong> <span class="text-gray-300">${m}</span>`;
-                container.appendChild(el);
-                if(container.children.length > 40) container.removeChild(container.firstChild);
-                container.scrollTop = container.scrollHeight;
+        // --- Live chat (uživatel + AI odpovědi, fallback bez API) ---
+        async function maybeGeminiReply(userMessage) {
+            const apiKey = localStorage.getItem('geminiApiKey') || '';
+            if(!apiKey) return null;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${userMessage}` }] }],
+                        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
+                    })
+                });
+                if(!res.ok) return null;
+                const data = await res.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+            } catch {
+                return null;
             }
-            setInterval(pushMsg, 2200 + Math.random()*2000);
-            // push a few initial
-            for(let i=0;i<6;i++) setTimeout(pushMsg, i*300);
+        }
+
+        function simulateLiveChat() {
+            const container = document.getElementById('live-chat-messages');
+            const input = document.getElementById('live-chat-input');
+            const sendBtn = document.getElementById('live-chat-send');
+            if(!container || !input || !sendBtn) return;
+
+            const names = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel'];
+            const topics = ['dropnul jsem tiger tooth', 'free case dnes nic', 'upgrade skoro klapnul', 'ten spin vypadal mega clean', 'hledám nějaký glove drop', 'frosty dnes docela dává'];
+
+            const addMessage = (name, message, mine = false) => {
+                const row = document.createElement('div');
+                row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
+                row.innerHTML = mine
+                    ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${message}</span>`
+                    : `<span class="text-yellow-300 font-bold">${name}:</span> <span class="text-gray-300">${message}</span>`;
+                container.appendChild(row);
+                if(container.children.length > 80) container.removeChild(container.firstChild);
+                container.scrollTop = container.scrollHeight;
+            };
+
+            const pushNaturalMessage = () => {
+                const n = names[Math.floor(Math.random() * names.length)] + '#' + (1000 + Math.floor(Math.random()*9000));
+                const m = topics[Math.floor(Math.random() * topics.length)] + (Math.random() > 0.6 ? ' 🔥' : '');
+                addMessage(n, m);
+            };
+
+            const sendUserMessage = async () => {
+                const text = input.value.trim();
+                if(!text) return;
+                input.value = '';
+                addMessage('Ty', text, true);
+
+                const ai = await maybeGeminiReply(text);
+                if(ai) {
+                    addMessage('GeminiPlayer#' + (1000 + Math.floor(Math.random()*9000)), ai);
+                } else {
+                    setTimeout(() => pushNaturalMessage(), 600 + Math.random()*1200);
+                }
+            };
+
+            sendBtn.onclick = sendUserMessage;
+            input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
+
+            for(let i=0;i<8;i++) setTimeout(pushNaturalMessage, i*260);
+            setInterval(pushNaturalMessage, 1700 + Math.random()*1600);
         }
 
         function initializeLiveDrops() {
             const dropsContainer = document.getElementById('live-drops');
+            if(!dropsContainer) return;
+            dropsContainer.style.animation = 'none';
             const skinList = Object.values(skinsDB);
             let lastSkinId = null;
+            let offsetX = 0;
+            let paused = false;
 
-            // Small list of sample Steam profiles (name + avatar). You can expand or replace with real data later.
             const steamProfiles = [
                 { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
                 { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
@@ -1631,13 +1683,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 }
                 lastSkinId = randomSkin.id;
 
-                // pick a random steam profile
                 const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
-
                 const item = document.createElement('div');
                 item.className = 'live-drop-item';
 
-                // avatar
                 const avatarWrap = document.createElement('div');
                 avatarWrap.className = 'live-drop-avatar';
                 const avatarImg = document.createElement('img');
@@ -1661,7 +1710,6 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 userDiv.className = 'live-drop-item-user';
                 userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
 
-                // tooltip element
                 const tooltip = document.createElement('div');
                 tooltip.className = 'live-drop-tooltip';
                 tooltip.innerHTML = `
@@ -1680,29 +1728,47 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 item.appendChild(userDiv);
                 item.appendChild(tooltip);
 
-                // hover behavior: pause and show tooltip
-                item.addEventListener('mouseenter', (e) => {
-                    dropsContainer.style.animationPlayState = 'paused';
+                item.addEventListener('mouseenter', () => {
+                    paused = true;
                     item.style.zIndex = '100';
                     tooltip.classList.add('visible');
                 });
                 item.addEventListener('mouseleave', () => {
-                    dropsContainer.style.animationPlayState = 'running';
+                    paused = false;
                     item.style.zIndex = '1';
                     tooltip.classList.remove('visible');
                 });
 
                 dropsContainer.appendChild(item);
-
-                if(dropsContainer.children.length > 50) {
-                    dropsContainer.removeChild(dropsContainer.firstChild);
-                }
+                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
             }
 
-            setInterval(addRandomDrop, 2200);
             for(let i = 0; i < 18; i++) addRandomDrop();
+            setInterval(addRandomDrop, 1800);
+
+            let lastTs = performance.now();
+            const speed = 35; // px / sec
+            function animate(ts) {
+                const dt = Math.min(0.05, (ts - lastTs) / 1000);
+                lastTs = ts;
+                if(!paused) {
+                    offsetX -= speed * dt;
+                    const first = dropsContainer.firstElementChild;
+                    if(first) {
+                        const firstWidth = first.getBoundingClientRect().width + 16;
+                        if(-offsetX >= firstWidth) {
+                            offsetX += firstWidth;
+                            dropsContainer.appendChild(first);
+                        }
+                    }
+                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
+                }
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
         }
 
+        // --- FREE CASE SYSTEM ---
         // --- FREE CASE SYSTEM ---
         const FREE_CASE_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hodin
         
