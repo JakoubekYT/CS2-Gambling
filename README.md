@@ -1,15 +1,16 @@
 # CS2-Gambling (OTOdrop)
 
-## Co je hotové
+## Co je teď v backendu
 - Registrace + přihlášení přes email/heslo (`/api/auth/register`, `/api/auth/login`).
-- Každý účet startuje na **10 USD** (`START_BALANCE = 10`) a backend nedovoluje záporný zůstatek.
-- Stav hráče (balance + inventář skinů) se ukládá do SQLite (`otodrop.db`) přes `/api/state`.
-- Frontend už nepoužívá lokální demo účet, ale backend session.
-- "Dobíjení" je ve frontendu vypnuté.
-- Admin účet se určuje přes `ADMIN_EMAIL` env nebo `admin-config.json`.
+- Session endpoint pro frontend (`GET /api/auth/session`) a odhlášení (`POST /api/auth/logout`).
+- Uložení profilu (`PUT /api/profile`).
+- Uložení herního stavu (`GET/POST /api/state`) – balance + inventory.
+- Steam login (`/auth/steam`, `/auth/steam/return`).
+- Google login (`/auth/google`, `/auth/google/callback`) pokud jsou vyplněné Google OAuth ENV.
+- Kontrola serveru (`GET /api/health`) pro rychlé ověření Render + Mongo spojení.
 - Admin endpointy:
-  - `GET /api/admin/users` – přehled všech účtů a zůstatků.
-  - `POST /api/admin/set-balance` – ruční úprava zůstatku.
+  - `GET /api/admin/users`
+  - `POST /api/admin/set-balance`
 
 ## Spuštění
 ```bash
@@ -18,14 +19,25 @@ npm start
 ```
 Aplikace běží na `http://localhost:3000`.
 
-## Nastavení admina
-1. Uprav `admin-config.json` (pole `adminEmails`) a dej tam svůj email.
-2. Nebo použij env:
-```bash
-export ADMIN_EMAIL="tvuj@email.cz"
-```
+## Povinné ENV na Renderu
+- `MONGO_URI` – MongoDB connection string.
+- `SESSION_SECRET` – dlouhý náhodný secret.
+- `DOMAIN` – přesná URL tvé appky, **bez koncového lomítka**, např.:
+  - `https://cs2-gambling.onrender.com`
+- `STEAM_API_KEY` – Steam Web API key.
+- `ADMIN_EMAIL` – email admina (volitelné, ale doporučené).
 
-## Admin CLI (rychlá ruční úprava)
+## Google OAuth (volitelné)
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL` (volitelné, default je `${DOMAIN}/auth/google/callback`)
+
+## Nejčastější důvody problémů na Renderu
+1. Frontend volá `/api/auth/register`, `/api/auth/login`, `/api/auth/session`, ale backend je nemá → HTTP 404.
+2. `DOMAIN` má špatný tvar (např. s trailing slash) → rozbité OAuth callbacky.
+3. MongoDB Atlas nemá povolený přístup z Renderu (`0.0.0.0/0`) → backend se nepřipojí.
+
+Pro rychlou kontrolu použij:
 ```bash
-node admin-balance-cli.js uzivatel@email.cz 25.5
+curl https://TVUJ-WEB.onrender.com/api/health
 ```

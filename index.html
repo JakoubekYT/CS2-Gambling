@@ -424,6 +424,10 @@
                     <button onclick="saveLocalProfile()" class="bg-green-600 hover:bg-green-500 text-white font-black uppercase rounded-xl py-3">Uložit profil</button>
                     <button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
                 </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button onclick="socialLogin('steam')" class="bg-[#171a21] hover:bg-[#2a475e] text-white font-black uppercase rounded-xl py-3 border border-white/10">Steam Login</button>
+                    <button onclick="socialLogin('google')" class="bg-white hover:bg-gray-200 text-black font-black uppercase rounded-xl py-3">Google Login</button>
+                </div>
                 <p id="admin-hint" class="text-[11px] text-yellow-300 hidden">Jsi admin. Přehled hráčů: <code>GET /api/admin/users</code></p>
             </div>
         </div>
@@ -1344,6 +1348,11 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             updateUI();
             renderInventory();
             showToast('Odhlášeno');
+        }
+
+        function socialLogin(provider) {
+            if (provider !== 'steam' && provider !== 'google') return;
+            window.location.href = `/auth/${provider}`;
         }
 
         const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
