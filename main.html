@@ -242,7 +242,7 @@
             <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
         </div>
         <!-- Live chat (simulovaný) -->
-        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden xl:flex flex-col">
+        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden lg:flex flex-col">
             <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
             <div class="flex gap-2">
                 <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
@@ -338,9 +338,19 @@
                         <div id="spinner-track"></div>
                     </div>
 
-                    <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
-                        OTEVŘÍT BEDNU
-                    </button>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
+                            OTEVŘÍT BEDNU
+                        </button>
+                        <button id="btn-open-case-5" class="bg-purple-600 hover:bg-purple-500 text-white px-8 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(168,85,247,0.35)] text-xl tracking-tighter">
+                            OTEVŘÍT 5x
+                        </button>
+                    </div>
+                    <div id="multi-spin-area" class="mt-6 hidden text-left">
+                        <h4 class="text-sm font-black uppercase tracking-widest text-purple-300 mb-3">MULTI SPIN (5x)</h4>
+                        <div id="multi-spinner-list" class="space-y-3"></div>
+                        <div id="multi-spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4"></div>
+                    </div>
                 </div>
 
                 <div>
@@ -796,7 +806,8 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 "AWP|Man-o'-war": "https://www.csgodatabase.com/images/skins/webp/AWP_Man-o'-war.webp",
                 "M4A4|龍王 (Dragon King)": "https://www.csgodatabase.com/images/skins/webp/M4A4_%E9%BE%8D%E7%8E%8B_(Dragon_King).webp",
                 "Driver Gloves|Crimson Weave": "https://www.csgodatabase.com/images/gloves/webp/Driver_Gloves_Crimson_Weave.webp",
-                "Broken Fang Gloves|Needle Point": "https://www.csgodatabase.com/images/gloves/webp/Broken_Fang_Gloves_Needle_Point.webp"
+                "Broken Fang Gloves|Needle Point": "https://www.csgodatabase.com/images/gloves/webp/Broken_Fang_Gloves_Needle_Point.webp",
+                "Sport Gloves|Pandora's Box": "https://www.csgodatabase.com/images/gloves/webp/Sport_Gloves_Pandora's_Box.webp"
             };
 
             let urlWeapon = w.replace(/ /g, "_");
@@ -1329,6 +1340,93 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             }
         });
 
+        function rollCaseSkin(caseObj) {
+            const roll = Math.random() * 100;
+            let sum = 0;
+            let win = caseObj.contents[0].skin;
+            for(const item of caseObj.contents) {
+                sum += item.chance;
+                if(roll <= sum) { win = item.skin; break; }
+            }
+            return win;
+        }
+
+        function renderMultiResultCard(skin) {
+            return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
+        }
+
+        function startMultiSpinner(caseObj, count = 5) {
+            if(isSpinning) return;
+            const totalCost = caseObj.price * count;
+            if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
+
+            balanceBase -= totalCost;
+            updateUI();
+            isSpinning = true;
+
+            const btn1 = document.getElementById('btn-open-case');
+            const btn5 = document.getElementById('btn-open-case-5');
+            btn1.disabled = true; btn5.disabled = true;
+            btn1.classList.add('opacity-50'); btn5.classList.add('opacity-50');
+            btn1.textContent = 'Točí se...';
+            btn5.textContent = 'Točí se 5x...';
+
+            const area = document.getElementById('multi-spin-area');
+            const list = document.getElementById('multi-spinner-list');
+            const results = document.getElementById('multi-spin-results');
+            area.classList.remove('hidden');
+            list.innerHTML = '';
+            results.innerHTML = '';
+
+            const rowMeta = [];
+            const totalItems = 60;
+            const winningIndex = 50;
+            const itemWidth = 132;
+
+            for(let i=0;i<count;i++) {
+                const winningSkin = rollCaseSkin(caseObj);
+                const row = document.createElement('div');
+                row.className = 'spinner-container relative';
+                row.style.height = '116px';
+                row.innerHTML = `<div class="blur-edges blur-left"></div><div class="blur-edges blur-right"></div><div class="spinner-selector"></div><div id="multi-track-${i}" class="flex absolute left-0 h-full items-center"></div>`;
+                list.appendChild(row);
+                const track = row.querySelector(`#multi-track-${i}`);
+                let html = '';
+                for(let j=0;j<totalItems;j++) {
+                    const skin = j === winningIndex ? winningSkin : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
+                    html += `<div class="spinner-item" style="min-width:124px;height:96px;border-color:${skin.color};margin:0 2px;padding:6px"><img src="${skin.img}" onerror="handleImgError(this)" style="max-height:56px"><div class="text-[8px] font-black uppercase text-gray-300 mt-1 truncate w-full text-center">${skin.name}</div></div>`;
+                }
+                track.innerHTML = html;
+                rowMeta.push({ row, track, winningSkin });
+            }
+
+            setTimeout(() => {
+                rowMeta.forEach((m, idx) => {
+                    const containerWidth = m.row.clientWidth;
+                    const jitter = (Math.random() * (itemWidth - 20)) - ((itemWidth - 20) / 2);
+                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2) + jitter;
+                    m.track.style.transition = `transform ${5.5 + idx * 0.15}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    m.track.style.transform = `translateX(-${finalOffset}px)`;
+                });
+
+                setTimeout(() => {
+                    let totalWin = 0;
+                    rowMeta.forEach(m => {
+                        addToInventory(m.winningSkin);
+                        totalWin += m.winningSkin.price;
+                        results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+                    });
+                    showToast(`Multi spin hotový: ${count} skinů (${formatMoney(totalWin)})`);
+
+                    isSpinning = false;
+                    btn1.disabled = false; btn5.disabled = false;
+                    btn1.classList.remove('opacity-50'); btn5.classList.remove('opacity-50');
+                    btn1.textContent = 'HRÁT ZNOVU';
+                    btn5.textContent = 'OTEVŘÍT 5x';
+                }, 6600);
+            }, 50);
+        }
+
         function openCaseView(id) {
             activeCaseId = id;
             const c = casesDB.find(x => x.id === id);
@@ -1365,10 +1463,15 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
+            const btn5 = document.getElementById('btn-open-case-5');
             btn.onclick = () => startSpinner(c);
+            if(btn5) btn5.onclick = () => startMultiSpinner(c, 5);
             btn.textContent = "OTEVŘÍT BEDNU";
+            if(btn5) btn5.textContent = "OTEVŘÍT 5x";
             btn.disabled = false;
+            if(btn5) btn5.disabled = false;
             btn.classList.remove('opacity-50');
+            if(btn5) btn5.classList.remove('opacity-50');
 
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-case-view').classList.remove('hidden');
@@ -1383,6 +1486,8 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
             isSpinning = true;
 
             const btn = document.getElementById('btn-open-case');
+            const area = document.getElementById('multi-spin-area');
+            if(area) area.classList.add('hidden');
             btn.textContent = "Točí se...";
             btn.disabled = true;
             btn.classList.add('opacity-50');
@@ -1672,10 +1777,9 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
         window.onload = () => { 
             lucide.createIcons();
             switchPage('cases');
-            // Inicializuj live drops
-            initializeLiveDrops();
-            // Inicializuj simulovaný chat
-            simulateLiveChat();
+            // Inicializuj live drops + chat (fail-safe)
+            try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
+            try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
             // Currency selector handler
             const cur = document.getElementById('currency-select');
             if(cur) {
@@ -1754,7 +1858,10 @@ Butterfly Knife|Crimson Web|1200.00|#ebca44`;
                 if(!text) return;
                 input.value = '';
                 addMessage('Ty', text, true);
-                setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
+                maybeGeminiReply(text).then((ai) => {
+                    if(ai) addMessage(randomName(), ai);
+                    else setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
+                });
             };
 
             sendBtn.onclick = sendUserMessage;
