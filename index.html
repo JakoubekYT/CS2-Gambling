@@ -242,10 +242,10 @@
                 <i data-lucide="user-round" class="w-4 h-4"></i>
                 <span id="auth-open-label">Přihlásit</span>
             </button>
-            <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
+        <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
                 <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
                 <div class="leading-tight">
-                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                  <div id="profile-pill-name" class="text-xs text-white font-black"></div>
                     <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
                 </div>
             </div>
@@ -423,7 +423,7 @@
             <section id="page-user-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <button onclick="switchPage('profile')" class="text-gray-400 text-xs uppercase font-black">← Zpět na profil</button>
                 <div id="user-profile-card" class="bg-[#14171c] border border-yellow-400/30 rounded-2xl p-5"></div>
-                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4">
+              <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4">
                     <h3 class="font-black text-xl mb-3">Inventář uživatele</h3>
                     <div id="user-profile-inventory" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"></div>
                     <button id="open-trade-builder-btn" class="mt-4 bg-yellow-400 text-black font-black px-4 py-2 rounded-xl">Poslat obchodní nabídku</button>
@@ -2476,7 +2476,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let authProviders = { steam: true, google: true };
         let selectedProfile = null;
         let tradeInbox = [];
-        const tradeSelectedMine = new Set();
+          const tradeSelectedMine = new Set();
         const tradeSelectedTarget = new Set();
 
         function sanitizeDuplicateSocialButtons() {
