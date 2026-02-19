@@ -2511,121 +2511,219 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             rebalanceUltraCheapCases();
             const rebalanceAllCasesByPrice = () => {
-                const pickNearestInRange = (minPrice, maxPrice, exclude = []) => {
-                    const pool = allSkins.filter((skin) => {
-                        const price = Number(skin.price || 0);
-                        if (exclude.find((e) => e.id === skin.id)) return false;
-                        return price >= minPrice && price <= maxPrice;
-                    });
-                    if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
-
-                    // fallback: nearest under upper bound, then nearest overall
-                    const underCap = allSkins
-                        .filter((skin) => !exclude.find((e) => e.id === skin.id) && Number(skin.price || 0) <= maxPrice)
-                        .sort((a, b) => Math.abs(Number(a.price || 0) - maxPrice) - Math.abs(Number(b.price || 0) - maxPrice));
-                    if (underCap.length) return underCap[0];
-
-                    return allSkins
-                        .filter((skin) => !exclude.find((e) => e.id === skin.id))
-                        .sort((a, b) => Math.abs(Number(a.price || 0) - maxPrice) - Math.abs(Number(b.price || 0) - maxPrice))[0] || null;
-                };
-
+                // Keep original case identity/variety (1% knife, jackpots, budget, premium...),
+                // only do light sanitation so each case still has both losing and winning outcomes.
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
-                    const used = [];
-                    const p = Math.max(0.01, Number(c.price || 0));
+                    c.contents = c.contents
+                        .filter((it) => it?.skin && Number(it.skin.price || 0) > 0)
+                        .sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
 
-                    const slots = [
-                        [0.01, Math.max(0.02, p * 0.08)],
-                        [Math.max(0.01, p * 0.04), Math.max(0.05, p * 0.20)],
-                        [Math.max(0.02, p * 0.10), Math.max(0.12, p * 0.45)],
-                        [Math.max(0.02, p * 1.02), Math.max(0.05, p * 1.12)],
-                        [Math.max(0.03, p * 1.08), Math.max(0.08, p * 1.35)],
-                        [Math.max(0.05, p * 1.20), Math.max(0.12, p * 2.00)]
-                    ];
+                    if (!c.contents.length) return;
 
-                    const rebuilt = slots.map(([minP, maxP]) => {
-                        const skin = pickNearestInRange(minP, maxP, used) || pickAny(used);
-                        if (skin) used.push(skin);
-                        return skin ? { skin, chance: 0.1 } : null;
-                    }).filter(Boolean);
+                    const hasWinner = c.contents.some((it) => Number(it.skin?.price || 0) > c.price);
+                    const hasLoser = c.contents.some((it) => Number(it.skin?.price || 0) <= c.price);
 
-                    c.contents = rebuilt.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                    if (!hasWinner) {
+                        const winnerCandidate = pickRange(
+                            Math.max(0.01, c.price * 1.05),
+                            Math.max(c.price * 3.0, c.price + 0.2),
+                            c.contents.map((x) => x.skin)
+                        ) || pickAny(c.contents.map((x) => x.skin));
+                        if (winnerCandidate) c.contents[c.contents.length - 1] = { ...c.contents[c.contents.length - 1], skin: winnerCandidate };
+                    }
+
+                    if (!hasLoser) {
+                        const loserCandidate = pickRange(
+                            0.01,
+                            Math.max(0.02, c.price * 0.9),
+                            c.contents.map((x) => x.skin)
+                        ) || pickAny(c.contents.map((x) => x.skin));
+                        if (loserCandidate) c.contents[0] = { ...c.contents[0], skin: loserCandidate };
+                    }
+
+                    // Prevent absurd jackpots in ultra-cheap cases (keeps EV controllable while still allowing profit).
+                    if (c.price <= 2) {
+                        const used = c.contents.map((x) => x.skin);
+                        c.contents = c.contents.map((entry) => {
+                            const price = Number(entry.skin?.price || 0);
+                            if (price <= c.price * 3.0) return entry;
+                            const replacement = pickRange(Math.max(0.01, c.price * 1.03), Math.max(c.price * 2.2, c.price + 0.1), used)
+                                || pickRange(Math.max(0.01, c.price * 1.01), Math.max(c.price * 3.0, c.price + 0.2), used)
+                                || entry.skin;
+                            return { ...entry, skin: replacement };
+                        });
+                    }
+
+                    c.contents = c.contents.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
 
             rebalanceAllCasesByPrice();
             const applyHouseEdge = () => {
-                const PROFIT_CHANCE_TARGET = 49.0;
-                const LOSE_CHANCE_TARGET = 51.0;
+                const expectedValue = (contents = []) => contents.reduce((acc, it) => acc + ((Number(it?.skin?.price || 0) * Number(it?.chance || 0)) / 100), 0);
+                const sumChance = (contents = []) => contents.reduce((a, b) => a + Number(b?.chance || 0), 0);
 
-                const normalizeRounded = (items) => {
-                    const out = items.map((it) => ({ ...it, chance: Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10) }));
-                    const sum = out.reduce((a, b) => a + (b.chance || 0), 0);
-                    const diff = Math.round((100 - sum) * 10) / 10;
+                const normalizeRounded = (contents = []) => {
+                    if (!contents.length) return contents;
+                    const out = contents.map((it) => ({ ...it, chance: Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10) }));
+                    const diff = Math.round((100 - sumChance(out)) * 10) / 10;
                     out[out.length - 1].chance = Math.max(0.1, Math.round((out[out.length - 1].chance + diff) * 10) / 10);
+                    const fix = Math.round((100 - sumChance(out)) * 10) / 10;
+                    if (Math.abs(fix) > 0.001) out[0].chance = Math.max(0.1, Math.round((out[0].chance + fix) * 10) / 10);
                     return out;
                 };
 
-                const distribute = (arr, total, weightFn) => {
-                    if (!arr.length) return [];
-                    const ws = arr.map((x) => Math.max(0.0001, Number(weightFn(x) || 0.0001)));
-                    const sum = ws.reduce((a, b) => a + b, 0) || 1;
-                    return arr.map((x, i) => ({ ...x, chance: (ws[i] / sum) * total }));
+                const caseProfile = (c) => {
+                    const id = String(c.id || '').toLowerCase();
+                    const name = String(c.name || '').toLowerCase();
+                    const p = Number(c.price || 0);
+
+                    // "1% knife" styl: malá jackpot šance, hodně levných dropů, velký násobek.
+                    if (id.includes('trash-or-knife') || name.includes('1%') || (name.includes('knife') && name.includes('risk'))) {
+                        return { targetProfitChance: 12, targetRtp: 0.92, jackpotChance: 1.0, jackpotMultiplier: 90 };
+                    }
+                    // High-risk jackpot bedny.
+                    if (id.includes('legendary') || id.includes('dragon') || id.includes('ultra') || id.includes('knife-ultra') || id.includes('top-tier')) {
+                        return { targetProfitChance: 24, targetRtp: 0.93, jackpotChance: 2.5, jackpotMultiplier: 20 };
+                    }
+                    // Levné fun bedny - častější profit pocit.
+                    if (p <= 1) return { targetProfitChance: 47, targetRtp: 0.96, jackpotChance: 0.0, jackpotMultiplier: 0 };
+                    if (p <= 5) return { targetProfitChance: 43, targetRtp: 0.95, jackpotChance: 0.0, jackpotMultiplier: 0 };
+                    if (p <= 50) return { targetProfitChance: 38, targetRtp: 0.94, jackpotChance: 0.0, jackpotMultiplier: 0 };
+                    return { targetProfitChance: 33, targetRtp: 0.93, jackpotChance: 0.0, jackpotMultiplier: 0 };
                 };
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
-                    const p = Number(c.price || 0);
+
+                    const profile = caseProfile(c);
                     let items = c.contents.slice().sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
 
-                    let losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
-                    let winners = items.filter((it) => Number(it.skin?.price || 0) > p);
+                    // Ensure at least one winner and one loser.
+                    const ensureWinner = () => {
+                        if (items.some((it) => Number(it.skin?.price || 0) > c.price)) return;
+                        const repl = pickRange(Math.max(0.01, c.price * 1.05), Math.max(c.price * 4, c.price + 0.3), items.map((x) => x.skin)) || items[items.length - 1]?.skin;
+                        if (repl) items[items.length - 1] = { ...items[items.length - 1], skin: repl };
+                    };
+                    const ensureLoser = () => {
+                        if (items.some((it) => Number(it.skin?.price || 0) <= c.price)) return;
+                        const repl = pickRange(0.01, Math.max(0.02, c.price * 0.9), items.map((x) => x.skin)) || items[0]?.skin;
+                        if (repl) items[0] = { ...items[0], skin: repl };
+                    };
+                    ensureWinner();
+                    ensureLoser();
 
-                    if (!winners.length && items.length) {
-                        const candidate = allSkins
-                            .filter((s) => Number(s.price || 0) > p && Number(s.price || 0) <= p * 1.3)
-                            .sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0]
-                            || allSkins.filter((s) => Number(s.price || 0) > p).sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0];
-                        if (candidate) items[items.length - 1] = { ...items[items.length - 1], skin: candidate };
+                    // Jackpot enforcement for special archetypes.
+                    if (profile.jackpotChance > 0) {
+                        const desired = c.price * profile.jackpotMultiplier;
+                        const jackpotSkin = pickRange(desired * 0.95, desired * 1.05, items.map((x) => x.skin))
+                            || pickRange(c.price * 85, c.price * 99, items.map((x) => x.skin))
+                            || pickRange(desired * 0.7, desired * 1.4, items.map((x) => x.skin))
+                            || items[items.length - 1]?.skin;
+                        if (jackpotSkin) {
+                            items[items.length - 1] = { ...items[items.length - 1], skin: jackpotSkin };
+                        }
                     }
 
-                    losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
-                    winners = items.filter((it) => Number(it.skin?.price || 0) > p);
-                    if (!losers.length && items.length) {
-                        const candidate = allSkins.filter((s) => Number(s.price || 0) <= p * 0.7).sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0] || items[0].skin;
-                        items[0] = { ...items[0], skin: candidate };
-                        losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
-                        winners = items.filter((it) => Number(it.skin?.price || 0) > p);
+                    items = items.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                    let losers = items.filter((it) => Number(it.skin?.price || 0) <= c.price);
+                    let winners = items.filter((it) => Number(it.skin?.price || 0) > c.price);
+                    if (!losers.length || !winners.length) return;
+
+                    // Start with archetype target chance split.
+                    const baseWinTotal = Math.max(5, Math.min(80, profile.targetProfitChance));
+                    let loseTotal = 100 - baseWinTotal;
+
+                    const distribute = (arr, total, weightFn) => {
+                        const ws = arr.map((it) => Math.max(0.0001, Number(weightFn(it) || 0.0001)));
+                        const sw = ws.reduce((a, b) => a + b, 0) || 1;
+                        return arr.map((it, i) => ({ ...it, chance: (ws[i] / sw) * total }));
+                    };
+
+                    // Optional fixed jackpot slice (e.g. 1% knife).
+                    let jackpotPart = null;
+                    if (profile.jackpotChance > 0 && winners.length) {
+                        jackpotPart = winners[winners.length - 1];
+                        jackpotPart.chance = Math.max(0.1, profile.jackpotChance);
+                        winners = winners.slice(0, -1);
                     }
 
-                    const loseDist = distribute(losers, LOSE_CHANCE_TARGET, (it) => 1 / Math.max(0.01, Math.pow(Number(it.skin?.price || 0.01), 1.35)));
-                    const winDist = distribute(winners, PROFIT_CHANCE_TARGET, (it) => 1 / Math.max(p * 1.01, Number(it.skin?.price || p * 1.01)));
+                    let winnerBudget = Math.max(0.1, baseWinTotal - (jackpotPart?.chance || 0));
+                    if (!winners.length) {
+                        winnerBudget = 0;
+                        loseTotal = 100 - (jackpotPart?.chance || baseWinTotal);
+                    }
 
-                    const map = new Map();
-                    loseDist.forEach((it) => map.set(it.skin.id, it.chance));
-                    winDist.forEach((it) => map.set(it.skin.id, it.chance));
-                    items = items.map((it) => ({ ...it, chance: map.get(it.skin.id) || 0.1 }));
+                    const winnerDist = winners.length ? distribute(
+                        winners,
+                        winnerBudget,
+                        (it) => 1 / Math.max(c.price * 1.02, Number(it.skin?.price || c.price * 1.02))
+                    ) : [];
+                    const loserDist = distribute(
+                        losers,
+                        loseTotal,
+                        (it) => 1 / Math.max(0.01, Math.pow(Number(it.skin?.price || 0.01), 1.25))
+                    );
 
-                    // keep EV below case price while preserving winner chance at ~49%
+                    const merged = [...loserDist, ...winnerDist, ...(jackpotPart ? [jackpotPart] : [])];
+                    const byId = new Map(merged.map((it) => [it.skin.id, it.chance]));
+                    items = items.map((it) => ({ ...it, chance: byId.get(it.skin.id) || 0.1 }));
+
+                    // EV correction: keep slightly house-favored while preserving archetype feel.
+                    const targetEv = c.price * profile.targetRtp;
+                    let ev = expectedValue(items);
                     let guard = 0;
-                    const evOf = () => items.reduce((a, it) => a + ((Number(it.skin?.price || 0) * Number(it.chance || 0)) / 100), 0);
-                    let ev = evOf();
-                    while (ev >= p && guard < 300) {
-                        const ws = items.filter((it) => Number(it.skin?.price || 0) > p).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
-                        const ls = items.filter((it) => Number(it.skin?.price || 0) <= p).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
-                        if (!ws.length || !ls.length) break;
-                        const richestWin = ws[ws.length - 1];
-                        const cheapestWin = ws[0];
-                        if (richestWin.chance <= 0.1) break;
-                        richestWin.chance = Math.max(0.1, Math.round((richestWin.chance - 0.1) * 10) / 10);
-                        cheapestWin.chance = Math.round((cheapestWin.chance + 0.1) * 10) / 10;
-                        ev = evOf();
+                    while (ev > targetEv && guard < 500) {
+                        const ws = items.filter((it) => Number(it.skin?.price || 0) > c.price).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                        if (!ws.length) break;
+
+                        const expensiveWinner = ws[ws.length - 1];
+                        const cheapWinner = ws[0];
+                        if (expensiveWinner.chance > 0.1 && expensiveWinner !== cheapWinner) {
+                            expensiveWinner.chance = Math.max(0.1, Math.round((expensiveWinner.chance - 0.1) * 10) / 10);
+                            cheapWinner.chance = Math.round((cheapWinner.chance + 0.1) * 10) / 10;
+                        } else {
+                            const ls = items.filter((it) => Number(it.skin?.price || 0) <= c.price).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                            if (!ls.length) break;
+                            const richLose = ls[ls.length - 1];
+                            const cheapLose = ls[0];
+                            if (richLose.chance <= 0.1 || richLose === cheapLose) break;
+                            richLose.chance = Math.max(0.1, Math.round((richLose.chance - 0.1) * 10) / 10);
+                            cheapLose.chance = Math.round((cheapLose.chance + 0.1) * 10) / 10;
+                        }
+                        items = normalizeRounded(items);
+                        ev = expectedValue(items);
                         guard += 1;
                     }
 
-                    items = normalizeRounded(items);
-                    c.contents = items.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                    // Final hard guard: never let EV >= price.
+                    let hardGuard = 0;
+                    while (expectedValue(items) >= c.price && hardGuard < 600) {
+                        const ws = items.filter((it) => Number(it.skin?.price || 0) > c.price);
+                        const ls = items.filter((it) => Number(it.skin?.price || 0) <= c.price).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                        if (!ws.length || !ls.length) break;
+
+                        const donor = ws
+                            .filter((w) => {
+                                const minChance = jackpotPart && w.skin?.id === jackpotPart.skin?.id ? Math.max(0.1, profile.jackpotChance) : 0.1;
+                                return Number(w.chance || 0) > minChance;
+                            })
+                            .sort((a, b) => ((Number(b.skin?.price || 0) * Number(b.chance || 0)) - (Number(a.skin?.price || 0) * Number(a.chance || 0))))[0];
+                        const cheapLose = ls[0];
+                        if (!donor || !cheapLose) break;
+
+                        const minWinnerChance = jackpotPart && donor.skin?.id === jackpotPart.skin?.id
+                            ? Math.max(0.1, profile.jackpotChance)
+                            : 0.1;
+
+                        donor.chance = Math.max(minWinnerChance, Math.round((donor.chance - 0.1) * 10) / 10);
+                        cheapLose.chance = Math.round((cheapLose.chance + 0.1) * 10) / 10;
+                        items = normalizeRounded(items);
+                        hardGuard += 1;
+                    }
+
+                    c.contents = normalizeRounded(items).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
             applyHouseEdge();
