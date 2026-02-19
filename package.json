@@ -4,7 +4,8 @@
   "description": "CS2 Gambling Backend with MongoDB",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "cache:images": "node download-skin-images.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
