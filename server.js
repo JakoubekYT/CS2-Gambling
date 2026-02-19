@@ -668,12 +668,6 @@ function battleCapacity(mode) {
   return 2;
 }
 
-function cleanupBattleRoomIfEmpty(roomId) {
-  const room = battleRooms.get(String(roomId || ""));
-  if (!room) return;
-  if (!Array.isArray(room.players) || room.players.length === 0) battleRooms.delete(String(roomId));
-}
-
 function weightedRoll(contents) {
   const list = Array.isArray(contents) ? contents : [];
   if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '' };
@@ -707,8 +701,6 @@ app.get('/api/case-battle/rooms', ensureDbReady, ensureAuth, async (_req, res) =
 });
 
 app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) => {
-  const existing = Array.from(battleRooms.values()).find((r) => r.status === 'waiting' && String(r.creatorId) === String(req.user._id));
-  if (existing) return res.status(400).json({ ok: false, message: 'Už máš otevřený battle. Nejprve ho dokonči nebo opusť.' });
   const mode = String(req.body?.mode || '1v1');
   const rounds = Math.max(1, Math.min(7, Number(req.body?.rounds || 1)));
   const caseId = String(req.body?.caseId || '');
@@ -749,26 +741,13 @@ app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res
   return res.json({ ok: true, room });
 });
 
-
-app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, res) => {
-  const roomId = String(req.params.id || '');
-  const room = battleRooms.get(roomId);
-  if (!room) return res.json({ ok: true, removed: true });
-  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží nebo je dokončen.' });
-  room.players = (room.players || []).filter((p) => String(p.userId) !== String(req.user._id));
-  room.updatedAt = Date.now();
-  cleanupBattleRoomIfEmpty(roomId);
-  return res.json({ ok: true, room: battleRooms.get(roomId) || null });
-});
-
 app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = battleRooms.get(String(req.params.id || ''));
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
   if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Pouze zakladatel může spustit battle.' });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už byl spuštěn.' });
 
-  const forceBots = Boolean(req.body?.forceBots);
-  if ((room.fillWithBots || forceBots) && room.players.length < room.capacity) {
+  if (room.fillWithBots && room.players.length < room.capacity) {
     const need = room.capacity - room.players.length;
     for (let i = 0; i < need; i += 1) {
       room.players.push({ userId: `bot-${Date.now()}-${i}`, nickname: `Bot ${i + 1}`, avatar: '', bot: true, score: 0, drops: [] });
@@ -819,7 +798,6 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
     }
   }
 
-  setTimeout(() => { battleRooms.delete(String(room.id)); }, 30000);
   return res.json({ ok: true, room, fee });
 });
 

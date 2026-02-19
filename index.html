@@ -36,7 +36,6 @@
             border-radius: 4px;
             border: 2px solid rgba(250,204,21,0.5);
             min-width: 92px;
-            width: 92px;
             height: 88px;
             flex-shrink: 0;
             cursor: pointer;
@@ -194,7 +193,7 @@
     <header class="h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
         <div class="flex items-center gap-8">
             <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
-                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-24 h-24 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
+                 <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-24 h-24 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
                 <div class="flex flex-col leading-tight">
                     <span class="text-5xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
                     <span class="text-[11px] uppercase tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
@@ -241,7 +240,7 @@
             <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2 cursor-pointer hover:bg-black/55 transition-colors">
                 <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
                 <div class="leading-tight">
-                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                  <div id="profile-pill-name" class="text-xs text-white font-black"></div>
                     <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
                 </div>
             </div>
@@ -368,27 +367,20 @@
             </section>
 
             <section id="page-case-battle" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
-                <div class="flex items-center justify-between"><h2 class="text-3xl font-black uppercase">Case Battle Online</h2><div class="text-xs text-gray-400">Založ room • čekej hráče • nebo spusť s botem</div></div>
-                <div id="cb-create-panel" class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
-                    <div class="grid md:grid-cols-5 gap-2 items-center">
+                <div class="flex items-center justify-between"><h2 class="text-3xl font-black uppercase">Case Battle Online</h2><div class="text-xs text-gray-400">Host • Reální hráči • Bot fill</div></div>
+                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
+                    <div class="grid md:grid-cols-6 gap-2 items-center">
                         <select id="cb-mode" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="1v1v1v1">1v1v1v1</option></select>
                         <select id="cb-rounds" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1">1 round</option><option value="3">3 rounds</option><option value="5">5 rounds</option></select>
                         <select id="cb-case" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"></select>
-                        <label class="text-xs text-gray-300 flex items-center gap-2 px-2"><input id="cb-fill-bots" type="checkbox" class="accent-yellow-400"> Auto bot fill</label>
-                        <button onclick="createCaseBattleRoom()" class="bg-yellow-400 text-black font-black rounded-lg px-3 py-2 text-sm">Vytvořit case battle</button>
+                        <label class="text-xs text-gray-300 flex items-center gap-2 px-2"><input id="cb-fill-bots" type="checkbox" class="accent-yellow-400"> Doplnit boty</label>
+                        <button onclick="createCaseBattleRoom()" class="bg-yellow-400 text-black font-black rounded-lg px-3 py-2 text-sm">Založit room</button>
+                        <button onclick="startCaseBattleRoom()" class="bg-red-500 text-white font-black rounded-lg px-3 py-2 text-sm">Spustit battle</button>
                     </div>
+                    <div id="cb-current-room" class="text-xs text-yellow-300 font-bold">Žádná aktivní místnost.</div>
                     <div id="cb-open-rooms" class="grid md:grid-cols-2 gap-2"></div>
-                </div>
-                <div id="cb-room-panel" class="hidden bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
-                    <div class="flex items-center justify-between gap-2">
-                        <div id="cb-current-room" class="text-xs text-yellow-300 font-bold">Čeká se na hráče...</div>
-                        <div class="flex gap-2">
-                            <button onclick="startCaseBattleRoom()" class="bg-red-500 text-white font-black rounded-lg px-3 py-2 text-sm">Spustit s botem</button>
-                            <button onclick="leaveCaseBattleRoom()" class="bg-gray-700 text-white font-black rounded-lg px-3 py-2 text-sm">Odejít</button>
-                        </div>
-                    </div>
                     <div id="cb-stage" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-                    <div id="cb-log" class="bg-black/30 border border-yellow-400/10 rounded-xl p-3 h-44 overflow-y-auto text-sm"></div>
+                    <div id="cb-log" class="bg-black/30 border border-yellow-400/10 rounded-xl p-3 h-40 overflow-y-auto text-sm"></div>
                 </div>
             </section>
 
@@ -526,7 +518,6 @@
 
     <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
-        const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%2314181c\"/><path d=\"M12 46L46 12M46 12H26M46 12V32\" stroke=\"%23facc15\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>');
         
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
@@ -2141,7 +2132,6 @@ Zeus x27|Charged Up|8.50|#8847ff
             const primaryImg = primaryRemote;
             const alt1 = altRemote1;
             const alt2 = altRemote2;
-            const supabaseAlts = buildSupabaseAlts(w, n);
             skinsDB[idx + 1] = {
                 id: idx + 1,
                 weapon: w,
@@ -3155,11 +3145,6 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbPollTimer = null;
         let cbActiveRoomId = null;
 
-        function cbSetPanels(inRoom) {
-            document.getElementById('cb-create-panel')?.classList.toggle('hidden', inRoom);
-            document.getElementById('cb-room-panel')?.classList.toggle('hidden', !inRoom);
-        }
-
         function initCaseBattle() {
             const sel = document.getElementById('cb-case');
             if (!sel) return;
@@ -3167,13 +3152,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                 sel.innerHTML = casesDB.slice(0, 120).map((c) => `<option value="${c.id}">${c.name} (${formatMoney(c.price)})</option>`).join('');
                 sel.dataset.ready = '1';
             }
-            cbSetPanels(Boolean(cbActiveRoomId));
             loadCaseBattleRooms();
             if (cbPollTimer) clearInterval(cbPollTimer);
             cbPollTimer = setInterval(async () => {
+                await loadCaseBattleRooms();
                 if (cbActiveRoomId) await refreshCaseBattleRoom();
-                else await loadCaseBattleRooms();
-            }, 2500);
+            }, 3000);
         }
 
         function cbAddLog(text) {
@@ -3194,7 +3178,13 @@ Zeus x27|Charged Up|8.50|#8847ff
                 caseId: c.id,
                 caseName: c.name,
                 casePrice: Number(c.price || 0),
-                contents: (c.contents || []).map((it) => ({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) }))
+                contents: (c.contents || []).map((it) => ({
+                    name: it.skin?.name || 'Skin',
+                    price: Number(it.skin?.price || 0),
+                    color: it.skin?.color || '#4b69ff',
+                    img: it.skin?.img || '',
+                    chance: Number(it.chance || 0)
+                }))
             };
         }
 
@@ -3203,8 +3193,10 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!wrap || !currentUser) return;
             try {
                 const data = await apiRequest('/api/case-battle/rooms');
-                wrap.innerHTML = (data.rooms || []).map((r) => `<div class="bg-black/30 border border-yellow-400/20 rounded-lg p-2 text-xs"><div class="font-black text-yellow-300">${r.caseName || r.caseId} • ${r.mode} • ${r.rounds}R</div><div>${r.players.length}/${r.capacity} hráčů</div><div class="mt-1 text-yellow-300">Cena vstupu: ${formatMoney((r.casePrice || 0) * (r.rounds || 1))}</div><button onclick="joinCaseBattleRoom('${r.id}')" class="mt-1 bg-blue-600 px-2 py-1 rounded font-black">Připojit</button></div>`).join('') || '<div class="text-gray-500 text-xs">Žádné otevřené místnosti.</div>';
-            } catch (err) { wrap.innerHTML = `<div class="text-red-400 text-xs">${err.message}</div>`; }
+                wrap.innerHTML = (data.rooms || []).map((r) => `<div class="bg-black/30 border border-yellow-400/20 rounded-lg p-2 text-xs"><div class="font-black text-yellow-300">${r.caseName || r.caseId} • ${r.mode} • ${r.rounds}R</div><div>${r.players.length}/${r.capacity} hráčů</div><button onclick="joinCaseBattleRoom('${r.id}')" class="mt-1 bg-blue-600 px-2 py-1 rounded font-black">Připojit</button></div>`).join('') || '<div class="text-gray-500 text-xs">Žádné otevřené místnosti.</div>';
+            } catch (err) {
+                wrap.innerHTML = `<div class="text-red-400 text-xs">${err.message}</div>`;
+            }
         }
 
         async function createCaseBattleRoom() {
@@ -3217,9 +3209,9 @@ Zeus x27|Charged Up|8.50|#8847ff
             try {
                 const data = await apiRequest('/api/case-battle/create', 'POST', { mode, rounds, fillWithBots, ...payload });
                 cbActiveRoomId = data.room?.id || null;
-                cbSetPanels(true);
-                cbAddLog(`Room vytvořena: ${cbActiveRoomId}`);
+                cbAddLog(`Místnost vytvořena: ${cbActiveRoomId}`);
                 renderCaseBattleRoom(data.room);
+                loadCaseBattleRooms();
             } catch (err) { showToast(err.message, true); }
         }
 
@@ -3228,30 +3220,17 @@ Zeus x27|Charged Up|8.50|#8847ff
             try {
                 const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST');
                 cbActiveRoomId = roomId;
-                cbSetPanels(true);
-                cbAddLog('Připojeno do roomky.');
+                cbAddLog('Připojeno do místnosti.');
                 renderCaseBattleRoom(data.room);
+                loadCaseBattleRooms();
             } catch (err) { showToast(err.message, true); }
-        }
-
-        async function leaveCaseBattleRoom() {
-            if (!cbActiveRoomId) return;
-            try {
-                await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST');
-            } catch (_e) {}
-            cbActiveRoomId = null;
-            cbSetPanels(false);
-            document.getElementById('cb-stage').innerHTML = '';
-            document.getElementById('cb-log').innerHTML = '';
-            document.getElementById('cb-current-room').textContent = 'Žádná aktivní místnost.';
-            loadCaseBattleRooms();
         }
 
         async function startCaseBattleRoom() {
             if (!requireAuthAction()) return;
-            if (!cbActiveRoomId) return showToast('Nejdřív vytvoř/připoj room.', true);
+            if (!cbActiveRoomId) return showToast('Nejdřív založ nebo připoj room.', true);
             try {
-                const data = await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true });
+                const data = await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST');
                 cbAddLog(`Battle spuštěn. Vstup: ${formatMoney(data.fee || 0)} / hráč`);
                 renderCaseBattleRoom(data.room, true);
                 await loadSessionFromBackend();
@@ -3263,29 +3242,27 @@ Zeus x27|Charged Up|8.50|#8847ff
             try {
                 const data = await apiRequest(`/api/case-battle/room/${cbActiveRoomId}`);
                 renderCaseBattleRoom(data.room);
-            } catch (_err) {
-                cbActiveRoomId = null;
-                cbSetPanels(false);
-                loadCaseBattleRooms();
-            }
+            } catch (_err) {}
         }
 
         function renderCaseBattleRoom(room, animate = false) {
             const info = document.getElementById('cb-current-room');
             const stage = document.getElementById('cb-stage');
             if (!room || !info || !stage) return;
-            info.textContent = room.status === 'waiting'
-                ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${room.caseName}`
-                : `Battle běží/hotovo • ${room.players.length} hráčů • ${room.caseName}`;
+            info.textContent = `Room ${room.id} • ${room.caseName || room.caseId} • ${room.players.length}/${room.capacity} • ${room.status}`;
             stage.innerHTML = (room.players || []).map((pl) => {
                 const lastDrop = pl.drops?.[pl.drops.length - 1];
                 const img = lastDrop?.img || FALLBACK_IMG;
-                return `<div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${pl.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover"><div class="font-black text-sm">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-24 flex items-center justify-center bg-black/30 rounded-lg border border-white/5"><img src="${img}" onerror="handleImgError(this)" class="h-20 object-contain"></div><div class="text-[11px] mt-2 truncate">${lastDrop?.name || 'Čeká se na drop...'}</div></div>`;
+                const rollAnim = animate ? 'animate-pulse' : '';
+                return `<div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 relative ${rollAnim}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${pl.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover"><div class="font-black text-sm">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-24 flex items-center justify-center bg-black/30 rounded-lg border border-white/5"><img src="${img}" onerror="handleImgError(this)" class="h-20 object-contain"></div><div class="text-[11px] mt-2 truncate">${lastDrop?.name || 'Čeká se na drop...'}</div></div>`;
             }).join('');
+
             if (room.status === 'done' && room.winnerId) {
                 const winner = (room.players || []).find((p) => String(p.userId) === String(room.winnerId));
                 if (winner) cbAddLog(`WINNER: ${winner.nickname} (${formatMoney(winner.score || 0)})`);
-                setTimeout(() => leaveCaseBattleRoom(), 1800);
+            }
+            if (Array.isArray(room.logs)) {
+                room.logs.slice(-4).forEach((l) => cbAddLog(l));
             }
         }
 
@@ -3586,10 +3563,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                 rowMeta.push({ track, row: track.parentElement, winningSkin });
             }
 
-            let tickWatch = null;
-            let lastTickStep = -1;
+            let spinStartAt = 0;
+            let tickTimer = null;
+            const spinDurationMs = 6500;
+            const scheduleTick = () => {
+                const elapsed = Date.now() - spinStartAt;
+                const t = Math.min(1, elapsed / spinDurationMs);
+                const nextDelay = Math.max(38, 150 - Math.floor(t * 110));
+                SoundEngine.playTick();
+                if (t < 1) tickTimer = setTimeout(scheduleTick, nextDelay);
+            };
 
             setTimeout(() => {
+                spinStartAt = Date.now();
+                scheduleTick();
                 rowMeta.forEach((m) => {
                     m.track.dataset.lastX = '0';
                 });
@@ -3617,7 +3604,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
 
                 setTimeout(() => {
-                    if (tickWatch) clearInterval(tickWatch);
+                    if (tickTimer) clearTimeout(tickTimer);
                     let totalWin = 0;
                     rowMeta.forEach(m => {
                         addToInventory(m.winningSkin);
@@ -3934,7 +3921,6 @@ Zeus x27|Charged Up|8.50|#8847ff
             switchPage('cases');
             await loadSessionFromBackend();
             setTimeout(() => warmCriticalSkinImages(), 50);
-            setTimeout(() => enrichSkinsFromHuggingFace().then(() => warmCriticalSkinImages(400)), 1200);
             // Inicializuj live drops + chat (fail-safe)
             setTimeout(() => { try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); } }, 300);
             setTimeout(() => { try { initLiveChat(); } catch(e) { console.error('live chat init failed', e); } }, 700);
@@ -4067,7 +4053,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 item.appendChild(userDiv);
                 item.appendChild(tooltip);
 
-                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; img.src = sourceCase?.img || UPGRADER_ICON; });
+                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; if (sourceCase?.img) img.src = sourceCase.img; });
                 item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); else { switchPage('upgrade'); showToast('Skin není v bedně, otevřen upgrade.'); } });
                 item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; img.src = randomSkin.img; });
 
