@@ -36,7 +36,7 @@
             border-radius: 4px;
             border: 2px solid rgba(250,204,21,0.5);
             min-width: 92px;
-            height: 86px;
+            height: 104px;
             flex-shrink: 0;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -64,8 +64,8 @@
             box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
             animation: none !important;
         }
-        .live-drop-item img { max-height: 34px; max-width: 72px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 8px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 0; }
+        .live-drop-item img { max-height: 40px; max-width: 80px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 9px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 0; }
         .live-drop-item-user { font-size: 7px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
@@ -221,6 +221,8 @@
                         <option value="EUR">EUR</option>
                         <option value="USD">USD</option>
                         <option value="CZK">CZK</option>
+                        <option value="PLN">PLN</option>
+                        <option value="RUB">RUB</option>
                     </select>
                 </div>
                 <div class="w-10 h-10 bg-yellow-400/20 rounded-xl flex items-center justify-center text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
@@ -240,10 +242,10 @@
                 <i data-lucide="user-round" class="w-4 h-4"></i>
                 <span id="auth-open-label">Přihlásit</span>
             </button>
-            <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
+        <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
                 <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
                 <div class="leading-tight">
-                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                  <div id="profile-pill-name" class="text-xs text-white font-black"></div>
                     <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
                 </div>
             </div>
@@ -251,7 +253,7 @@
     </header>
 
     <div id="trade-inbox-panel" class="hidden fixed top-28 right-6 z-[95] w-96 bg-[#131824]/95 border border-yellow-400/30 rounded-2xl p-3 shadow-2xl">
-        <div class="flex items-center justify-between mb-2"><div class="font-black text-yellow-300 uppercase text-xs">Trade notifikace</div><button onclick="toggleTradeInbox(false)" class="text-gray-400">✕</button></div>
+        <div class="flex items-center justify-between mb-2"><div class="font-black text-yellow-300 uppercase text-xs">Notifikace</div><button onclick="toggleTradeInbox(false)" class="text-gray-400">✕</button></div>
         <div id="trade-inbox-list" class="space-y-2 max-h-72 overflow-y-auto"></div>
     </div>
 
@@ -421,15 +423,23 @@
             <section id="page-user-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <button onclick="switchPage('profile')" class="text-gray-400 text-xs uppercase font-black">← Zpět na profil</button>
                 <div id="user-profile-card" class="bg-[#14171c] border border-yellow-400/30 rounded-2xl p-5"></div>
-                <div>
-                    <h3 class="font-black text-xl mb-3">Nabídnout trade</h3>
+              <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4">
+                    <h3 class="font-black text-xl mb-3">Inventář uživatele</h3>
+                    <div id="user-profile-inventory" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"></div>
+                    <button id="open-trade-builder-btn" class="mt-4 bg-yellow-400 text-black font-black px-4 py-2 rounded-xl">Poslat obchodní nabídku</button>
+                </div>
+            </section>
+
+            <div id="trade-builder-modal" class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm items-center justify-center">
+                <div class="w-[95vw] max-w-6xl bg-[#14171c] border border-yellow-400/30 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3"><h3 class="font-black text-xl">Trade builder</h3><button onclick="closeTradeBuilder()" class="text-gray-300">✕</button></div>
                     <div class="grid md:grid-cols-2 gap-4">
-                        <div><div class="text-xs text-gray-400 mb-2">Moje itemy</div><div id="trade-my-items" class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto"></div></div>
-                        <div><div class="text-xs text-gray-400 mb-2">Jeho itemy</div><div id="trade-target-items" class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto"></div></div>
+                        <div><div class="text-xs text-gray-400 mb-2">Moje itemy</div><div id="trade-my-items" class="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto"></div></div>
+                        <div><div class="text-xs text-gray-400 mb-2">Jeho itemy</div><div id="trade-target-items" class="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto"></div></div>
                     </div>
                     <button id="trade-send-btn" class="mt-4 bg-yellow-400 text-black font-black px-4 py-2 rounded-xl">Poslat obchodní nabídku</button>
                 </div>
-            </section>
+            </div>
 
             <section id="page-selector" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex items-center justify-between border-b border-white/10 pb-6">
@@ -481,6 +491,13 @@
 
     <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
+        
+        function toCachedImage(url) {
+            const raw = (url || '').toString().trim();
+            if (!raw || !/^https?:\/\//i.test(raw)) return raw;
+            return `/api/image-cache?url=${encodeURIComponent(raw)}`;
+        }
+
         function handleImgError(img) {
             // Pokusit se postupně použít alternativní URL uložené v data-alts (pipe-separated)
             try {
@@ -2358,9 +2375,25 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                     c.contents = sorted.map((it, i) => ({ ...it, chance: Math.max(0.1, Math.round(probs[i] * 10) / 10) }));
                     const diff = 100 - c.contents.reduce((a,b)=>a+(b.chance||0),0);
-                    c.contents[c.contents.length - 1].chance = Math.round((c.contents[c.contents.length - 1].chance + diff) * 10) / 10;
+                    c.contents[c.contents.length - 1].chance = Math.max(0.1, Math.round((c.contents[c.contents.length - 1].chance + diff) * 10) / 10);
+                    const sumCheck = c.contents.reduce((a,b)=>a+(b.chance||0),0);
+                    if (Math.abs(100 - sumCheck) > 0.001) {
+                        c.contents[0].chance = Math.max(0.1, Math.round((c.contents[0].chance + (100 - sumCheck)) * 10) / 10);
+                    }
                 });
             };
+            Object.values(skinsDB).forEach((sk) => {
+                sk.img = toCachedImage(sk.img);
+                if (Array.isArray(sk.imgAlts)) sk.imgAlts = sk.imgAlts.map((u) => toCachedImage(u));
+            });
+            casesDB.forEach((c) => {
+                c.img = toCachedImage(c.img);
+                (c.contents || []).forEach((ci) => {
+                    if (ci?.skin?.img) ci.skin.img = toCachedImage(ci.skin.img);
+                    if (Array.isArray(ci?.skin?.imgAlts)) ci.skin.imgAlts = ci.skin.imgAlts.map((u) => toCachedImage(u));
+                });
+            });
+
             applyHouseEdge();
             renderCases();
         }, 100);
@@ -2378,8 +2411,18 @@ Zeus x27|Charged Up|8.50|#8847ff
         };
 
         // --- ZÁKLADY UI ---
-        function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
-        const CURRENCY_RATES = { EUR: 1, USD: 1.08, CZK: 25.5 };
+        function currentCurrency() {
+            return document.getElementById('currency-select')?.value || 'EUR';
+        }
+        function formatMoney(val) {
+            const cur = currentCurrency();
+            const rate = CURRENCY_RATES[cur] || 1;
+            const num = Number(val || 0) * rate;
+            const decimals = ['CZK', 'RUB'].includes(cur) ? 0 : 2;
+            const locale = cur === 'CZK' ? 'cs-CZ' : cur === 'PLN' ? 'pl-PL' : cur === 'RUB' ? 'ru-RU' : 'en-US';
+            return `${num.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} ${cur}`;
+        }
+        const CURRENCY_RATES = { EUR: 1, USD: 1.08, CZK: 25.5, PLN: 4.35, RUB: 95 };
         function updateUI() {
             const sel = document.getElementById('currency-select');
             const cur = sel ? sel.value : 'EUR';
@@ -2433,6 +2476,8 @@ Zeus x27|Charged Up|8.50|#8847ff
         let authProviders = { steam: true, google: true };
         let selectedProfile = null;
         let tradeInbox = [];
+          const tradeSelectedMine = new Set();
+        const tradeSelectedTarget = new Set();
 
         function sanitizeDuplicateSocialButtons() {
             const authModal = document.getElementById('auth-modal');
@@ -2636,21 +2681,48 @@ Zeus x27|Charged Up|8.50|#8847ff
             try {
                 const data = await apiRequest('/api/admin/users');
                 wrap.innerHTML = (data.users || []).map((u) => `
-                    <div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 flex items-center justify-between gap-2">
-                        <div><div class="font-black text-white">${u.displayName || u.nickname || 'user'} (${u.email || '-'})</div><div class="text-xs text-yellow-300">Balance: ${formatMoney(Number(u.balance || 0))}</div></div>
-                        <div class="flex items-center gap-2"><input type="number" step="0.01" min="0" id="admin-add-${u.id}" class="w-24 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-white" value="10"><button onclick="adminAddBalance('${u.email}','admin-add-${u.id}')" class="bg-green-600 px-3 py-1 rounded font-black text-xs">Poslat</button></div>
+                    <div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div><div class="font-black text-white">${u.displayName || u.nickname || 'user'} (${u.email || '-'})</div><div class="text-xs text-yellow-300">Balance: ${formatMoney(Number(u.balance || 0))}</div></div>
+                            <div class="flex items-center gap-1"><input type="number" step="0.01" id="admin-bal-${u.id}" class="w-24 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-white" value="10"><button onclick="adminAddBalance('${u.email}','admin-bal-${u.id}')" class="bg-green-600 px-2 py-1 rounded font-black text-xs">+ Peníze</button><button onclick="adminAddBalance('${u.email}','admin-bal-${u.id}', true)" class="bg-red-600 px-2 py-1 rounded font-black text-xs">- Peníze</button></div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-2">
+                            <input id="admin-skin-name-${u.id}" class="bg-black/40 border border-yellow-400/20 rounded px-2 py-1 text-xs" placeholder="Název skinu (např. AK-47 | Redline)">
+                            <div class="flex gap-1"><button onclick="adminGiveSkin('${u.email}','${u.id}')" class="bg-blue-600 px-2 py-1 rounded font-black text-xs">Give skin</button><input id="admin-skin-uid-${u.id}" class="flex-1 bg-black/40 border border-yellow-400/20 rounded px-2 py-1 text-xs" placeholder="UID na odebrání"><button onclick="adminRemoveSkin('${u.email}','${u.id}')" class="bg-red-700 px-2 py-1 rounded font-black text-xs">Odeber</button></div>
+                        </div>
                     </div>`).join('');
             } catch (err) {
                 wrap.innerHTML = `<div class="text-red-400">${err.message}</div>`;
             }
         }
 
-        async function adminAddBalance(email, inputId) {
-            const amount = Number(document.getElementById(inputId)?.value || 0);
+        async function adminAddBalance(email, inputId, subtract = false) {
+            const rawAmount = Number(document.getElementById(inputId)?.value || 0);
+            const amount = subtract ? -Math.abs(rawAmount) : Math.abs(rawAmount);
             try {
                 await apiRequest('/api/admin/add-balance', 'POST', { email, amount });
                 showToast('Zůstatek upraven');
                 loadAdminUsers();
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        
+        async function adminGiveSkin(email, userId) {
+            const name = (document.getElementById(`admin-skin-name-${userId}`)?.value || '').trim();
+            if (!name) return showToast('Vyplň název skinu', true);
+            const item = { uid: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, weapon: name.split('|')[0]?.trim() || name, skin: name.split('|')[1]?.trim() || '', price: 1, color: '#4b69ff', img: FALLBACK_IMG };
+            try {
+                await apiRequest('/api/admin/inventory-edit', 'POST', { email, mode: 'add', item });
+                showToast('Skin přidán');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        async function adminRemoveSkin(email, userId) {
+            const uid = (document.getElementById(`admin-skin-uid-${userId}`)?.value || '').trim();
+            if (!uid) return showToast('Vyplň UID skinu', true);
+            try {
+                await apiRequest('/api/admin/inventory-edit', 'POST', { email, mode: 'remove', uid });
+                showToast('Skin odebrán');
             } catch (err) { showToast(err.message, true); }
         }
 
@@ -2712,14 +2784,43 @@ Zeus x27|Charged Up|8.50|#8847ff
         function renderTradeInventory(gridId, items, selectedSet) {
             const grid = document.getElementById(gridId);
             if (!grid) return;
-            grid.innerHTML = (items || []).map((it) => `
-                <label class="bg-black/30 border border-yellow-400/20 rounded p-2 text-xs cursor-pointer">
-                    <input type="checkbox" data-uid="${it.uid}" class="mr-1" ${selectedSet.has(String(it.uid)) ? 'checked' : ''}>
-                    <img src="${it.img}" class="h-14 w-full object-contain mb-1" onerror="handleImgError(this)">
-                    <div class="truncate">${it.name}</div>
-                    <div class="text-yellow-300">${formatMoney(it.price || 0)}</div>
-                </label>
-            `).join('') || '<div class="text-gray-500 text-xs">Prázdné.</div>';
+            grid.innerHTML = (items || []).map((it) => {
+                const checked = selectedSet.has(String(it.uid));
+                return `
+                    <div data-uid="${it.uid}" class="trade-item-card ${checked ? 'ring-2 ring-green-400 bg-green-500/10' : 'bg-black/30'} border border-yellow-400/20 rounded-sm p-2 text-xs cursor-pointer transition-all">
+                        <img src="${it.img}" class="h-14 w-full object-contain mb-1" onerror="handleImgError(this)">
+                        <div class="truncate">${it.name}</div>
+                        <div class="text-yellow-300">${formatMoney(it.price || 0)}</div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-gray-500 text-xs">Prázdné.</div>';
+
+            Array.from(grid.querySelectorAll('.trade-item-card')).forEach((card) => {
+                card.addEventListener('click', () => {
+                    const uid = String(card.getAttribute('data-uid') || '');
+                    if (!uid) return;
+                    if (selectedSet.has(uid)) selectedSet.delete(uid);
+                    else selectedSet.add(uid);
+                    card.classList.toggle('ring-2', selectedSet.has(uid));
+                    card.classList.toggle('ring-green-400', selectedSet.has(uid));
+                    card.classList.toggle('bg-green-500/10', selectedSet.has(uid));
+                    card.classList.toggle('bg-black/30', !selectedSet.has(uid));
+                });
+            });
+        }
+
+        function openTradeBuilder() {
+            const modal = document.getElementById('trade-builder-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTradeBuilder() {
+            const modal = document.getElementById('trade-builder-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         async function openUserProfile(userId) {
@@ -2735,19 +2836,31 @@ Zeus x27|Charged Up|8.50|#8847ff
                         <div class="mt-3 text-xs text-yellow-300">Inventář: ${selectedProfile.inventory?.length || 0} itemů</div>
                     `;
                 }
-                const mineSelected = new Set();
-                const targetSelected = new Set();
-                renderTradeInventory('trade-my-items', userInventory, mineSelected);
-                renderTradeInventory('trade-target-items', selectedProfile.inventory || [], targetSelected);
+                const invGrid = document.getElementById('user-profile-inventory');
+                if (invGrid) {
+                    invGrid.innerHTML = (selectedProfile.inventory || []).map((it) => `<div class="bg-black/30 border border-yellow-400/20 rounded-sm p-2"><img src="${it.img}" class="h-16 w-full object-contain" onerror="handleImgError(this)"><div class="text-[10px] truncate">${it.name}</div><div class="text-yellow-300 text-[10px]">${formatMoney(it.price || 0)}</div></div>`).join('') || '<div class="text-gray-500 text-xs">Prázdný inventář</div>';
+                }
+
+                const openBtn = document.getElementById('open-trade-builder-btn');
+                if (openBtn) {
+                    openBtn.onclick = () => {
+                        tradeSelectedMine.clear();
+                        tradeSelectedTarget.clear();
+                        renderTradeInventory('trade-my-items', userInventory, tradeSelectedMine);
+                        renderTradeInventory('trade-target-items', selectedProfile.inventory || [], tradeSelectedTarget);
+                        openTradeBuilder();
+                    };
+                }
 
                 const sendBtn = document.getElementById('trade-send-btn');
                 if (sendBtn) {
                     sendBtn.onclick = async () => {
-                        const offeredUids = Array.from(document.querySelectorAll('#trade-my-items input[type="checkbox"]:checked')).map((n) => n.dataset.uid);
-                        const requestedUids = Array.from(document.querySelectorAll('#trade-target-items input[type="checkbox"]:checked')).map((n) => n.dataset.uid);
+                        const offeredUids = Array.from(tradeSelectedMine);
+                        const requestedUids = Array.from(tradeSelectedTarget);
                         try {
                             await apiRequest('/api/trades/send', 'POST', { toUserId: selectedProfile.id, offeredUids, requestedUids });
                             showToast('Trade nabídka odeslána');
+                            closeTradeBuilder();
                         } catch (err) { showToast(err.message, true); }
                     };
                 }
@@ -2760,25 +2873,35 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function loadTradeInbox() {
             if (!currentUser) return;
             try {
-                const data = await apiRequest('/api/trades/inbox');
-                tradeInbox = data.trades || [];
+                const [notifData, tradeData] = await Promise.all([
+                    apiRequest('/api/notifications'),
+                    apiRequest('/api/trades/inbox').catch(() => ({ trades: [] }))
+                ]);
+
+                const notes = notifData.notifications || [];
+                const pendingTrades = tradeData.trades || [];
+
                 const badge = document.getElementById('trade-bell-count');
                 if (badge) {
-                    badge.textContent = String(tradeInbox.length);
-                    badge.classList.toggle('hidden', tradeInbox.length === 0);
+                    const count = notes.length;
+                    badge.textContent = String(count);
+                    badge.classList.toggle('hidden', count === 0);
                 }
+
                 const list = document.getElementById('trade-inbox-list');
                 if (list) {
-                    list.innerHTML = tradeInbox.map((t) => `
-                        <div class="bg-black/30 border border-yellow-400/20 rounded-lg p-2 text-xs">
-                            <div class="font-bold text-yellow-300 mb-1">Nabídka #${String(t.id).slice(-6)}</div>
+                    const noteHtml = notes.map((n) => `<div class="bg-black/30 border border-yellow-400/20 rounded-lg p-2 text-xs"><div class="text-yellow-300 font-bold">${n.type || 'info'}</div><div>${n.text}</div><div class="text-gray-500 text-[10px]">${new Date(n.createdAt).toLocaleString('cs-CZ')}</div></div>`).join('');
+                    const tradeHtml = pendingTrades.map((t) => `
+                        <div class="bg-black/30 border border-green-400/30 rounded-lg p-2 text-xs">
+                            <div class="font-bold text-green-300 mb-1">Trade #${String(t.id).slice(-6)}</div>
                             <div>Za tebe: ${t.requestedItems?.length || 0} itemů • Od nich: ${t.offeredItems?.length || 0} itemů</div>
                             <div class="mt-2 flex gap-1"><button onclick="respondTrade('${t.id}','accept')" class="bg-green-600 px-2 py-1 rounded font-black">Přijmout</button><button onclick="respondTrade('${t.id}','reject')" class="bg-red-600 px-2 py-1 rounded font-black">Odmítnout</button></div>
                         </div>
-                    `).join('') || '<div class="text-gray-500 text-xs">Žádné nové nabídky.</div>';
+                    `).join('');
+                    list.innerHTML = (tradeHtml + noteHtml) || '<div class="text-gray-500 text-xs">Žádné notifikace.</div>';
                 }
             } catch (err) {
-                console.warn('trade inbox error', err.message);
+                console.warn('notifications error', err.message);
             }
         }
 
@@ -3517,20 +3640,11 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
                 const matchingCases = casesDB.filter((c) => (c.contents || []).some((x) => x.skin?.id === randomSkin.id));
-                const sourceCase = matchingCases[Math.floor(Math.random() * Math.max(1, matchingCases.length))] || casesDB[Math.floor(Math.random()*casesDB.length)];
+                const sourceCase = matchingCases.length ? matchingCases[Math.floor(Math.random() * matchingCases.length)] : null;
                 const item = document.createElement('div');
                 item.className = 'live-drop-item';
                 item.style.borderColor = randomSkin.color || 'rgba(250,204,21,0.7)';
                 item.style.background = `linear-gradient(135deg, ${randomSkin.color || '#facc15'}33 0%, rgba(11,13,17,0.55) 100%)`;
-
-                const avatarWrap = document.createElement('div');
-                avatarWrap.className = 'live-drop-avatar';
-                const avatarImg = document.createElement('img');
-                avatarImg.src = profile.avatar;
-                avatarImg.alt = profile.name;
-                avatarImg.style.width = '100%'; avatarImg.style.height = '100%'; avatarImg.style.objectFit = 'cover';
-                avatarImg.onerror = handleImgError;
-                avatarWrap.appendChild(avatarImg);
 
                 const img = document.createElement('img');
                 img.src = randomSkin.img;
@@ -3554,21 +3668,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                         <div>
                             <div class="tp-name">${profile.name}</div>
                             <div class="tp-when">Drop: ${randomSkin.name}</div>
-                            <div class="tp-when">Bedna: <span style="color:#facc15">${sourceCase?.name || 'Unknown'}</span></div>
+                            <div class="tp-when">Zdroj: <span style="color:#facc15">${sourceCase?.name || 'Upgrader'}</span></div>
                         </div>
                     </div>
                     <div class="mt-2 text-[11px] text-yellow-300">Klikni pro otevření bedny</div>
                 `;
 
-                item.appendChild(avatarWrap);
                 item.appendChild(img);
                 item.appendChild(nameDiv);
                 item.appendChild(userDiv);
                 item.appendChild(tooltip);
 
-                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; });
-                item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); });
-                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
+                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; if (sourceCase?.img) img.src = sourceCase.img; });
+                item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); else { switchPage('upgrade'); showToast('Skin není v bedně, otevřen upgrade.'); } });
+                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; img.src = randomSkin.img; });
 
                 dropsContainer.appendChild(item);
                 if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);

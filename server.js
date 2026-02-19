@@ -6,6 +6,9 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
+const fsp = require('fs/promises');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,6 +70,23 @@ const tradeSchema = new mongoose.Schema(
 );
 
 const Trade = mongoose.model('Trade', tradeSchema);
+
+const notificationsByUser = new Map();
+const NOTIFICATION_LIMIT = 120;
+const IMAGE_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
+
+async function ensureImageCacheDir() {
+  await fsp.mkdir(IMAGE_CACHE_DIR, { recursive: true });
+}
+
+function pushNotification(userId, type, text) {
+  const key = String(userId || '');
+  if (!key) return;
+  const arr = notificationsByUser.get(key) || [];
+  arr.unshift({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, type, text, createdAt: new Date().toISOString() });
+  if (arr.length > NOTIFICATION_LIMIT) arr.length = NOTIFICATION_LIMIT;
+  notificationsByUser.set(key, arr);
+}
 
 // --- MIDDLEWARE ---
 app.set('trust proxy', 1);
@@ -481,7 +501,34 @@ app.post('/api/admin/add-balance', ensureDbReady, ensureAuth, ensureAdmin, async
 
   user.balance = Math.max(0, Math.round((Number(user.balance || 0) + amount) * 100) / 100);
   await user.save();
+  pushNotification(user._id, 'admin-balance', `Admin upravil zůstatek o ${amount} EUR. Nový stav: ${user.balance} EUR.`);
   return res.json({ ok: true, email: user.email, balance: user.balance });
+});
+
+
+app.post('/api/admin/inventory-edit', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
+  const email = (req.body.email || '').toString().trim().toLowerCase();
+  const mode = (req.body.mode || '').toString();
+  const item = req.body.item && typeof req.body.item === 'object' ? req.body.item : null;
+  const uid = (req.body.uid || '').toString();
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  if (!Array.isArray(user.inventory)) user.inventory = [];
+
+  if (mode === 'add') {
+    if (!item || !item.name) return res.status(400).json({ ok: false, message: 'Chybí item.' });
+    user.inventory.unshift({ ...item, uid: item.uid || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
+  } else if (mode === 'remove') {
+    user.inventory = user.inventory.filter((it) => String(it.uid) !== uid);
+  } else {
+    return res.status(400).json({ ok: false, message: 'Neplatný mode.' });
+  }
+
+  await user.save();
+  pushNotification(user._id, 'admin-inventory', `Admin upravil tvůj inventář (${mode === 'add' ? 'přidal item' : 'odebral item'}).`);
+  return res.json({ ok: true, inventoryCount: user.inventory.length });
 });
 
 app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
@@ -503,6 +550,7 @@ app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
   req.user.balance = Math.round((Number(req.user.balance || 0) + amount) * 100) / 100;
   req.user.lastTopUpAt = new Date(now);
   await req.user.save();
+  pushNotification(req.user._id, 'topup', `Dobití účtu: +${amount} EUR.`);
   return res.json({ ok: true, balance: req.user.balance });
 });
 
@@ -572,6 +620,8 @@ app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
   await req.user.save();
   await target.save();
 
+  pushNotification(target._id, 'donation', `${req.user.nickname || req.user.displayName || 'Uživatel'} ti poslal ${amount} EUR.`);
+  pushNotification(req.user._id, 'donation-sent', `Poslal jsi ${amount} EUR uživateli ${target.nickname || target.displayName || 'user'}.`);
   return res.json({ ok: true, balance: req.user.balance });
 });
 
@@ -670,6 +720,7 @@ app.post('/api/trades/send', ensureDbReady, ensureAuth, async (req, res) => {
     status: 'pending'
   });
 
+  pushNotification(target._id, 'trade', `${req.user.nickname || 'Uživatel'} ti poslal trade nabídku.`);
   return res.json({ ok: true, tradeId: trade._id });
 });
 
@@ -683,6 +734,7 @@ app.post('/api/trades/:id/respond', ensureDbReady, ensureAuth, async (req, res) 
   if (action !== 'accept') {
     trade.status = 'rejected';
     await trade.save();
+    pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabídka byla odmítnuta.');
     return res.json({ ok: true, status: trade.status });
   }
 
@@ -707,6 +759,8 @@ app.post('/api/trades/:id/respond', ensureDbReady, ensureAuth, async (req, res) 
   trade.status = 'accepted';
   await trade.save();
 
+  pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabídka byla přijata.');
+  pushNotification(trade.toUserId, 'trade', 'Trade byl úspěšně přijat.');
   return res.json({ ok: true, status: trade.status });
 });
 
@@ -820,6 +874,40 @@ app.get('/api/setup/check', (_req, res) => {
 
 app.get('/logout', (req, res) => {
   req.logout(() => res.redirect('/'));
+});
+
+
+app.get('/api/notifications', ensureDbReady, ensureAuth, async (req, res) => {
+  const key = String(req.user._id);
+  const notes = notificationsByUser.get(key) || [];
+  const trades = await Trade.find({ toUserId: req.user._id, status: 'pending' }).sort({ createdAt: -1 }).limit(30);
+  const tradeNotes = trades.map((t) => ({ id: String(t._id), type: 'trade', text: `Nová trade nabídka od uživatele ${String(t.fromUserId).slice(-6)}.`, createdAt: t.createdAt }));
+  return res.json({ ok: true, notifications: [...tradeNotes, ...notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 60) });
+});
+
+app.get('/api/image-cache', ensureDbReady, async (req, res) => {
+  try {
+    const remoteUrl = (req.query.url || '').toString();
+    if (!/^https?:\/\//i.test(remoteUrl)) {
+      return res.status(400).json({ ok: false, message: 'Neplatná URL.' });
+    }
+
+    await ensureImageCacheDir();
+    const hash = crypto.createHash('sha1').update(remoteUrl).digest('hex');
+    const ext = path.extname(new URL(remoteUrl).pathname).slice(0, 5) || '.img';
+    const filePath = path.join(IMAGE_CACHE_DIR, `${hash}${ext}`);
+
+    if (!fs.existsSync(filePath)) {
+      const response = await fetch(remoteUrl);
+      if (!response.ok) return res.status(404).json({ ok: false, message: 'Image fetch failed.' });
+      const arrayBuffer = await response.arrayBuffer();
+      await fsp.writeFile(filePath, Buffer.from(arrayBuffer));
+    }
+
+    return res.sendFile(filePath);
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: 'Image cache error.' });
+  }
 });
 
 // --- FRONTEND ---
