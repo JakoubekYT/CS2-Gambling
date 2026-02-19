@@ -11,12 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/, '');
 const START_BALANCE = 10;
-const SESSION_DAYS = Number(process.env.SESSION_DAYS || 30);
+const SESSION_DAYS = Number(process.env.SESSION_DAYS || 180);
 const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
 const USER_TOPUP_COOLDOWN_MS = Number(process.env.USER_TOPUP_COOLDOWN_MS || 24 * 60 * 60 * 1000);
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/google/callback`;
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'jakoubekyt@gmail.com').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
-const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '76561199387062638').split(',').map((v) => v.trim()).filter(Boolean);
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'jakoubekit@gmail.com').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
+const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '').split(',').map((v) => v.trim()).filter(Boolean);
 const ADMIN_NICKNAMES = (process.env.ADMIN_NICKNAMES || 'P2').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
 
 // --- DB ---
@@ -44,7 +44,8 @@ const userSchema = new mongoose.Schema(
     balance: { type: Number, default: START_BALANCE },
     inventory: { type: Array, default: [] },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    lastTopUpAt: { type: Date, default: null }
+    lastTopUpAt: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null }
   },
   { timestamps: true }
 );
@@ -52,6 +53,20 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model('User', userSchema);
 const liveChatMessages = [];
 const LIVE_CHAT_MAX = 100;
+
+
+const tradeSchema = new mongoose.Schema(
+  {
+    fromUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    toUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    offeredItems: { type: Array, default: [] },
+    requestedItems: { type: Array, default: [] },
+    status: { type: String, enum: ['pending', 'accepted', 'rejected', 'cancelled'], default: 'pending' }
+  },
+  { timestamps: true }
+);
+
+const Trade = mongoose.model('Trade', tradeSchema);
 
 // --- MIDDLEWARE ---
 app.set('trust proxy', 1);
@@ -288,9 +303,13 @@ app.post('/api/auth/register', ensureDbReady, async (req, res) => {
       displayName,
       avatar,
       phone,
+      lastLoginAt: new Date(),
       balance: START_BALANCE,
       inventory: []
     });
+
+    user.lastLoginAt = new Date();
+    await user.save();
 
     req.login(user, (err) => {
       if (err) return res.status(500).json({ ok: false, message: 'Chyba session.' });
@@ -316,6 +335,9 @@ app.post('/api/auth/login', ensureDbReady, async (req, res) => {
     if (!match) {
       return res.status(401).json({ ok: false, message: 'Špatný email nebo heslo.' });
     }
+
+    user.lastLoginAt = new Date();
+    await user.save();
 
     req.login(user, (err) => {
       if (err) return res.status(500).json({ ok: false, message: 'Chyba session.' });
@@ -467,13 +489,13 @@ app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
   if (!Number.isFinite(amount) || amount <= 0) {
     return res.status(400).json({ ok: false, message: 'Neplatná částka.' });
   }
-  if (amount > USER_TOPUP_MAX) {
+  if (!isAdminUser(req.user) && amount > USER_TOPUP_MAX) {
     return res.status(400).json({ ok: false, message: `Maximální jednorázový top-up je ${USER_TOPUP_MAX} EUR.` });
   }
 
   const now = Date.now();
   const lastTopUpAt = req.user.lastTopUpAt ? new Date(req.user.lastTopUpAt).getTime() : 0;
-  if (lastTopUpAt && now - lastTopUpAt < USER_TOPUP_COOLDOWN_MS) {
+  if (!isAdminUser(req.user) && lastTopUpAt && now - lastTopUpAt < USER_TOPUP_COOLDOWN_MS) {
     const remainingMin = Math.ceil((USER_TOPUP_COOLDOWN_MS - (now - lastTopUpAt)) / (60 * 1000));
     return res.status(429).json({ ok: false, message: `Další top-up za ${remainingMin} min.` });
   }
@@ -553,6 +575,24 @@ app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
   return res.json({ ok: true, balance: req.user.balance });
 });
 
+
+app.get('/api/profile/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const user = await User.findById(req.params.id).select('nickname displayName avatar inventory createdAt lastLoginAt');
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  return res.json({
+    ok: true,
+    profile: {
+      id: user._id,
+      nickname: user.nickname,
+      displayName: user.displayName,
+      avatar: user.avatar || '',
+      inventory: Array.isArray(user.inventory) ? user.inventory : [],
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt || null
+    }
+  });
+});
+
 app.get('/api/users/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const user = await User.findById(req.params.id).select('nickname displayName avatar inventory');
   if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
@@ -585,6 +625,89 @@ app.post('/api/chat/messages', ensureDbReady, ensureAuth, (req, res) => {
   });
   if (liveChatMessages.length > LIVE_CHAT_MAX) liveChatMessages.splice(0, liveChatMessages.length - LIVE_CHAT_MAX);
   return res.json({ ok: true });
+});
+
+
+app.get('/api/trades/inbox', ensureDbReady, ensureAuth, async (req, res) => {
+  const incoming = await Trade.find({ toUserId: req.user._id, status: 'pending' }).sort({ createdAt: -1 }).limit(30);
+  return res.json({
+    ok: true,
+    trades: incoming.map((t) => ({
+      id: t._id,
+      fromUserId: t.fromUserId,
+      offeredItems: t.offeredItems || [],
+      requestedItems: t.requestedItems || [],
+      createdAt: t.createdAt
+    }))
+  });
+});
+
+app.post('/api/trades/send', ensureDbReady, ensureAuth, async (req, res) => {
+  const toUserId = (req.body.toUserId || '').toString();
+  const offeredUids = Array.isArray(req.body.offeredUids) ? req.body.offeredUids.map(String) : [];
+  const requestedUids = Array.isArray(req.body.requestedUids) ? req.body.requestedUids.map(String) : [];
+
+  if (!toUserId || !offeredUids.length) {
+    return res.status(400).json({ ok: false, message: 'Vyber uživatele a nabídnuté itemy.' });
+  }
+
+  const target = await User.findById(toUserId);
+  if (!target) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  const myInv = Array.isArray(req.user.inventory) ? req.user.inventory : [];
+  const targetInv = Array.isArray(target.inventory) ? target.inventory : [];
+
+  const offeredItems = myInv.filter((it) => offeredUids.includes(String(it.uid)));
+  const requestedItems = targetInv.filter((it) => requestedUids.includes(String(it.uid)));
+
+  if (!offeredItems.length) return res.status(400).json({ ok: false, message: 'Nemáš zvolené itemy pro trade.' });
+
+  const trade = await Trade.create({
+    fromUserId: req.user._id,
+    toUserId: target._id,
+    offeredItems,
+    requestedItems,
+    status: 'pending'
+  });
+
+  return res.json({ ok: true, tradeId: trade._id });
+});
+
+app.post('/api/trades/:id/respond', ensureDbReady, ensureAuth, async (req, res) => {
+  const action = (req.body.action || '').toString();
+  const trade = await Trade.findById(req.params.id);
+  if (!trade) return res.status(404).json({ ok: false, message: 'Trade nenalezen.' });
+  if (String(trade.toUserId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Tohle není tvoje nabídka.' });
+  if (trade.status !== 'pending') return res.status(400).json({ ok: false, message: 'Trade už byl vyřešen.' });
+
+  if (action !== 'accept') {
+    trade.status = 'rejected';
+    await trade.save();
+    return res.json({ ok: true, status: trade.status });
+  }
+
+  const fromUser = await User.findById(trade.fromUserId);
+  const toUser = await User.findById(trade.toUserId);
+  if (!fromUser || !toUser) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  const fromInv = Array.isArray(fromUser.inventory) ? fromUser.inventory : [];
+  const toInv = Array.isArray(toUser.inventory) ? toUser.inventory : [];
+
+  const offeredUids = new Set((trade.offeredItems || []).map((it) => String(it.uid)));
+  const requestedUids = new Set((trade.requestedItems || []).map((it) => String(it.uid)));
+
+  const offeredReal = fromInv.filter((it) => offeredUids.has(String(it.uid)));
+  const requestedReal = toInv.filter((it) => requestedUids.has(String(it.uid)));
+
+  fromUser.inventory = fromInv.filter((it) => !offeredUids.has(String(it.uid))).concat(requestedReal);
+  toUser.inventory = toInv.filter((it) => !requestedUids.has(String(it.uid))).concat(offeredReal);
+
+  await fromUser.save();
+  await toUser.save();
+  trade.status = 'accepted';
+  await trade.save();
+
+  return res.json({ ok: true, status: trade.status });
 });
 
 // --- STEAM AUTH (minimal hardcoded OpenID validation) ---
@@ -626,6 +749,9 @@ app.get('/auth/steam/return', async (req, res) => {
       user.avatar = user.avatar || profile.avatarfull || user.avatar;
       await user.save();
     }
+
+    user.lastLoginAt = new Date();
+    await user.save();
 
     req.login(user, (err) => {
       if (err) return res.redirect('/?auth=steam-failed');
