@@ -811,7 +811,7 @@ function weightedRoll(contents) {
   return { name: last.name || 'Skin', price: Number(last.price || 0), color: last.color || '#4b69ff', img: last.img || '' };
 }
 
-app.get('/api/case-battle/rooms', ensureDbReady, ensureAuth, async (_req, res) => {
+app.get('/api/case-battle/rooms', ensureDbReady, async (_req, res) => {
   const now = Date.now();
   for (const [id, room] of battleRooms.entries()) {
     if (now - room.updatedAt > BATTLE_ROOM_TTL_MS) battleRooms.delete(id);
@@ -844,6 +844,7 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
     capacity: battleCapacity(mode),
     status: 'waiting',
     creatorId: String(req.user._id),
+    creatorNickname: req.user.nickname || req.user.displayName || 'Host',
     fillWithBots,
     players: [{ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] }],
     logs: [],

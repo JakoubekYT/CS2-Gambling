@@ -2069,6 +2069,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             "nova|copperfledge",
             "nova|copperflage",
             "nova|oxide_blaze",
+            "nova|hieroglyph",
             "tec_9|mummys_rot",
             "m9_bayonet|sakaku",
             "mp9|sakkaku",
@@ -3584,7 +3585,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             cbPollTimer = setInterval(async () => {
                 if (cbActiveRoomId) await refreshCaseBattleRoom();
                 else await loadCaseBattleRooms();
-            }, 4500);
+            }, 1000);
         }
 
         function cbAddLog(text) {
@@ -3625,13 +3626,15 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         async function loadCaseBattleRooms() {
             const wrap = document.getElementById('cb-open-rooms');
-            if (!wrap || !currentUser) return;
+            if (!wrap) return;
             try {
                 const data = await apiRequest('/api/case-battle/rooms');
                 wrap.innerHTML = (data.rooms || []).map((r) => {
                     const c = getCaseByRoom(r);
                     const caseImg = c?.img || FALLBACK_IMG;
-                    return `<div class="bg-gradient-to-br from-black/45 to-[#1a1d26] border border-yellow-400/30 rounded-xl p-3 text-xs shadow-[0_0_20px_rgba(250,204,21,0.08)]"><div class="flex items-center gap-3"><img src="${caseImg}" onerror="handleImgError(this)" class="w-14 h-14 object-contain rounded-lg border border-yellow-400/35 bg-black/40"><div><div class="font-black text-yellow-300 uppercase">${r.caseName || r.caseId}</div><div class="text-gray-300">${r.mode} • ${r.rounds}R</div><div class="text-yellow-300 mt-1 font-bold">Cena vstupu: ${formatMoney((r.casePrice || 0) * (r.rounds || 1))}</div></div></div><div class="mt-2 flex items-center justify-between"><div class="text-gray-300">${r.players.length}/${r.capacity} hráčů</div><button onclick="joinCaseBattleRoom('${r.id}')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded font-black">Připojit</button></div></div>`;
+                    const missing = Math.max(0, Number(r.capacity || 0) - Number((r.players || []).length || 0));
+                    const creator = r.creatorNickname || r.creatorName || 'Host';
+                    return `<div class="bg-gradient-to-br from-black/45 to-[#1a1d26] border border-yellow-400/30 rounded-xl p-3 text-xs shadow-[0_0_20px_rgba(250,204,21,0.08)]"><div class="flex items-center gap-3"><img src="${caseImg}" onerror="handleImgError(this)" class="w-16 h-16 object-contain rounded-lg border border-yellow-400/35 bg-black/40"><div><div class="font-black text-yellow-300 uppercase">${r.caseName || r.caseId}</div><div class="text-gray-300">${r.mode} • ${r.rounds}R • host: ${creator}</div><div class="text-yellow-300 mt-1 font-bold">Cena vstupu: ${formatMoney((r.casePrice || 0) * (r.rounds || 1))}</div></div></div><div class="mt-2 flex items-center justify-between"><div class="text-gray-300">${(r.players||[]).length}/${r.capacity} hráčů • chybí ${missing}</div><button onclick="joinCaseBattleRoom('${r.id}')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded font-black">Připojit</button></div></div>`;
                 }).join('') || '<div class="text-gray-500 text-xs">Žádné otevřené místnosti.</div>';
             } catch (err) { wrap.innerHTML = `<div class="text-red-400 text-xs">${err.message}</div>`; }
         }
