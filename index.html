@@ -516,8 +516,7 @@
         
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
-            if (!raw || !/^https?:\/\//i.test(raw)) return raw;
-            return `/api/image-cache?url=${encodeURIComponent(raw)}`;
+            return raw;
         }
 
         const preloadedSkinUrls = new Set();
@@ -2045,9 +2044,9 @@ Zeus x27|Charged Up|8.50|#8847ff
             // Alternate patterns (some gloves/rare items have different naming on CDN)
             const altRemote1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
             const altRemote2 = primaryRemote.replace('/webp/', '/').replace('.webp', '.png');
-            const primaryImg = toCachedImage(primaryRemote);
-            const alt1 = toCachedImage(altRemote1);
-            const alt2 = toCachedImage(altRemote2);
+            const primaryImg = primaryRemote;
+            const alt1 = altRemote1;
+            const alt2 = altRemote2;
             skinsDB[idx + 1] = {
                 id: idx + 1,
                 weapon: w,
