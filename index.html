@@ -2096,7 +2096,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (color === '#b0c3d9') {
                 price = Math.min(price * 0.08, 0.06);
             } else if (color === '#4b69ff' && price <= 1.2) {
-                price = Math.min(price * 0.18, 0.09);
+                price = Math.min(price * 0.45, 0.45);
             }
 
             if (price < 0.01) price = 0.01;
@@ -2342,8 +2342,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['Glock-18','Neo-Noir']] },
                 { id:'organic', name:'ORGANIC', price:0.30, color:'blue', img:'https://cdn.casehug.com/cases/ORGANIC.png?width=640&quality=85', top:[['USP-S','Cortex'],['AK-47','Slate']] },
                 { id:'candy-drop', name:'CANDY DROP', price:0.40, color:'purple', img:'https://cdn.casehug.com/cases/candy_drop_1.png?width=640&quality=85', top:[['Glock-18','Bullet Queen'],['MAC-10','Neon Rider']] },
-                { id:'double-cheese', name:'DOUBLE CHEESE', price:0.45, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['P250','Asiimov'],['USP-S','Ticket to Hell']] },
-                { id:'ritual', name:'RITUAL', price:0.50, color:'purple', img:'https://cdn.casehug.com/cases/RITUAL.png?width=640&quality=85', top:[['M4A1-S','Night Terror'],['AWP','Mortis']] },
+                { id:'double-cheese', name:'DOUBLE CHEESE', price:0.70, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['P250','Asiimov'],['USP-S','Ticket to Hell']] },
+                { id:'ritual', name:'RITUAL', price:0.80, color:'purple', img:'https://cdn.casehug.com/cases/RITUAL.png?width=640&quality=85', top:[['M4A1-S','Night Terror'],['AWP','Mortis']] },
                 { id:'hellfire', name:'HELLFIRE', price:0.70, color:'red', img:'https://cdn.casehug.com/cases/HELLFIRE_NEW.png?width=640&quality=85', top:[['M4A4','The Emperor'],['AK-47','Redline']] },
                 { id:'frosty', name:'FROSTY', price:0.80, color:'blue', img:'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['AK-47','Vulcan']] },
                 { id:'sweet-tooth', name:'SWEET TOOTH', price:1.00, color:'purple', img:'https://cdn.casehug.com/content/case/regular/01/SWEET_TOOTH_1758194472.png?width=640&quality=85', top:[['Karambit','Tiger Tooth'],['Desert Eagle','Printstream']] },
@@ -2510,107 +2510,122 @@ Zeus x27|Charged Up|8.50|#8847ff
             };
 
             rebalanceUltraCheapCases();
-
             const rebalanceAllCasesByPrice = () => {
-                const slotCaps = [0.12, 0.25, 0.45, 0.75, 1.4, 3.5];
+                const pickNearestInRange = (minPrice, maxPrice, exclude = []) => {
+                    const pool = allSkins.filter((skin) => {
+                        const price = Number(skin.price || 0);
+                        if (exclude.find((e) => e.id === skin.id)) return false;
+                        return price >= minPrice && price <= maxPrice;
+                    });
+                    if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
+
+                    // fallback: nearest under upper bound, then nearest overall
+                    const underCap = allSkins
+                        .filter((skin) => !exclude.find((e) => e.id === skin.id) && Number(skin.price || 0) <= maxPrice)
+                        .sort((a, b) => Math.abs(Number(a.price || 0) - maxPrice) - Math.abs(Number(b.price || 0) - maxPrice));
+                    if (underCap.length) return underCap[0];
+
+                    return allSkins
+                        .filter((skin) => !exclude.find((e) => e.id === skin.id))
+                        .sort((a, b) => Math.abs(Number(a.price || 0) - maxPrice) - Math.abs(Number(b.price || 0) - maxPrice))[0] || null;
+                };
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
                     const used = [];
-                    const source = c.contents.slice().sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                    const p = Math.max(0.01, Number(c.price || 0));
 
-                    const rebuilt = slotCaps.map((mult, idx) => {
-                        const minPrice = idx === 0 ? 0.01 : Math.max(0.01, c.price * (slotCaps[Math.max(0, idx - 1)] * 0.35));
-                        const maxPrice = Math.max(minPrice + 0.01, c.price * mult);
-                        const current = source[idx] || source[source.length - 1];
+                    const slots = [
+                        [0.01, Math.max(0.02, p * 0.08)],
+                        [Math.max(0.01, p * 0.04), Math.max(0.05, p * 0.20)],
+                        [Math.max(0.02, p * 0.10), Math.max(0.12, p * 0.45)],
+                        [Math.max(0.02, p * 1.02), Math.max(0.05, p * 1.12)],
+                        [Math.max(0.03, p * 1.08), Math.max(0.08, p * 1.35)],
+                        [Math.max(0.05, p * 1.20), Math.max(0.12, p * 2.00)]
+                    ];
 
-                        if (current && Number(current.skin?.price || 0) >= minPrice && Number(current.skin?.price || 0) <= maxPrice) {
-                            used.push(current.skin);
-                            return { ...current };
-                        }
-
-                        const replacement = pickRange(minPrice, maxPrice, used)
-                            || pickRange(0.01, maxPrice, used)
-                            || pickAny(used)
-                            || current?.skin;
-
-                        used.push(replacement);
-                        return { skin: replacement, chance: current?.chance || 0.1 };
-                    }).filter((entry) => entry?.skin);
+                    const rebuilt = slots.map(([minP, maxP]) => {
+                        const skin = pickNearestInRange(minP, maxP, used) || pickAny(used);
+                        if (skin) used.push(skin);
+                        return skin ? { skin, chance: 0.1 } : null;
+                    }).filter(Boolean);
 
                     c.contents = rebuilt.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
 
             rebalanceAllCasesByPrice();
-
             const applyHouseEdge = () => {
-                const targetRtpForCase = (casePrice) => {
-                    if (casePrice < 1) return 0.20;
-                    if (casePrice < 5) return 0.34;
-                    if (casePrice < 25) return 0.40;
-                    return 0.47;
-                };
+                const PROFIT_CHANCE_TARGET = 49.0;
+                const LOSE_CHANCE_TARGET = 51.0;
 
-                const expectedCaseValue = (contents = []) => {
-                    return contents.reduce((acc, it) => acc + ((Number(it?.skin?.price || 0) * Number(it?.chance || 0)) / 100), 0);
-                };
-
-                const normalizeRoundedChances = (items, probs) => {
-                    const out = items.map((it, i) => ({ ...it, chance: Math.max(0.1, Math.round((probs[i] || 0) * 10) / 10) }));
-                    const diff = 100 - out.reduce((a, b) => a + (b.chance || 0), 0);
+                const normalizeRounded = (items) => {
+                    const out = items.map((it) => ({ ...it, chance: Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10) }));
+                    const sum = out.reduce((a, b) => a + (b.chance || 0), 0);
+                    const diff = Math.round((100 - sum) * 10) / 10;
                     out[out.length - 1].chance = Math.max(0.1, Math.round((out[out.length - 1].chance + diff) * 10) / 10);
-                    const sumCheck = out.reduce((a, b) => a + (b.chance || 0), 0);
-                    if (Math.abs(100 - sumCheck) > 0.001) {
-                        out[0].chance = Math.max(0.1, Math.round((out[0].chance + (100 - sumCheck)) * 10) / 10);
-                    }
                     return out;
+                };
+
+                const distribute = (arr, total, weightFn) => {
+                    if (!arr.length) return [];
+                    const ws = arr.map((x) => Math.max(0.0001, Number(weightFn(x) || 0.0001)));
+                    const sum = ws.reduce((a, b) => a + b, 0) || 1;
+                    return arr.map((x, i) => ({ ...x, chance: (ws[i] / sum) * total }));
                 };
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
-                    const sorted = c.contents.slice().sort((a, b) => (a.skin.price || 0) - (b.skin.price || 0));
+                    const p = Number(c.price || 0);
+                    let items = c.contents.slice().sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
 
-                    let weights = sorted.map((it) => 1 / Math.max(0.01, Math.pow((it.skin?.price || 0.01), 1.45)));
-                    const normalize = () => {
-                        const sum = weights.reduce((a, b) => a + b, 0) || 1;
-                        return weights.map((w) => (w / sum) * 100);
-                    };
-                    const expectedBy = (probs) => sorted.reduce((acc, it, i) => acc + ((it.skin?.price || 0) * (probs[i] || 0) / 100), 0);
+                    let losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
+                    let winners = items.filter((it) => Number(it.skin?.price || 0) > p);
 
-                    let probs = normalize();
-                    let expected = expectedBy(probs);
-                    const target = c.price * targetRtpForCase(c.price);
+                    if (!winners.length && items.length) {
+                        const candidate = allSkins
+                            .filter((s) => Number(s.price || 0) > p && Number(s.price || 0) <= p * 1.3)
+                            .sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0]
+                            || allSkins.filter((s) => Number(s.price || 0) > p).sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0];
+                        if (candidate) items[items.length - 1] = { ...items[items.length - 1], skin: candidate };
+                    }
 
+                    losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
+                    winners = items.filter((it) => Number(it.skin?.price || 0) > p);
+                    if (!losers.length && items.length) {
+                        const candidate = allSkins.filter((s) => Number(s.price || 0) <= p * 0.7).sort((a, b) => Number(a.price || 0) - Number(b.price || 0))[0] || items[0].skin;
+                        items[0] = { ...items[0], skin: candidate };
+                        losers = items.filter((it) => Number(it.skin?.price || 0) <= p);
+                        winners = items.filter((it) => Number(it.skin?.price || 0) > p);
+                    }
+
+                    const loseDist = distribute(losers, LOSE_CHANCE_TARGET, (it) => 1 / Math.max(0.01, Math.pow(Number(it.skin?.price || 0.01), 1.35)));
+                    const winDist = distribute(winners, PROFIT_CHANCE_TARGET, (it) => 1 / Math.max(p * 1.01, Number(it.skin?.price || p * 1.01)));
+
+                    const map = new Map();
+                    loseDist.forEach((it) => map.set(it.skin.id, it.chance));
+                    winDist.forEach((it) => map.set(it.skin.id, it.chance));
+                    items = items.map((it) => ({ ...it, chance: map.get(it.skin.id) || 0.1 }));
+
+                    // keep EV below case price while preserving winner chance at ~49%
                     let guard = 0;
-                    while (expected > target && guard < 220) {
-                        weights = weights.map((w, i) => i === 0 ? w * 1.09 : w * 0.988);
-                        probs = normalize();
-                        expected = expectedBy(probs);
+                    const evOf = () => items.reduce((a, it) => a + ((Number(it.skin?.price || 0) * Number(it.chance || 0)) / 100), 0);
+                    let ev = evOf();
+                    while (ev >= p && guard < 300) {
+                        const ws = items.filter((it) => Number(it.skin?.price || 0) > p).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                        const ls = items.filter((it) => Number(it.skin?.price || 0) <= p).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                        if (!ws.length || !ls.length) break;
+                        const richestWin = ws[ws.length - 1];
+                        const cheapestWin = ws[0];
+                        if (richestWin.chance <= 0.1) break;
+                        richestWin.chance = Math.max(0.1, Math.round((richestWin.chance - 0.1) * 10) / 10);
+                        cheapestWin.chance = Math.round((cheapestWin.chance + 0.1) * 10) / 10;
+                        ev = evOf();
                         guard += 1;
                     }
 
-                    c.contents = normalizeRoundedChances(sorted, probs);
-
-                    // Hard fail-safe: keep shifting chance from highest-price drops to cheapest until EV < case price.
-                    let hardGuard = 0;
-                    let ev = expectedCaseValue(c.contents);
-                    while (ev >= c.price && hardGuard < 300) {
-                        const low = c.contents[0];
-                        const high = c.contents[c.contents.length - 1];
-                        if (!low || !high) break;
-                        if (high.chance <= 0.1) break;
-                        high.chance = Math.max(0.1, Math.round((high.chance - 0.1) * 10) / 10);
-                        low.chance = Math.round((low.chance + 0.1) * 10) / 10;
-                        ev = expectedCaseValue(c.contents);
-                        hardGuard += 1;
-                    }
-
-                    // Final normalization after fail-safe edits.
-                    const sum = c.contents.reduce((a, b) => a + (b.chance || 0), 0);
-                    if (Math.abs(sum - 100) > 0.001) {
-                        c.contents[0].chance = Math.max(0.1, Math.round((c.contents[0].chance + (100 - sum)) * 10) / 10);
-                    }
+                    items = normalizeRounded(items);
+                    c.contents = items.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
             applyHouseEdge();
