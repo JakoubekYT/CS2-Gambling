@@ -49,9 +49,9 @@
         }
         .live-drop-tooltip {
             position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
-            background: linear-gradient(180deg, rgba(11,13,17,0.98), rgba(20,23,28,0.98));
-            border: 1px solid rgba(250,204,21,0.12); padding: 8px 10px; border-radius: 10px; min-width: 180px; text-align: left; z-index: 200;
-            box-shadow: 0 6px 30px rgba(0,0,0,0.6); display: none; pointer-events: none;
+            background: rgba(10,12,18,0.72);
+            border: 1px solid rgba(250,204,21,0.35); padding: 6px 8px; border-radius: 9999px; min-width: 0; text-align: center; z-index: 200;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4); display: none; pointer-events: none; backdrop-filter: blur(2px);
         }
         .live-drop-tooltip.visible { display: block; }
         .live-drop-tooltip .tp-row { display:flex; gap:8px; align-items:center; }
@@ -194,7 +194,7 @@
     <header class="h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
         <div class="flex items-center gap-8">
             <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
-                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-24 h-24 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
+                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-20 h-20 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
                 <div class="flex flex-col leading-tight">
                     <span class="text-5xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
                     <span class="text-[11px] uppercase tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
@@ -2059,7 +2059,8 @@ Zeus x27|Charged Up|8.50|#8847ff
             "aug|lil_pig",
             "ump_45|mintaur_slab",
             "p250|ape_skrs",
-            "mp9|pandoras_box"
+            "mp9|pandoras_box",
+            "ump_45|minotaurs_labyrinth"
         ]);
         
         function normalizeSkinKey(weapon, skinName) {
@@ -3245,11 +3246,35 @@ Zeus x27|Charged Up|8.50|#8847ff
             info.textContent = room.status === 'waiting'
                 ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${room.caseName}`
                 : `Battle běží/hotovo • ${room.players.length} hráčů • ${room.caseName}`;
-            stage.innerHTML = (room.players || []).map((pl) => {
+            stage.innerHTML = (room.players || []).map((pl, idx) => {
                 const lastDrop = pl.drops?.[pl.drops.length - 1];
                 const img = lastDrop?.img || FALLBACK_IMG;
-                return `<div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${pl.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover"><div class="font-black text-sm">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-24 flex items-center justify-center bg-black/30 rounded-lg border border-white/5"><img src="${img}" onerror="handleImgError(this)" class="h-20 object-contain"></div><div class="text-[11px] mt-2 truncate">${lastDrop?.name || 'Čeká se na drop...'}</div></div>`;
+                return `<div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${pl.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover"><div class="font-black text-sm">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-24 flex items-center justify-center bg-black/30 rounded-lg border border-white/5"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-20 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate">${lastDrop?.name || 'Čeká se na drop...'}</div></div>`;
             }).join('');
+            if (animate) {
+                const rolls = Object.values(skinsDB);
+                const started = Date.now();
+                const iv = setInterval(() => {
+                    (room.players || []).forEach((pl, idx) => {
+                        const imgEl = document.getElementById(`cb-spin-img-${idx}`);
+                        const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                        if (!imgEl || !nameEl) return;
+                        const r = rolls[Math.floor(Math.random() * rolls.length)] || { img: FALLBACK_IMG, name: 'Skin' };
+                        imgEl.src = r.img || FALLBACK_IMG;
+                        nameEl.textContent = r.name || 'Skin';
+                    });
+                    if (Date.now() - started > 1700) {
+                        clearInterval(iv);
+                        (room.players || []).forEach((pl, idx) => {
+                            const lastDrop = pl.drops?.[pl.drops.length - 1];
+                            const imgEl = document.getElementById(`cb-spin-img-${idx}`);
+                            const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                            if (imgEl && lastDrop?.img) imgEl.src = lastDrop.img;
+                            if (nameEl) nameEl.textContent = lastDrop?.name || 'Čeká se na drop...';
+                        });
+                    }
+                }, 90);
+            }
             if (room.status === 'done' && room.winnerId) {
                 const winner = (room.players || []).find((p) => String(p.userId) === String(room.winnerId));
                 if (winner) cbAddLog(`WINNER: ${winner.nickname} (${formatMoney(winner.score || 0)})`);
@@ -3557,96 +3582,60 @@ Zeus x27|Charged Up|8.50|#8847ff
             let tickWatch = null;
             let lastTickStep = -1;
 
-            setTimeout(() => {
-                spinStartAt = Date.now();
-                scheduleTick();
-                rowMeta.forEach((m) => {
-                    m.track.dataset.lastX = '0';
-                });
-                tickWatch = setInterval(() => {
-                    const t0 = rowMeta[0]?.track;
-                    if (!t0) return;
-                    const tr = getComputedStyle(t0).transform;
-                    const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
-                    let tx = 0;
-                    if (match) {
-                        const parts = match[1].split(',').map((x) => Number(x.trim()));
-                        tx = Number(parts[4] || 0);
-                    }
-                    const step = Math.floor(Math.abs(tx) / itemWidth);
-                    if (step !== lastTickStep) {
-                        lastTickStep = step;
-                        SoundEngine.playTick();
-                    }
-                }, 28);
-                rowMeta.forEach((m) => {
-                    m.track.dataset.lastX = '0';
-                });
-                tickWatch = setInterval(() => {
-                    const t0 = rowMeta[0]?.track;
-                    if (!t0) return;
-                    const tr = getComputedStyle(t0).transform;
-                    const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
-                    let tx = 0;
-                    if (match) {
-                        const parts = match[1].split(',').map((x) => Number(x.trim()));
-                        tx = Number(parts[4] || 0);
-                    }
-                    const step = Math.floor(Math.abs(tx) / itemWidth);
-                    if (step !== lastTickStep) {
-                        lastTickStep = step;
-                        SoundEngine.playTick();
-                    }
-                }, 28);
-                rowMeta.forEach((m) => {
-                    m.track.dataset.lastX = '0';
-                });
-                tickWatch = setInterval(() => {
-                    const t0 = rowMeta[0]?.track;
-                    if (!t0) return;
-                    const tr = getComputedStyle(t0).transform;
-                    const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
-                    let tx = 0;
-                    if (match) {
-                        const parts = match[1].split(',').map((x) => Number(x.trim()));
-                        tx = Number(parts[4] || 0);
-                    }
-                    const step = Math.floor(Math.abs(tx) / itemWidth);
-                    if (step !== lastTickStep) {
-                        lastTickStep = step;
-                        SoundEngine.playTick();
-                    }
-                }, 28);
-                rowMeta.forEach((m) => {
-                    const containerWidth = m.row.clientWidth;
-                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
-                    m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
-                    m.track.style.transform = `translateX(-${finalOffset}px)`;
-                });
+            const spinGuard = setTimeout(() => {
+                isSpinning = false;
+                if (btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
+                if (countSel) countSel.disabled = false;
+                if (tickWatch) clearInterval(tickWatch);
+            }, 12000);
 
-                setTimeout(() => {
-                    if (tickWatch) clearInterval(tickWatch);
-                    let totalWin = 0;
-                    rowMeta.forEach(m => {
-                        addToInventory(m.winningSkin);
-                        totalWin += m.winningSkin.price;
-                        if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+            setTimeout(() => {
+                try {
+                    rowMeta.forEach((m) => { m.track.dataset.lastX = '0'; });
+                    tickWatch = setInterval(() => {
+                        const t0 = rowMeta[0]?.track;
+                        if (!t0) return;
+                        const tr = getComputedStyle(t0).transform;
+                        const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
+                        let tx = 0;
+                        if (match) {
+                            const parts = match[1].split(',').map((x) => Number(x.trim()));
+                            tx = Number(parts[4] || 0);
+                        }
+                        const step = Math.floor(Math.abs(tx) / itemWidth);
+                        if (step !== lastTickStep) { lastTickStep = step; SoundEngine.playTick(); }
+                    }, 28);
+                    rowMeta.forEach((m) => {
+                        const containerWidth = m.row.clientWidth;
+                        const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
+                        m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
+                        m.track.style.transform = `translateX(-${finalOffset}px)`;
                     });
 
-                    if(count === 1 && rowMeta[0]) {
-                        showWinModal(rowMeta[0].winningSkin);
-                    } else {
-                        showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
-                    }
-
+                    setTimeout(() => {
+                        if (tickWatch) clearInterval(tickWatch);
+                        let totalWin = 0;
+                        rowMeta.forEach(m => {
+                            addToInventory(m.winningSkin);
+                            totalWin += m.winningSkin.price;
+                            if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+                        });
+                        if(count === 1 && rowMeta[0]) showWinModal(rowMeta[0].winningSkin);
+                        else showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
+                        isSpinning = false;
+                        clearTimeout(spinGuard);
+                        if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
+                        if(countSel) countSel.disabled = false;
+                    }, 6500);
+                } catch (err) {
+                    console.error('spinCase failed', err);
                     isSpinning = false;
-                    if(btn) {
-                        btn.disabled = false;
-                        btn.classList.remove('opacity-50');
-                        btn.textContent = 'HRÁT ZNOVU';
-                    }
+                    clearTimeout(spinGuard);
+                    if (tickWatch) clearInterval(tickWatch);
+                    if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
                     if(countSel) countSel.disabled = false;
-                }, 6500);
+                    showToast('Točení selhalo, zkus to znovu.', true);
+                }
             }, 50);
         }
 
@@ -4057,17 +4046,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 const tooltip = document.createElement('div');
                 tooltip.className = 'live-drop-tooltip';
-                tooltip.innerHTML = `
-                    <div class="tp-row">
-                        <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
-                        <div>
-                            <div class="tp-name">${profile.name}</div>
-                            <div class="tp-when">Drop: ${randomSkin.name}</div>
-                            <div class="tp-when">Zdroj: <span style="color:#facc15">${sourceCase?.name || 'Upgrader'}</span></div>
-                        </div>
-                    </div>
-                    <div class="mt-2 text-[11px] text-yellow-300">Klikni pro otevření bedny</div>
-                `;
+                tooltip.innerHTML = `<div class="text-[11px] text-yellow-300 font-black uppercase tracking-wide">↗ ${sourceCase?.name ? 'Otevřít bednu' : 'Do upgraderu'}</div>`;
 
                 item.appendChild(img);
                 item.appendChild(nameDiv);
@@ -4082,8 +4061,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
             }
 
-            for(let i=0;i<10;i++) addRandomDrop();
-            setInterval(addRandomDrop, 2400);
+            for(let i=0;i<26;i++) addRandomDrop();
+            setTimeout(() => { for(let i=0;i<10;i++) addRandomDrop(); }, 300);
+            setInterval(addRandomDrop, 1200);
             setInterval(() => {
                 if(dropsContainer.children.length < 6) {
                     for(let i=0;i<12;i++) addRandomDrop();
