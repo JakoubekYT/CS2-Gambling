@@ -2593,7 +2593,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 </div>
                 <div class="text-xs text-yellow-300">Inventář: ${list.length} itemů • Hodnota: ${formatMoney(total)}</div>
             `;
-            invGrid.innerHTML = list.map((it) => `<div class="bg-black/30 border border-yellow-400/20 rounded-sm p-2"><img src="${it.img}" class="h-16 w-full object-contain" onerror="handleImgError(this)"><div class="text-[10px] truncate">${it.name}</div><div class="text-yellow-300 text-[10px]">${formatMoney(it.price || 0)}</div></div>`).join('') || '<div class="text-gray-500 text-xs">Prázdný inventář</div>';
+            invGrid.innerHTML = list.map((it) => `<div class="bg-black/30 border border-yellow-400/20 rounded-sm p-2 relative"><button onclick="sellSkin('${it.uid}')" class="absolute top-1 right-1 bg-red-500/80 hover:bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Prodat</button><img src="${it.img}" class="h-16 w-full object-contain" onerror="handleImgError(this)"><div class="text-[10px] truncate">${it.name}</div><div class="text-yellow-300 text-[10px]">${formatMoney(it.price || 0)}</div></div>`).join('') || '<div class="text-gray-500 text-xs">Prázdný inventář</div>';
         }
 
         function openOwnPublicProfile() {
@@ -2900,16 +2900,26 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!out) return;
             try {
                 const data = await apiRequest('/api/friends');
-                out.innerHTML = (data.friends || []).map((u) => `
+                const reqHtml = (data.requests || []).map((u) => `
+                    <div class="bg-blue-950/25 rounded-lg p-2 flex items-center justify-between gap-2 border border-blue-400/30">
+                        <div class="flex items-center gap-2"><img src="${u.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover border border-blue-300/40"><div class="font-bold">${u.displayName || u.nickname}</div></div>
+                        <div class="flex gap-1"><button onclick="respondFriendRequest('${u.id}', true)" class="bg-green-600 px-2 py-1 rounded text-xs font-black">Přijmout</button><button onclick="respondFriendRequest('${u.id}', false)" class="bg-red-600 px-2 py-1 rounded text-xs font-black">Odmítnout</button></div>
+                    </div>`).join('');
+                const frHtml = (data.friends || []).map((u) => `
                     <div class="bg-black/30 rounded-lg p-2 flex items-center justify-between gap-2 border border-yellow-400/10">
                         <div class="flex items-center gap-2"><img src="${u.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover border border-yellow-400/30"><div class="font-bold">${u.displayName || u.nickname}</div></div>
                         <div class="flex gap-1"><button onclick="openUserProfile('${u.id}')" class="bg-purple-500 px-2 py-1 rounded text-xs font-black">Profil</button><input type="number" step="0.01" min="0.01" id="donate-${u.id}" value="1" class="w-16 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-xs"><button onclick="donateToFriend('${u.id}','donate-${u.id}')" class="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-black">Donate</button></div>
-                    </div>`).join('') || '<div class="text-gray-500">Zatím žádní přátelé.</div>';
+                    </div>`).join('');
+                out.innerHTML = (reqHtml ? `<div class=\"text-xs font-black text-blue-300 uppercase\">Žádosti</div>${reqHtml}` : '') + (frHtml || '<div class=\"text-gray-500\">Zatím žádní přátelé.</div>');
             } catch (err) { out.innerHTML = `<div class="text-red-400">${err.message}</div>`; }
         }
 
         async function addFriend(userId) {
-            try { await apiRequest('/api/friends/add', 'POST', { userId }); showToast('Přítel přidán'); loadFriends(); } catch (err) { showToast(err.message, true); }
+            try { await apiRequest('/api/friends/add', 'POST', { userId }); showToast('Žádost odeslána'); loadFriends(); } catch (err) { showToast(err.message, true); }
+        }
+
+        async function respondFriendRequest(userId, accept) {
+            try { await apiRequest('/api/friends/respond', 'POST', { userId, accept }); showToast(accept ? 'Přátelství potvrzeno' : 'Žádost odmítnuta'); loadFriends(); } catch (err) { showToast(err.message, true); }
         }
 
         async function donateToFriend(toUserId, amountId) {
@@ -3067,19 +3077,6 @@ Zeus x27|Charged Up|8.50|#8847ff
 
 
 
-        function getTierStatus(key, cooldownMs) {
-            const last = Number(localStorage.getItem(key) || 0);
-            const now = Date.now();
-            const left = Math.max(0, cooldownMs - (now - last));
-            return { available: left === 0, leftMs: left };
-        }
-
-        function pickGiveawaySkin(minPrice, maxPrice) {
-            const all = Object.values(skinsDB);
-            const pool = all.filter((s) => Number(s.price || 0) >= minPrice && Number(s.price || 0) <= maxPrice);
-            return pool[Math.floor(Math.random() * Math.max(1, pool.length))] || all[Math.floor(Math.random() * all.length)];
-        }
-
         function fmtLeft(ms) {
             const s = Math.ceil(ms / 1000);
             const h = Math.floor(s / 3600);
@@ -3088,37 +3085,56 @@ Zeus x27|Charged Up|8.50|#8847ff
             return `${h}h ${m}m ${sec}s`;
         }
 
-        function initGiveaways() {
-            const grid = document.getElementById('giveaway-grid');
-            if (!grid) return;
-            const tiers = [
-                { id: 'gw-hourly', name: 'Tier 1 • Hourly', cooldown: 60 * 60 * 1000, min: 5, max: 15, accent: 'from-green-500/30 to-emerald-500/20' },
-                { id: 'gw-six', name: 'Tier 2 • 6 Hours', cooldown: 6 * 60 * 60 * 1000, min: 60, max: 100, accent: 'from-blue-500/30 to-cyan-500/20' },
-                { id: 'gw-daily', name: 'Tier 3 • Daily', cooldown: 24 * 60 * 60 * 1000, min: 400, max: 9000, accent: 'from-yellow-500/30 to-orange-500/20' }
-            ];
-
-            grid.innerHTML = tiers.map((t) => {
-                const skin = pickGiveawaySkin(t.min, t.max);
-                const st = getTierStatus(t.id, t.cooldown);
-                return `<div class="bg-gradient-to-br ${t.accent} border border-yellow-400/30 rounded-2xl p-4">
-                    <div class="text-sm font-black uppercase mb-2">${t.name}</div>
-                    <img src="${skin.img}" class="h-24 w-full object-contain mb-2" onerror="handleImgError(this)">
-                    <div class="text-xs text-gray-200 truncate">${skin.name}</div>
-                    <div class="text-yellow-300 font-black mb-3">${formatMoney(skin.price || 0)}</div>
-                    <button onclick="claimGiveaway('${t.id}', ${t.cooldown}, '${skin.id}')" class="w-full ${st.available ? 'bg-yellow-400 text-black' : 'bg-gray-700 text-gray-300'} font-black rounded-lg py-2 text-xs" ${st.available ? '' : 'disabled'}>${st.available ? 'Claim' : ('Za ' + fmtLeft(st.leftMs))}</button>
-                </div>`;
-            }).join('');
+        function pickGiveawaySkin(minPrice, maxPrice) {
+            const all = Object.values(skinsDB);
+            const pool = all.filter((sk) => Number(sk.price || 0) >= minPrice && Number(sk.price || 0) <= maxPrice);
+            return pool[Math.floor(Math.random() * Math.max(1, pool.length))] || all[Math.floor(Math.random() * all.length)];
         }
 
-        function claimGiveaway(key, cooldownMs, skinId) {
+        async function initGiveaways() {
+            const grid = document.getElementById('giveaway-grid');
+            if (!grid) return;
+            const tiersCfg = [
+                { id: 'gw-hourly', name: 'Tier 1 • Hourly', cooldownMs: 60 * 60 * 1000, min: 5, max: 15, accent: 'from-green-500/30 to-emerald-500/20' },
+                { id: 'gw-six', name: 'Tier 2 • 6 Hours', cooldownMs: 6 * 60 * 60 * 1000, min: 60, max: 100, accent: 'from-blue-500/30 to-cyan-500/20' },
+                { id: 'gw-daily', name: 'Tier 3 • Daily', cooldownMs: 24 * 60 * 60 * 1000, min: 400, max: 9000, accent: 'from-yellow-500/30 to-orange-500/20' }
+            ];
+            try {
+                const payloadTiers = tiersCfg.map((t) => {
+                    const skin = pickGiveawaySkin(t.min, t.max);
+                    return { id: t.id, cooldownMs: t.cooldownMs, skin: { name: skin.name, price: Number(skin.price || 0), color: skin.color, img: skin.img } };
+                });
+                const data = await apiRequest('/api/giveaways/state', 'POST', { tiers: payloadTiers });
+                const map = Object.fromEntries((data.tiers || []).map((t) => [t.tierId, t]));
+                grid.innerHTML = tiersCfg.map((t) => {
+                    const st = map[t.id] || {};
+                    const skin = st.skin || pickGiveawaySkin(t.min, t.max);
+                    const left = Math.max(0, new Date(st.endsAt || Date.now()).getTime() - Date.now());
+                    const history = Array.isArray(st.history) ? st.history : [];
+                    return `<div class="bg-gradient-to-br ${t.accent} border border-yellow-400/30 rounded-2xl p-4">
+                        <div class="text-sm font-black uppercase mb-2">${t.name}</div>
+                        <img src="${skin.img || FALLBACK_IMG}" class="h-24 w-full object-contain mb-2" onerror="handleImgError(this)">
+                        <div class="text-xs text-gray-200 truncate">${skin.name || 'Skin'}</div>
+                        <div class="text-yellow-300 font-black mb-1">${formatMoney(skin.price || 0)}</div>
+                        <div class="text-[11px] text-gray-300 mb-2">Tickety: ${st.entriesCount || 0} ${st.myEntered ? '• Tvůj ticket vložen' : ''}</div>
+                        <button onclick="enterGiveawayTicket('${t.id}')" class="w-full bg-yellow-400 text-black font-black rounded-lg py-2 text-xs">Vložit ticket</button>
+                        <div class="text-[11px] text-gray-400 mt-2">Losování za: ${fmtLeft(left)}</div>
+                        <div class="mt-2 text-[11px] text-gray-300">Poslední výherci:</div>
+                        <div class="text-[10px] text-gray-400 space-y-1">${history.map((h)=>`<div>${h.nickname} • ${h.skinName} • ${formatMoney(h.price||0)}</div>`).join('') || '<div>zatím žádní</div>'}</div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                grid.innerHTML = `<div class="text-red-400">${err.message}</div>`;
+            }
+        }
+
+        async function enterGiveawayTicket(tierId) {
             if (!requireAuthAction()) return;
-            const st = getTierStatus(key, cooldownMs);
-            if (!st.available) return showToast(`Giveaway dostupná za ${fmtLeft(st.leftMs)}`, true);
-            const skin = skinsDB[skinId] || Object.values(skinsDB)[0];
-            addToInventory(skin);
-            localStorage.setItem(key, String(Date.now()));
-            showToast(`Giveaway: ${skin.name}`);
-            initGiveaways();
+            try {
+                await apiRequest('/api/giveaways/ticket', 'POST', { tierId });
+                showToast('Ticket vložen');
+                initGiveaways();
+            } catch (err) { showToast(err.message, true); }
         }
 
         let cbPollTimer = null;
@@ -3287,7 +3303,6 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!authProviders[provider]) {
                 return showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není nastavený na serveru.`, true);
             }
-            window.location.href = `/auth/${provider}`;
         }
 
         function toggleAffordableCases() {
@@ -4058,7 +4073,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; img.src = randomSkin.img; });
 
                 dropsContainer.appendChild(item);
-                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
+                if(dropsContainer.children.length > 140) dropsContainer.removeChild(dropsContainer.lastChild);
             }
 
             for(let i=0;i<26;i++) addRandomDrop();
@@ -4072,7 +4087,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             let lastTs = performance.now();
             const speed = 28;
-            const gapPx = 16;
+            const gapPx = (() => { const g = parseFloat(getComputedStyle(dropsContainer).gap || getComputedStyle(dropsContainer).columnGap || "12"); return Number.isFinite(g) ? g : 12; })();
             function getItemWidth(el) {
                 if(!el) return 0;
                 return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;

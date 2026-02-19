@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
     balance: { type: Number, default: START_BALANCE },
     inventory: { type: Array, default: [] },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     lastTopUpAt: { type: Date, default: null },
     lastLoginAt: { type: Date, default: null }
   },
@@ -72,6 +73,18 @@ const tradeSchema = new mongoose.Schema(
 );
 
 const Trade = mongoose.model('Trade', tradeSchema);
+
+
+const giveawayStateSchema = new mongoose.Schema({
+  tierId: { type: String, unique: true },
+  endsAt: { type: Date, required: true },
+  cooldownMs: { type: Number, required: true },
+  skin: { type: Object, default: null },
+  entries: { type: Array, default: [] },
+  history: { type: Array, default: [] }
+}, { timestamps: true });
+
+const GiveawayState = mongoose.model('GiveawayState', giveawayStateSchema);
 
 const notificationsByUser = new Map();
 const NOTIFICATION_LIMIT = 120;
@@ -579,10 +592,13 @@ app.get('/api/users/search', ensureDbReady, ensureAuth, async (req, res) => {
 });
 
 app.get('/api/friends', ensureDbReady, ensureAuth, async (req, res) => {
-  const user = await User.findById(req.user._id).populate('friends', 'nickname displayName avatar');
+  const user = await User.findById(req.user._id)
+    .populate('friends', 'nickname displayName avatar')
+    .populate('friendRequests', 'nickname displayName avatar');
   return res.json({
     ok: true,
-    friends: (user?.friends || []).map((f) => ({ id: f._id, nickname: f.nickname, displayName: f.displayName, avatar: f.avatar || '' }))
+    friends: (user?.friends || []).map((f) => ({ id: f._id, nickname: f.nickname, displayName: f.displayName, avatar: f.avatar || '' })),
+    requests: (user?.friendRequests || []).map((f) => ({ id: f._id, nickname: f.nickname, displayName: f.displayName, avatar: f.avatar || '' }))
   });
 });
 
@@ -590,13 +606,38 @@ app.post('/api/friends/add', ensureDbReady, ensureAuth, async (req, res) => {
   const friendId = (req.body.userId || '').toString();
   if (!friendId || friendId === String(req.user._id)) return res.status(400).json({ ok: false, message: 'Neplatný uživatel.' });
 
+  const me = await User.findById(req.user._id);
   const friend = await User.findById(friendId);
-  if (!friend) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!me || !friend) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
 
-  if (!Array.isArray(req.user.friends)) req.user.friends = [];
-  if (!req.user.friends.some((id) => String(id) === friendId)) req.user.friends.push(friend._id);
-  await req.user.save();
-  return res.json({ ok: true });
+  if (!Array.isArray(me.friends)) me.friends = [];
+  if (me.friends.some((id) => String(id) === friendId)) return res.json({ ok: true, status: 'already-friends' });
+
+  if (!Array.isArray(friend.friendRequests)) friend.friendRequests = [];
+  if (!friend.friendRequests.some((id) => String(id) === String(me._id))) friend.friendRequests.push(me._id);
+  await friend.save();
+  pushNotification(friend._id, 'friend-request', `${me.nickname || me.displayName || 'Uživatel'} ti poslal žádost o přátelství.`);
+  return res.json({ ok: true, status: 'request-sent' });
+});
+
+app.post('/api/friends/respond', ensureDbReady, ensureAuth, async (req, res) => {
+  const userId = (req.body.userId || '').toString();
+  const accept = Boolean(req.body.accept);
+  const me = await User.findById(req.user._id);
+  const other = await User.findById(userId);
+  if (!me || !other) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  me.friendRequests = (me.friendRequests || []).filter((id) => String(id) !== userId);
+  if (accept) {
+    if (!Array.isArray(me.friends)) me.friends = [];
+    if (!Array.isArray(other.friends)) other.friends = [];
+    if (!me.friends.some((id) => String(id) === userId)) me.friends.push(other._id);
+    if (!other.friends.some((id) => String(id) === String(me._id))) other.friends.push(me._id);
+    pushNotification(other._id, 'friend-accepted', `${me.nickname || me.displayName || 'Uživatel'} přijal tvoji žádost o přátelství.`);
+    await other.save();
+  }
+  await me.save();
+  return res.json({ ok: true, accepted: accept });
 });
 
 app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
@@ -662,6 +703,82 @@ app.get('/api/users/:id', ensureDbReady, ensureAuth, async (req, res) => {
 });
 
 
+
+
+async function resolveGiveawayRound(state, now, replacementSkin = null) {
+  if (!state) return null;
+  if (now < new Date(state.endsAt).getTime()) return state;
+
+  const entries = Array.isArray(state.entries) ? state.entries : [];
+  if (entries.length) {
+    const winner = entries[Math.floor(Math.random() * entries.length)];
+    const user = await User.findById(winner.userId);
+    if (user && state.skin) {
+      if (!Array.isArray(user.inventory)) user.inventory = [];
+      user.inventory.unshift({ ...state.skin, uid: `${Date.now()}-${Math.random().toString(36).slice(2,8)}` });
+      await user.save();
+      const hist = {
+        nickname: user.nickname || user.displayName || 'user',
+        skinName: state.skin.name || 'Skin',
+        price: Number(state.skin.price || 0),
+        at: new Date().toISOString()
+      };
+      state.history = [hist, ...(state.history || [])].slice(0, 3);
+    }
+  }
+
+  state.entries = [];
+  if (replacementSkin) state.skin = replacementSkin;
+  state.endsAt = new Date(now + Number(state.cooldownMs || 3600000));
+  await state.save();
+  return state;
+}
+
+app.post('/api/giveaways/state', ensureDbReady, ensureAuth, async (req, res) => {
+  const now = Date.now();
+  const tiers = Array.isArray(req.body?.tiers) ? req.body.tiers : [];
+  const out = [];
+  for (const t of tiers) {
+    const tierId = String(t.id || '');
+    if (!tierId) continue;
+    let st = await GiveawayState.findOne({ tierId });
+    if (!st) {
+      st = await GiveawayState.create({
+        tierId,
+        cooldownMs: Number(t.cooldownMs || 3600000),
+        endsAt: new Date(now + Number(t.cooldownMs || 3600000)),
+        skin: t.skin || null,
+        entries: [],
+        history: []
+      });
+    } else {
+      st.cooldownMs = Number(t.cooldownMs || st.cooldownMs || 3600000);
+    }
+    st = await resolveGiveawayRound(st, now, t.skin || st.skin);
+    out.push({
+      tierId: st.tierId,
+      endsAt: st.endsAt,
+      skin: st.skin,
+      entriesCount: (st.entries || []).length,
+      myEntered: (st.entries || []).some((e) => String(e.userId) === String(req.user._id)),
+      history: (st.history || []).slice(0, 3)
+    });
+  }
+  return res.json({ ok: true, tiers: out });
+});
+
+app.post('/api/giveaways/ticket', ensureDbReady, ensureAuth, async (req, res) => {
+  const tierId = String(req.body?.tierId || '');
+  if (!tierId) return res.status(400).json({ ok: false, message: 'Chybí tier.' });
+  const st = await GiveawayState.findOne({ tierId });
+  if (!st) return res.status(404).json({ ok: false, message: 'Giveaway nenalezena.' });
+  const now = Date.now();
+  await resolveGiveawayRound(st, now, st.skin);
+  if ((st.entries || []).some((e) => String(e.userId) === String(req.user._id))) return res.json({ ok: true, status: 'already-entered' });
+  st.entries.push({ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'user' });
+  await st.save();
+  return res.json({ ok: true, entriesCount: st.entries.length });
+});
 
 function battleCapacity(mode) {
   if (mode === '2v2' || mode === '1v1v1v1') return 4;
