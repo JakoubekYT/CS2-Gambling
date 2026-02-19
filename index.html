@@ -2564,6 +2564,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let currentUser = null;
         let stateSaveTimer = null;
         let authProviders = { steam: true, google: true };
+        let authProviderStateLoaded = false;
         let selectedProfile = null;
         let tradeInbox = [];
         const tradeSelectedMine = new Set();
@@ -2620,6 +2621,29 @@ Zeus x27|Charged Up|8.50|#8847ff
             });
         }
 
+        function updateSocialLoginButtons() {
+            const steamBtn = document.getElementById('steam-login-btn');
+            const googleBtn = document.getElementById('google-login-btn');
+            if (steamBtn) {
+                steamBtn.disabled = false;
+                const unavailable = authProviderStateLoaded && !authProviders.steam;
+                steamBtn.classList.toggle('opacity-60', unavailable);
+                steamBtn.classList.toggle('cursor-not-allowed', false);
+                steamBtn.title = unavailable
+                    ? 'Steam login teď není dostupný na serveru. Kliknutím zkusíš přihlášení i tak.'
+                    : '';
+            }
+            if (googleBtn) {
+                googleBtn.disabled = false;
+                const unavailable = authProviderStateLoaded && !authProviders.google;
+                googleBtn.classList.toggle('opacity-60', unavailable);
+                googleBtn.classList.toggle('cursor-not-allowed', false);
+                googleBtn.title = unavailable
+                    ? 'Google login teď není dostupný na serveru. Kliknutím zkusíš přihlášení i tak.'
+                    : '';
+            }
+        }
+
         async function apiRequest(url, method = 'GET', payload) {
             const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
             if (payload !== undefined) opts.body = JSON.stringify(payload);
@@ -2641,6 +2665,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                         google: Boolean(providerState.providers.google)
                     };
                 }
+                authProviderStateLoaded = true;
                 const auth = await apiRequest('/api/auth/session');
                 if (!auth.user) return;
                 currentUser = auth.user;
@@ -2662,20 +2687,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             } catch (err) {
                 console.warn('Nepovedlo se načíst session:', err.message);
             } finally {
-                const steamBtn = document.getElementById('steam-login-btn');
-                const googleBtn = document.getElementById('google-login-btn');
-                if (steamBtn) {
-                    steamBtn.disabled = !authProviders.steam;
-                    steamBtn.classList.toggle('opacity-60', !authProviders.steam);
-                    steamBtn.classList.toggle('cursor-not-allowed', !authProviders.steam);
-                    steamBtn.title = authProviders.steam ? '' : 'Steam login není nakonfigurovaný na serveru';
-                }
-                if (googleBtn) {
-                    googleBtn.disabled = !authProviders.google;
-                    googleBtn.classList.toggle('opacity-60', !authProviders.google);
-                    googleBtn.classList.toggle('cursor-not-allowed', !authProviders.google);
-                    googleBtn.title = authProviders.google ? '' : 'Google login není nakonfigurovaný na serveru';
-                }
+                updateSocialLoginButtons();
                 updateUI();
                 renderOwnPublicProfile();
             }
@@ -2706,6 +2718,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             const modal = document.getElementById('auth-modal');
             if(!modal) return;
             sanitizeDuplicateSocialButtons();
+            updateSocialLoginButtons();
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.getElementById('profile-nickname').value = userProfile.nickname || '';
@@ -3300,9 +3313,10 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function socialLogin(provider) {
             if (provider !== 'steam' && provider !== 'google') return;
-            if (!authProviders[provider]) {
-                return showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není nastavený na serveru.`, true);
+            if (authProviderStateLoaded && !authProviders[provider]) {
+                showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není plně nakonfigurovaný. Zkouším přesměrovat…`, true);
             }
+            window.location.href = `/auth/${provider}`;
         }
 
         function toggleAffordableCases() {
