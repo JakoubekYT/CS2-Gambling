@@ -454,7 +454,7 @@ app.post('/api/state', ensureDbReady, ensureAuth, async (req, res) => {
 app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req, res) => {
   const users = await User.find({})
     .sort({ createdAt: -1 })
-    .select('email nickname displayName balance steamId createdAt');
+    .select('email nickname displayName avatar inventory balance steamId createdAt');
 
   return res.json({
     ok: true,
@@ -465,6 +465,8 @@ app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req,
       displayName: u.displayName || null,
       provider: u.steamId ? 'steam' : 'email',
       balance: Number(u.balance || 0),
+      avatar: u.avatar || '',
+      inventory: Array.isArray(u.inventory) ? u.inventory : [],
       createdAt: u.createdAt
     }))
   });
@@ -552,7 +554,6 @@ app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
   req.user.balance = Math.round((Number(req.user.balance || 0) + amount) * 100) / 100;
   req.user.lastTopUpAt = new Date(now);
   await req.user.save();
-  pushNotification(req.user._id, 'topup', `Dobití účtu: +${amount} EUR.`);
   return res.json({ ok: true, balance: req.user.balance });
 });
 
@@ -661,53 +662,149 @@ app.get('/api/users/:id', ensureDbReady, ensureAuth, async (req, res) => {
 });
 
 
-app.post('/api/case-battle/join', ensureDbReady, ensureAuth, async (req, res) => {
-  const mode = String(req.body?.mode || '1v1');
-  const rounds = Math.max(1, Math.min(10, Number(req.body?.rounds || 1)));
-  const caseId = String(req.body?.caseId || '');
-  const capacity = mode === '2v2' || mode === '1v1v1v1' ? 4 : 2;
-  const now = Date.now();
 
+function battleCapacity(mode) {
+  if (mode === '2v2' || mode === '1v1v1v1') return 4;
+  return 2;
+}
+
+function weightedRoll(contents) {
+  const list = Array.isArray(contents) ? contents : [];
+  if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '' };
+  const total = list.reduce((a, x) => a + Math.max(0, Number(x.chance || 0)), 0) || list.length;
+  let r = Math.random() * total;
+  for (const item of list) {
+    r -= Math.max(0, Number(item.chance || 0)) || (total / list.length);
+    if (r <= 0) {
+      return {
+        name: item.name || item.skinName || item.label || 'Skin',
+        price: Number(item.price || 0),
+        color: item.color || '#4b69ff',
+        img: item.img || ''
+      };
+    }
+  }
+  const last = list[list.length - 1] || {};
+  return { name: last.name || 'Skin', price: Number(last.price || 0), color: last.color || '#4b69ff', img: last.img || '' };
+}
+
+app.get('/api/case-battle/rooms', ensureDbReady, ensureAuth, async (_req, res) => {
+  const now = Date.now();
   for (const [id, room] of battleRooms.entries()) {
     if (now - room.updatedAt > BATTLE_ROOM_TTL_MS) battleRooms.delete(id);
   }
+  const rooms = Array.from(battleRooms.values())
+    .filter((r) => r.status === 'waiting')
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 60);
+  return res.json({ ok: true, rooms });
+});
 
-  let room = Array.from(battleRooms.values()).find((r) => r.mode === mode && r.caseId === caseId && r.players.length < r.capacity);
-  if (!room) {
-    room = {
-      id: crypto.randomUUID(),
-      mode,
-      rounds,
-      caseId,
-      capacity,
-      players: [],
-      logs: [],
-      updatedAt: now
-    };
-    battleRooms.set(room.id, room);
-  }
-
-  const me = String(req.user._id);
-  if (!room.players.some((p) => p.userId === me)) {
-    room.players.push({ userId: me, nickname: req.user.nickname || req.user.displayName || 'User' });
-  }
-  room.updatedAt = now;
+app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) => {
+  const mode = String(req.body?.mode || '1v1');
+  const rounds = Math.max(1, Math.min(7, Number(req.body?.rounds || 1)));
+  const caseId = String(req.body?.caseId || '');
+  const caseName = String(req.body?.caseName || 'Case');
+  const casePrice = Math.max(0, Number(req.body?.casePrice || 0));
+  const contents = Array.isArray(req.body?.contents) ? req.body.contents.slice(0, 80) : [];
+  const fillWithBots = Boolean(req.body?.fillWithBots);
+  const room = {
+    id: crypto.randomUUID(),
+    mode,
+    rounds,
+    caseId,
+    caseName,
+    casePrice,
+    contents,
+    capacity: battleCapacity(mode),
+    status: 'waiting',
+    creatorId: String(req.user._id),
+    fillWithBots,
+    players: [{ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] }],
+    logs: [],
+    winnerId: null,
+    updatedAt: Date.now()
+  };
+  battleRooms.set(room.id, room);
   return res.json({ ok: true, room });
 });
 
-app.post('/api/case-battle/play/:id', ensureDbReady, ensureAuth, async (req, res) => {
+app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = battleRooms.get(String(req.params.id || ''));
-  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nebyla nalezena.' });
+  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží.' });
+  if (!room.players.some((p) => p.userId === String(req.user._id))) {
+    if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
+    room.players.push({ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] });
+  }
   room.updatedAt = Date.now();
-  const msg = `${req.user.nickname || req.user.displayName || 'User'} odehrál battle kolo (${room.mode}).`;
-  room.logs.push({ at: new Date().toISOString(), text: msg });
-  if (room.logs.length > 80) room.logs.shift();
   return res.json({ ok: true, room });
+});
+
+app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const room = battleRooms.get(String(req.params.id || ''));
+  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Pouze zakladatel může spustit battle.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už byl spuštěn.' });
+
+  if (room.fillWithBots && room.players.length < room.capacity) {
+    const need = room.capacity - room.players.length;
+    for (let i = 0; i < need; i += 1) {
+      room.players.push({ userId: `bot-${Date.now()}-${i}`, nickname: `Bot ${i + 1}`, avatar: '', bot: true, score: 0, drops: [] });
+    }
+  }
+
+  if (room.players.length < 2) return res.status(400).json({ ok: false, message: 'Potřebuješ minimálně 2 hráče nebo zapnout boty.' });
+
+  const fee = Number(room.casePrice || 0) * Number(room.rounds || 1);
+  if (fee > 0) {
+    for (const pl of room.players.filter((p) => !p.bot)) {
+      const u = await User.findById(pl.userId);
+      if (!u) return res.status(404).json({ ok: false, message: 'Hráč nebyl nalezen.' });
+      if (Number(u.balance || 0) < fee) {
+        return res.status(400).json({ ok: false, message: `Hráč ${u.nickname || u.displayName || 'user'} nemá dostatek prostředků.` });
+      }
+    }
+    for (const pl of room.players.filter((p) => !p.bot)) {
+      const u = await User.findById(pl.userId);
+      u.balance = Math.round((Number(u.balance || 0) - fee) * 100) / 100;
+      await u.save();
+    }
+  }
+
+  const potItems = [];
+  room.logs = [];
+  for (let r = 1; r <= room.rounds; r += 1) {
+    for (const pl of room.players) {
+      const drop = weightedRoll(room.contents);
+      pl.drops.push({ round: r, ...drop });
+      pl.score = Math.round((Number(pl.score || 0) + Number(drop.price || 0)) * 100) / 100;
+      potItems.push({ uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: drop.name, price: Number(drop.price || 0), color: drop.color || '#4b69ff', img: drop.img || '' });
+      room.logs.push(`${pl.nickname} dropnul ${drop.name} (${drop.price.toFixed(2)} EUR)`);
+    }
+  }
+
+  const winner = [...room.players].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
+  room.winnerId = winner?.userId || null;
+  room.status = 'done';
+  room.updatedAt = Date.now();
+
+  if (winner && !winner.bot) {
+    const wu = await User.findById(winner.userId);
+    if (wu) {
+      if (!Array.isArray(wu.inventory)) wu.inventory = [];
+      wu.inventory = potItems.concat(wu.inventory);
+      await wu.save();
+    }
+  }
+
+  return res.json({ ok: true, room, fee });
 });
 
 app.get('/api/case-battle/room/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = battleRooms.get(String(req.params.id || ''));
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nebyla nalezena.' });
+  room.updatedAt = Date.now();
   return res.json({ ok: true, room });
 });
 
