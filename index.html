@@ -2511,20 +2511,69 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             rebalanceUltraCheapCases();
 
+            const rebalanceAllCasesByPrice = () => {
+                const slotCaps = [0.12, 0.25, 0.45, 0.75, 1.4, 3.5];
+
+                casesDB.forEach((c) => {
+                    if (!c.contents?.length) return;
+                    const used = [];
+                    const source = c.contents.slice().sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+
+                    const rebuilt = slotCaps.map((mult, idx) => {
+                        const minPrice = idx === 0 ? 0.01 : Math.max(0.01, c.price * (slotCaps[Math.max(0, idx - 1)] * 0.35));
+                        const maxPrice = Math.max(minPrice + 0.01, c.price * mult);
+                        const current = source[idx] || source[source.length - 1];
+
+                        if (current && Number(current.skin?.price || 0) >= minPrice && Number(current.skin?.price || 0) <= maxPrice) {
+                            used.push(current.skin);
+                            return { ...current };
+                        }
+
+                        const replacement = pickRange(minPrice, maxPrice, used)
+                            || pickRange(0.01, maxPrice, used)
+                            || pickAny(used)
+                            || current?.skin;
+
+                        used.push(replacement);
+                        return { skin: replacement, chance: current?.chance || 0.1 };
+                    }).filter((entry) => entry?.skin);
+
+                    c.contents = rebuilt.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                });
+            };
+
+            rebalanceAllCasesByPrice();
+
             const applyHouseEdge = () => {
                 const targetRtpForCase = (casePrice) => {
-                    if (casePrice < 1) return 0.24;
-                    if (casePrice < 5) return 0.42;
-                    return 0.51;
+                    if (casePrice < 1) return 0.20;
+                    if (casePrice < 5) return 0.34;
+                    if (casePrice < 25) return 0.40;
+                    return 0.47;
+                };
+
+                const expectedCaseValue = (contents = []) => {
+                    return contents.reduce((acc, it) => acc + ((Number(it?.skin?.price || 0) * Number(it?.chance || 0)) / 100), 0);
+                };
+
+                const normalizeRoundedChances = (items, probs) => {
+                    const out = items.map((it, i) => ({ ...it, chance: Math.max(0.1, Math.round((probs[i] || 0) * 10) / 10) }));
+                    const diff = 100 - out.reduce((a, b) => a + (b.chance || 0), 0);
+                    out[out.length - 1].chance = Math.max(0.1, Math.round((out[out.length - 1].chance + diff) * 10) / 10);
+                    const sumCheck = out.reduce((a, b) => a + (b.chance || 0), 0);
+                    if (Math.abs(100 - sumCheck) > 0.001) {
+                        out[0].chance = Math.max(0.1, Math.round((out[0].chance + (100 - sumCheck)) * 10) / 10);
+                    }
+                    return out;
                 };
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
-                    const sorted = c.contents.slice().sort((a,b)=>(a.skin.price||0)-(b.skin.price||0));
+                    const sorted = c.contents.slice().sort((a, b) => (a.skin.price || 0) - (b.skin.price || 0));
 
-                    let weights = sorted.map((it) => 1 / Math.max(0.01, Math.pow((it.skin?.price || 0.01), 1.35)));
+                    let weights = sorted.map((it) => 1 / Math.max(0.01, Math.pow((it.skin?.price || 0.01), 1.45)));
                     const normalize = () => {
-                        const sum = weights.reduce((a,b)=>a+b,0) || 1;
+                        const sum = weights.reduce((a, b) => a + b, 0) || 1;
                         return weights.map((w) => (w / sum) * 100);
                     };
                     const expectedBy = (probs) => sorted.reduce((acc, it, i) => acc + ((it.skin?.price || 0) * (probs[i] || 0) / 100), 0);
@@ -2534,19 +2583,33 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const target = c.price * targetRtpForCase(c.price);
 
                     let guard = 0;
-                    while (expected > target && guard < 120) {
-                        weights = weights.map((w, i) => i === 0 ? w * 1.06 : w * 0.992);
+                    while (expected > target && guard < 220) {
+                        weights = weights.map((w, i) => i === 0 ? w * 1.09 : w * 0.988);
                         probs = normalize();
                         expected = expectedBy(probs);
                         guard += 1;
                     }
 
-                    c.contents = sorted.map((it, i) => ({ ...it, chance: Math.max(0.1, Math.round(probs[i] * 10) / 10) }));
-                    const diff = 100 - c.contents.reduce((a,b)=>a+(b.chance||0),0);
-                    c.contents[c.contents.length - 1].chance = Math.max(0.1, Math.round((c.contents[c.contents.length - 1].chance + diff) * 10) / 10);
-                    const sumCheck = c.contents.reduce((a,b)=>a+(b.chance||0),0);
-                    if (Math.abs(100 - sumCheck) > 0.001) {
-                        c.contents[0].chance = Math.max(0.1, Math.round((c.contents[0].chance + (100 - sumCheck)) * 10) / 10);
+                    c.contents = normalizeRoundedChances(sorted, probs);
+
+                    // Hard fail-safe: keep shifting chance from highest-price drops to cheapest until EV < case price.
+                    let hardGuard = 0;
+                    let ev = expectedCaseValue(c.contents);
+                    while (ev >= c.price && hardGuard < 300) {
+                        const low = c.contents[0];
+                        const high = c.contents[c.contents.length - 1];
+                        if (!low || !high) break;
+                        if (high.chance <= 0.1) break;
+                        high.chance = Math.max(0.1, Math.round((high.chance - 0.1) * 10) / 10);
+                        low.chance = Math.round((low.chance + 0.1) * 10) / 10;
+                        ev = expectedCaseValue(c.contents);
+                        hardGuard += 1;
+                    }
+
+                    // Final normalization after fail-safe edits.
+                    const sum = c.contents.reduce((a, b) => a + (b.chance || 0), 0);
+                    if (Math.abs(sum - 100) > 0.001) {
+                        c.contents[0].chance = Math.max(0.1, Math.round((c.contents[0].chance + (100 - sum)) * 10) / 10);
                     }
                 });
             };
