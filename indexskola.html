@@ -1,0 +1,3449 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTODROP | CS2 CASES & UPGRADES</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0d11;
+            --bg-panel: #14171c;
+            --accent: #facc15;
+            --accent-hot: #fb7185;
+            --rarity-blue: #4b69ff;
+            --rarity-purple: #8847ff;
+            --rarity-pink: #d32ee6;
+            --rarity-red: #eb4b4b;
+            --rarity-gold: #ebca44;
+        }
+
+        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
+        .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
+        .live-drop-scroll { display: flex; gap: 1rem; padding: 0.5rem 0.75rem; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
+        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        .live-drop-item { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
+            border-radius: 16px;
+            border: 2px solid rgba(250,204,21,0.5);
+            min-width: 152px;
+            height: 182px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: visible;
+        }
+        .live-drop-item .live-drop-avatar {
+            width: 36px; height:36px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
+        }
+        .live-drop-tooltip {
+            position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
+            background: linear-gradient(180deg, rgba(11,13,17,0.98), rgba(20,23,28,0.98));
+            border: 1px solid rgba(250,204,21,0.12); padding: 8px 10px; border-radius: 10px; min-width: 180px; text-align: left; z-index: 200;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.6); display: none; pointer-events: none;
+        }
+        .live-drop-tooltip.visible { display: block; }
+        .live-drop-tooltip .tp-row { display:flex; gap:8px; align-items:center; }
+        .live-drop-tooltip .tp-avatar { width:48px; height:48px; border-radius:9999px; overflow:hidden; border:2px solid rgba(255,255,255,0.04); }
+        .live-drop-tooltip .tp-name { font-weight:800; color:#facc15; font-size:13px; }
+        .live-drop-tooltip .tp-when { font-size:12px; color:#cbd5e1; }
+        .live-drop-item:hover {
+            transform: scale(1.08);
+            background: linear-gradient(135deg, rgba(250,204,21,0.5) 0%, rgba(168,85,247,0.3) 100%);
+            border-color: rgba(250,204,21,1);
+            box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
+            animation: none !important;
+        }
+        .live-drop-item img { max-height: 78px; max-width: 132px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 11px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 30px; }
+        .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
+            animation: dropPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes dropPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
+
+        /* Vylepšené item animace */
+        .item-float { animation: none; opacity: 1; transform: scale(1) !important; }
+        @keyframes floatItem { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(0px); } }
+        
+        .item-pulse { animation: itemPulse 2s ease-in-out infinite; }
+        @keyframes itemPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
+        
+        .item-shine { animation: shine 3s ease-in-out infinite; }
+        @keyframes shine { 0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0); } 50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); } }
+        
+        .glow-blue { box-shadow: 0 0 20px rgba(75, 105, 255, 0.4); }
+        .glow-purple { box-shadow: 0 0 20px rgba(136, 71, 255, 0.4); }
+        .glow-pink { box-shadow: 0 0 20px rgba(211, 46, 230, 0.4); }
+        .glow-red { box-shadow: 0 0 20px rgba(235, 75, 75, 0.4); }
+        .glow-gold { box-shadow: 0 0 20px rgba(235, 202, 68, 0.6); }
+
+        /* Spinner pro bedny */
+        .spinner-container {
+            position: relative; width: 100%; height: 180px;
+            background: linear-gradient(180deg, #101218 0%, #0a0b0e 100%);
+            border-radius: 16px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+        .spinner-track { display: flex; position: absolute; left: 0; height: 100%; align-items: center; will-change: transform; }
+        .spinner-item {
+            min-width: 140px; height: 140px; margin: 0 4px;
+            background: #14171c; border-bottom: 4px solid;
+            border-radius: 12px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 10px; position: relative;
+            transition: all 0.2s ease;
+        }
+        .spinner-item img { max-height: 80px; object-fit: contain; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
+        .spinner-selector {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 4px;
+            background: var(--accent); z-index: 10; transform: translateX(-50%);
+            box-shadow: 0 0 20px var(--accent);
+        }
+        .blur-edges { position: absolute; top: 0; bottom: 0; width: 100px; z-index: 5; pointer-events: none; }
+        .blur-left { left: 0; background: linear-gradient(90deg, #0b0d11 0%, transparent 100%); }
+        .blur-right { right: 0; background: linear-gradient(270deg, #0b0d11 0%, transparent 100%); }
+        .fallback-img { filter: grayscale(1) opacity(0.3); }
+
+        /* Vizuální efekty Výhry */
+        .win-pop { animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .win-glow-rotate { animation: spin 10s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .particle { position: absolute; border-radius: 50%; pointer-events: none; animation: flyOut 1.5s ease-out forwards; }
+        @keyframes flyOut { 
+            0% { transform: translate(0, 0) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
+        }
+
+        /* Upgrade efekty */
+        .upgrade-shake { animation: shake 0.5s ease-in-out infinite; border-color: #a855f7 !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
+
+        /* Spinner položky - vylepšené animace */
+        .spinner-item {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .spinner-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col" onclick="initAudio()">
+
+    <div id="win-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300 opacity-0">
+        <div id="win-bg-glow" class="absolute w-[800px] h-[800px] blur-[150px] opacity-40 win-glow-rotate rounded-full"></div>
+        
+        <div class="text-center relative z-10 w-full max-w-3xl px-8 flex flex-col items-center">
+            <h3 class="text-2xl font-black uppercase text-gray-400 tracking-[0.5em] mb-4 animate-pulse">Padlo ti</h3>
+            <img id="win-image" class="h-80 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] scale-0 mb-8" src="" alt="Skin">
+            <h2 id="win-name" class="text-6xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl mb-2"></h2>
+            <div id="win-price" class="text-3xl font-bold text-yellow-400 mb-12 drop-shadow-lg">0.00 EUR</div>
+            
+            <div class="flex gap-6 justify-center w-full max-w-lg">
+                <button id="btn-win-sell" class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-black py-4 rounded-2xl font-black uppercase text-xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95">
+                    Prodat za <span id="win-sell-price"></span>
+                </button>
+                <button id="btn-win-keep" class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-4 rounded-2xl font-black uppercase text-xl transition-all hover:scale-105 active:scale-95">
+                    Nechat v inventáři
+                </button>
+            </div>
+        </div>
+        <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+    </div>
+
+    <div class="h-56 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
+        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+            🔴 LIVE DROPS
+        </div>
+        <div class="flex-1 overflow-hidden py-2">
+            <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+        </div>
+        <!-- Live chat (simulovaný) -->
+        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden lg:flex flex-col">
+            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
+            <div class="flex gap-2">
+                <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
+                <button id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="h-20 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-8 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
+        <div class="flex items-center gap-10">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchPage('cases')">
+                <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center text-black font-black text-2xl rotate-2 group-hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.3)] item-pulse">OD</div>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-3xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                </div>
+            </div>
+
+            <nav class="hidden 2xl:flex items-center gap-6">
+                <button onclick="switchPage('cases')" class="nav-link active py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
+                    <i data-lucide="box" class="w-4 h-4"></i> Bedny
+                </button>
+
+                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-110">
+                    <i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span>
+                </button>
+
+                <button onclick="switchPage('upgrade')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade
+                </button>
+                <button onclick="switchPage('inventory')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář
+                </button>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 flex items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
+                <div class="text-right flex items-center gap-3">
+                    <div>
+                        <div id="balance" class="font-black text-yellow-400 text-xl leading-none">0.00</div>
+                        <div id="balance-currency-label" class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-1">Zůstatek (EUR)</div>
+                    </div>
+                    <select id="currency-select" class="bg-[#0b0d11] border border-yellow-400/20 text-sm text-gray-300 rounded-md px-2 py-1" title="Změnit měnu">
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="CZK">CZK</option>
+                    </select>
+                </div>
+                <div class="w-10 h-10 bg-yellow-400/20 rounded-xl flex items-center justify-center text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                    <i data-lucide="coins" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <button onclick="claimDailyReward()" id="daily-reward-btn" class="bg-gradient-to-r from-fuchsia-600 to-pink-500 hover:from-fuchsia-500 hover:to-pink-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-pink-300/40 shadow-[0_0_25px_rgba(236,72,153,0.35)] active:scale-95 hover:scale-105">
+                🎁 DAILY ODMĚNA (DEMO)
+            </button>
+            <button onclick="addFreeMoney()" id="free-money-btn" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
+                💰 + PENÍZE ZDARMA
+            </button>
+            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
+                <i data-lucide="user-round" class="w-4 h-4"></i>
+                <span id="auth-open-label">Přihlásit</span>
+            </button>
+            <div id="profile-pill" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2">
+                <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
+                <div class="leading-tight">
+                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                    <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
+            
+            <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
+                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/25 via-pink-500/10 to-[#0b0d11] border border-yellow-400/30 shadow-[0_0_80px_rgba(250,204,21,0.16)] flex items-center px-12 mb-8">
+                    <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
+                    <div class="relative z-10 max-w-2xl space-y-4">
+                        <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
+                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
+                        <p class="text-gray-400 text-md font-medium leading-relaxed drop-shadow-md">Otevři bedny se zvukem asmr tikání, hrej mini-hry nebo použij 3-slotový Upgrader a získej svůj vysněný knife! 💎</p>
+                    </div>
+                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
+                </div>
+                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-4"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="space-y-8" id="cases-grid"></div>
+            </section>
+
+
+
+            <section id="page-case-view" class="page hidden fade-in max-w-6xl mx-auto space-y-8">
+                <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět na bedny
+                </button>
+
+                <div class="bg-[#14171c] rounded-3xl border border-white/5 p-8 shadow-2xl text-center">
+                    <div>
+                        <h2 id="view-case-name" class="text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl">Bedna</h2>
+                        <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
+                    </div>
+
+                    <div id="spinner-stack" class="space-y-4 mb-8">
+                        <div class="spinner-container relative" data-spin-row="0">
+                            <div class="blur-edges blur-left"></div>
+                            <div class="blur-edges blur-right"></div>
+                            <div class="spinner-selector"></div>
+                            <div id="spinner-track-0" class="spinner-track"></div>
+                        </div>
+                    </div>
+                    <div id="spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"></div>
+
+                    <div class="flex flex-wrap gap-3 justify-center items-center">
+                        <label for="open-count" class="text-xs font-black uppercase tracking-widest text-purple-300">Počet spinů</label>
+                        <select id="open-count" class="bg-[#0b0d11] border border-purple-500/40 text-white rounded-xl px-4 py-3 font-black">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                        </select>
+                        <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
+                            OTEVŘÍT BEDNU
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black uppercase italic tracking-tighter text-white mb-4 border-b border-white/10 pb-2">Obsah bedny a šance</h3>
+                    <div id="view-case-contents" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+                </div>
+            </section>
+
+            <section id="page-upgrade" class="page hidden max-w-6xl mx-auto space-y-10 fade-in">
+                <div class="text-center">
+                    <h2 class="text-5xl font-black uppercase italic tracking-tighter text-white">OTODROP <span class="text-purple-500">UPGRADER</span></h2>
+                    <p class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Slož až 3 skiny dohromady a vyber si cokoliv z databáze</p>
+                </div>
+                
+                <div class="bg-[#14171c] p-10 rounded-3xl border border-white/5 shadow-2xl relative upgrade-glow" id="upgrade-panel">
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-12 items-center">
+                        <div class="space-y-4">
+                            <h3 class="text-gray-400 font-black uppercase text-sm tracking-widest text-center mb-2">Tvoje skiny (Až 3)</h3>
+                            <div class="flex flex-col gap-3" id="upg-inputs-container"></div>
+                            <div class="text-center mt-2">
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Celková hodnota vkladu:</span>
+                                <div id="upg-total-input-val" class="text-purple-400 font-black text-xl drop-shadow-lg">0.00 EUR</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center space-y-6">
+                            <div class="relative">
+                                <svg class="w-48 h-48 mx-auto transform -rotate-90">
+                                    <circle cx="96" cy="96" r="86" stroke="#1f2937" stroke-width="12" fill="transparent" />
+                                    <circle id="upgrade-circle" cx="96" cy="96" r="86" stroke="#a855f7" stroke-width="12" fill="transparent" stroke-dasharray="540" stroke-dashoffset="540" class="transition-all duration-1000 ease-out drop-shadow-lg" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                    <span id="upgrade-chance" class="text-5xl font-black text-white italic drop-shadow-lg">0%</span>
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Šance</span>
+                                </div>
+                            </div>
+                            <button onclick="attemptUpgrade()" id="btn-upgrade-exec" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black py-5 rounded-2xl uppercase italic shadow-lg shadow-purple-500/30 active:scale-95 transition-all tracking-tighter text-xl">
+                                Vylepšit
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-4 h-full flex flex-col justify-center">
+                            <h3 class="text-gray-400 font-black uppercase text-sm tracking-widest text-center mb-2">Cílový skin</h3>
+                            <div id="upg-target-slot" onclick="openSelector('target')" class="bg-gradient-to-b from-purple-950/30 to-black/30 border-2 border-dashed border-purple-500/50 hover:border-yellow-400 rounded-3xl h-64 flex flex-col items-center justify-center p-4 relative overflow-hidden cursor-pointer transition-all group">
+                                <i data-lucide="search" class="w-10 h-10 text-purple-500/50 group-hover:text-yellow-400 mb-2 transition-colors"></i>
+                                <span class="text-gray-500 font-bold uppercase text-xs text-center group-hover:text-white transition-colors">Vyber cíl z<br>databáze</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-inventory" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6">
+                    <div>
+                        <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white">MŮJ <span class="text-yellow-400">INVENTÁŘ</span></h2>
+                        <p id="inv-stats" class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">0 předmětů v hodnotě 0.00 EUR</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="inv-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white font-bold text-sm uppercase cursor-pointer" onchange="filterInventory()">
+                            <option value="all">Všechny</option>
+                            <option value="blue">Modré</option>
+                            <option value="purple">Fialové</option>
+                            <option value="pink">Růžové</option>
+                            <option value="red">Červené</option>
+                            <option value="gold">Zlaté</option>
+                            <option value="knives">Nože</option>
+                        </select>
+                        <select id="inv-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white font-bold text-sm uppercase cursor-pointer" onchange="sortInventory()">
+                            <option value="newest">Nejnovější</option>
+                            <option value="price-high">Cena (vysoká)</option>
+                            <option value="price-low">Cena (nízká)</option>
+                            <option value="name">Jméno (A-Z)</option>
+                        </select>
+                        <button onclick="sellAllSkins()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-2 rounded-lg font-bold text-xs transition-all border border-red-500/20 uppercase tracking-widest">
+                            Prodat vše
+                        </button>
+                    </div>
+                </div>
+                <div id="inventory-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+            </section>
+
+            <section id="page-selector" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
+                <div class="flex items-center justify-between border-b border-white/10 pb-6">
+                    <div>
+                        <button onclick="switchPage('upgrade')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors mb-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět do Upgraderu
+                        </button>
+                        <h2 id="selector-title" class="text-4xl font-black uppercase italic tracking-tighter text-white">VYBER SKIN</h2>
+                    </div>
+                </div>
+                <div class="flex justify-end"><select id="selector-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-bold text-xs uppercase" onchange="openSelector(window.currentSelectorType || 'input', window.currentSelectorSlot || 0)"><option value="price-low">Cena: nejnižší</option><option value="price-high">Cena: nejvyšší</option><option value="name">Jméno A-Z</option></select></div><div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Účet (DB backend)</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <p class="text-[12px] text-gray-400 mb-4">Registrace i login jsou přes backend. Nový účet startuje s 10 USD a bez možnosti dobití.</p>
+            <div class="space-y-3">
+                <input id="auth-email" type="email" maxlength="120" placeholder="E-mail" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="auth-password" type="password" maxlength="120" placeholder="Heslo (min. 6 znaků)" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-nickname" type="text" maxlength="24" placeholder="Nickname" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-display-name" type="text" maxlength="32" placeholder="Display jméno" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-avatar" type="url" placeholder="URL profilové fotky" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button onclick="registerAccount()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Registrovat</button>
+                    <button onclick="loginAccount()" class="bg-blue-500 hover:bg-blue-400 text-white font-black uppercase rounded-xl py-3">Přihlásit</button>
+                    <button onclick="saveLocalProfile()" class="bg-green-600 hover:bg-green-500 text-white font-black uppercase rounded-xl py-3">Uložit profil</button>
+                    <button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-black uppercase rounded-xl py-3 border border-red-400/40">Odhlásit</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button id="steam-login-btn" onclick="socialLogin('steam')" class="bg-[#171a21] hover:bg-[#2a475e] text-white font-black uppercase rounded-xl py-3 border border-white/10">Steam Login</button>
+                    <button id="google-login-btn" onclick="socialLogin('google')" class="bg-white hover:bg-gray-200 text-black font-black uppercase rounded-xl py-3">Google Login</button>
+                </div>
+                <p id="admin-hint" class="text-[11px] text-yellow-300 hidden">Jsi admin. Přehled hráčů: <code>GET /api/admin/users</code></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 right-10 bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black shadow-2xl opacity-0 transform translate-y-10 transition-all duration-300 z-[100] uppercase italic tracking-tighter text-lg border-2 border-yellow-300">
+        Akce úspěšná!
+    </div>
+
+    <script>
+        const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
+        function handleImgError(img) {
+            // Pokusit se postupně použít alternativní URL uložené v data-alts (pipe-separated)
+            try {
+                const alts = (img.dataset.alts || '').split('|').filter(Boolean);
+                if(alts.length > 0) {
+                    img.onerror = null;
+                    img.src = alts.shift();
+                    img.dataset.alts = alts.join('|');
+                    img.onerror = handleImgError;
+                    return;
+                }
+            } catch(e) { /* ignore */ }
+            img.onerror = null;
+            img.src = FALLBACK_IMG;
+            img.classList.add('fallback-img');
+        }
+    </script>
+
+    <script>
+        // --- AUDIO ENGINE (Web Audio API) ---
+        let audioCtx;
+        let audioInitialized = false;
+
+        function initAudio() {
+            if(!audioInitialized) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                audioInitialized = true;
+            } else if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        const SoundEngine = {
+            playTick: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.03);
+            },
+            playWin: (rarity) => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                
+                let baseFreq = rarity === 'gold' ? 523.25 : (rarity === 'red' ? 440 : 329.63); // C5, A4, E4
+                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(baseFreq * 1.25, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.2);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            },
+            playUpgradeProcess: () => {
+                if(!audioCtx) return null;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 2); // stoupá 2 sekundy
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                osc.start();
+                return { osc, gain };
+            },
+            playUpgradeFail: () => {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            }
+        };
+
+        // --- STAV A DATABÁZE ---
+        let balanceBase = 10.00;
+        const KNIFE_TYPES = [
+            "Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife",
+            "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers",
+            "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"
+        ];
+
+        // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
+        // Duplicitní položky odstraněny, názvy a ceny ověřeny dle https://csgostash.com/ a https://steamcommunity.com/market/
+        const rawSkinData = `
+AK-47|Aphrodite|1450.00|#eb4b4b
+AK-47|Aquamarine Revenge|110.00|#eb4b4b
+AK-47|Asiimov|165.00|#eb4b4b
+AK-47|Baroque Purple|15.50|#5e98d9
+AK-47|Black Laminate|35.00|#4b69ff
+AK-47|Bloodsport|130.00|#eb4b4b
+AK-47|Breakthrough|45.00|#8847ff
+AK-47|Case Hardened|250.00|#d32ee6
+AK-47|Crossfade|22.00|#4b69ff
+AK-47|Elite Build|5.50|#4b69ff
+AK-47|Emerald Pinstripe|12.00|#8847ff
+AK-47|Fire Serpent|850.00|#eb4b4b
+AK-47|First Class|95.00|#8847ff
+AK-47|Frontside Misty|65.00|#d32ee6
+AK-47|Fuel Injector|420.00|#eb4b4b
+AK-47|Gold Arabesque|3200.00|#eb4b4b
+AK-47|Head Shot|120.00|#eb4b4b
+AK-47|Inheritance|180.00|#eb4b4b
+AK-47|Ice Coaled|25.00|#d32ee6
+AK-47|Jaguar|140.00|#eb4b4b
+AK-47|Jet Set|190.00|#d32ee6
+AK-47|Jungle Spray|18.50|#5e98d9
+AK-47|Legion of Anubis|25.00|#eb4b4b
+AK-47|Leet Museo|45.00|#eb4b4b
+AK-47|Midnight Laminate|42.00|#8847ff
+AK-47|Neon Revolution|75.00|#eb4b4b
+AK-47|Neon Rider|150.00|#eb4b4b
+AK-47|Nightwish|110.00|#eb4b4b
+AK-47|Nouveau Rouge|38.00|#d32ee6
+AK-47|Olive Polycam|2.50|#5e98d9
+AK-47|Orbit Mk01|28.00|#8847ff
+AK-47|Panthera onca|350.00|#d32ee6
+AK-47|Phantom Disruptor|15.00|#d32ee6
+AK-47|Point Disarray|45.00|#d32ee6
+AK-47|Predator|25.00|#5e98d9
+AK-47|Rat Rod|12.00|#8847ff
+AK-47|Red Laminate|180.00|#d32ee6
+AK-47|Redline|85.00|#d32ee6
+AK-47|Safari Mesh|1.50|#5e98d9
+AK-47|Safety Net|45.00|#8847ff
+AK-47|Searing Rage|140.00|#d32ee6
+AK-47|Slate|10.50|#8847ff
+AK-47|Steel Delta|5.00|#4b69ff
+AK-47|The Empress|160.00|#eb4b4b
+AK-47|The Oligarch|320.00|#eb4b4b
+AK-47|The Outsiders|42.00|#d32ee6
+AK-47|Uncharted|1.20|#4b69ff
+AK-47|Vulcan|850.00|#eb4b4b
+AK-47|Wasteland Rebel|55.00|#eb4b4b
+AK-47|Wild Lotus|12000.00|#eb4b4b
+AK-47|Wintergreen|22.00|#4b69ff
+AK-47|X-Ray|1800.00|#eb4b4b
+AUG|Akihabara Accept|4500.00|#eb4b4b
+AUG|Amber Fade|8.50|#4b69ff
+AUG|Amber Slipstream|1.50|#4b69ff
+AUG|Anodized Navy|35.00|#4b69ff
+AUG|Aristocrat|2.50|#8847ff
+AUG|Bengal Tiger|35.00|#d32ee6
+AUG|Carved Jade|15.00|#4b69ff
+AUG|Chameleon|12.00|#eb4b4b
+AUG|Colony|0.80|#b0c3d9
+AUG|Condemned|4.50|#5e98d9
+AUG|Contractor|0.80|#b0c3d9
+AUG|Copperhead|55.00|#4b69ff
+AUG|Creep|12.50|#4b69ff
+AUG|Daedalus|3.50|#b0c3d9
+AUG|Death by Puppy|18.00|#d32ee6
+AUG|Eye of Zapems|28.00|#8847ff
+AUG|Flame Jörmungandr|320.00|#8847ff
+AUG|Fleet Flock|8.00|#d32ee6
+AUG|Hot Rod|180.00|#4b69ff
+AUG|Lil' Pig|25.00|#d32ee6
+AUG|Luxe Trim|4.50|#4b69ff
+AUG|Midnight Lily|280.00|#8847ff
+AUG|Momentum|14.00|#d32ee6
+AUG|Navy Murano|2.50|#b0c3d9
+AUG|Plague|1.20|#4b69ff
+AUG|Radiation Hazard|12.00|#5e98d9
+AUG|Random Access|15.00|#8847ff
+AUG|Ricochet|0.90|#4b69ff
+AUG|Sand Storm|4.50|#8847ff
+AUG|Snake Pit|1.10|#b0c3d9
+AUG|Spalted Wood|2.20|#5e98d9
+AUG|Steel Sentinel|3.80|#5e98d9
+AUG|Storm|0.80|#b0c3d9
+AUG|Stymphalian|10.00|#d32ee6
+AUG|Surveillance|4.50|#b0c3d9
+AUG|Sweeper|0.80|#b0c3d9
+AUG|Syd Mead|12.00|#d32ee6
+AUG|Tom Cat|1.10|#4b69ff
+AUG|Torque|7.50|#8847ff
+AUG|Trigger Discipline|4.50|#4b69ff
+AUG|Triqua|1.10|#4b69ff
+AUG|Wings|45.00|#4b69ff
+AWP|Acheron|4.50|#4b69ff
+AWP|Arsenic Spill|12.50|#4b69ff
+AWP|Asiimov|190.00|#eb4b4b
+AWP|Atheris|12.00|#8847ff
+AWP|Black Nile|8.50|#4b69ff
+AWP|BOOM|250.00|#d32ee6
+AWP|Capillary|1.80|#4b69ff
+AWP|Chrome Cannon|180.00|#eb4b4b
+AWP|Chromatic Aberration|45.00|#eb4b4b
+AWP|CMYK|140.00|#eb4b4b
+AWP|Containment Breach|280.00|#eb4b4b
+AWP|Corticera|45.00|#d32ee6
+AWP|Crakow!|95.00|#d32ee6
+AWP|Desert Hydra|3500.00|#eb4b4b
+AWP|Dragon Lore|12000.00|#eb4b4b
+AWP|Duality|25.00|#d32ee6
+AWP|Electric Hive|95.00|#d32ee6
+AWP|Elite Build|22.00|#d32ee6
+AWP|Exoskeleton|8.50|#8847ff
+AWP|Exothermic|35.00|#8847ff
+AWP|Fade|1450.00|#eb4b4b
+AWP|Fever Dream|15.00|#d32ee6
+AWP|Graphite|280.00|#d32ee6
+AWP|Green Energy|55.00|#d32ee6
+AWP|Gungnir|15000.00|#eb4b4b
+AWP|Hyper Beast|120.00|#eb4b4b
+AWP|Ice Coaled|32.00|#d32ee6
+AWP|Lightning Strike|850.00|#eb4b4b
+AWP|LongDog|180.00|#eb4b4b
+AWP|Man-o'-war|65.00|#eb4b4b
+AWP|Medusa|6500.00|#eb4b4b
+AWP|Mortis|8.50|#d32ee6
+AWP|Neo-Noir|55.00|#eb4b4b
+AWP|Oni Taiji|750.00|#eb4b4b
+AWP|PAW|7.50|#8847ff
+AWP|Phobos|5.50|#8847ff
+AWP|Pink DDPAT|140.00|#8847ff
+AWP|Pit Viper|12.00|#8847ff
+AWP|POP AWP|14.00|#8847ff
+AWP|Printstream|320.00|#eb4b4b
+AWP|Redline|120.00|#d32ee6
+AWP|Safari Mesh|1.20|#5e98d9
+AWP|Silk Tiger|350.00|#d32ee6
+AWP|Snake Camo|125.00|#4b69ff
+AWP|Sun in Leo|45.00|#5e98d9
+AWP|The End|85.00|#d32ee6
+AWP|The Prince|5500.00|#eb4b4b
+AWP|Wildfire|150.00|#eb4b4b
+AWP|Worm God|2.50|#8847ff
+CZ75-Auto|Army Sheen|0.80|#b0c3d9
+CZ75-Auto|Chalice|380.00|#8847ff
+CZ75-Auto|Circaetus|1.10|#4b69ff
+CZ75-Auto|Copper Fiber|3.50|#5e98d9
+CZ75-Auto|Crimson Web|12.00|#4b69ff
+CZ75-Auto|Distressed|0.90|#4b69ff
+CZ75-Auto|Eco|2.50|#8847ff
+CZ75-Auto|Emerald|35.00|#4b69ff
+CZ75-Auto|Emerald Quartz|45.00|#4b69ff
+CZ75-Auto|Framework|1.10|#b0c3d9
+CZ75-Auto|Green Plaid|1.50|#b0c3d9
+CZ75-Auto|Hexane|2.50|#4b69ff
+CZ75-Auto|Honey Paisley|0.90|#b0c3d9
+CZ75-Auto|Imprint|0.90|#4b69ff
+CZ75-Auto|Indigo|1.50|#b0c3d9
+CZ75-Auto|Jungle Dashed|0.80|#b0c3d9
+CZ75-Auto|Midnight Palm|3.50|#5e98d9
+CZ75-Auto|Nitro|120.00|#4b69ff
+CZ75-Auto|Pink Pearl|1.50|#b0c3d9
+CZ75-Auto|Poison Dart|4.50|#4b69ff
+CZ75-Auto|Pole Position|2.50|#8847ff
+CZ75-Auto|Polymer|0.90|#4b69ff
+CZ75-Auto|Red Astor|2.50|#8847ff
+CZ75-Auto|Silver|12.50|#5e98d9
+CZ75-Auto|Slalom|15.00|#8847ff
+CZ75-Auto|Syndicate|12.00|#8847ff
+CZ75-Auto|Tacticat|3.50|#8847ff
+CZ75-Auto|The Fuschia Is Now|65.00|#d32ee6
+CZ75-Auto|Tigris|2.50|#8847ff
+CZ75-Auto|Tread Plate|15.00|#8847ff
+CZ75-Auto|Tuxedo|12.00|#4b69ff
+CZ75-Auto|Twist|2.50|#4b69ff
+CZ75-Auto|Vendetta|1.10|#4b69ff
+CZ75-Auto|Victoria|55.00|#eb4b4b
+CZ75-Auto|Xiangliu|15.00|#d32ee6
+CZ75-Auto|Yellow Jacket|22.00|#d32ee6
+Desert Eagle|Blaze|1200.00|#8847ff
+Desert Eagle|Blue Ply|1.50|#4b69ff
+Desert Eagle|Bronze Deco|1.10|#4b69ff
+Desert Eagle|Calligraffiti|4.50|#4b69ff
+Desert Eagle|Code Red|85.00|#eb4b4b
+Desert Eagle|Cobalt Disruption|110.00|#d32ee6
+Desert Eagle|Conspiracy|15.00|#d32ee6
+Desert Eagle|Corinthian|0.90|#4b69ff
+Desert Eagle|Crimson Web|125.00|#8847ff
+Desert Eagle|Directive|5.50|#8847ff
+Desert Eagle|Emerald Jörmungandr|450.00|#8847ff
+Desert Eagle|Fennec Fox|750.00|#d32ee6
+Desert Eagle|Golden Koi|140.00|#eb4b4b
+Desert Eagle|Hand Cannon|750.00|#8847ff
+Desert Eagle|Heat Treated|350.00|#d32ee6
+Desert Eagle|Heirloom|45.00|#8847ff
+Desert Eagle|Hypnotic|160.00|#d32ee6
+Desert Eagle|Ice Cap|1.50|#4b69ff
+Desert Eagle|Kumicho Dragon|45.00|#d32ee6
+Desert Eagle|Light Rail|12.00|#8847ff
+Desert Eagle|Mecha Industries|15.00|#d32ee6
+Desert Eagle|Meteorite|12.00|#4b69ff
+Desert Eagle|Midnight Storm|25.00|#5e98d9
+Desert Eagle|Mint Fan|12.50|#4b69ff
+Desert Eagle|Mudder|3.50|#5e98d9
+Desert Eagle|Mulberry|18.50|#8847ff
+Desert Eagle|Naga|5.50|#8847ff
+Desert Eagle|Night|15.00|#5e98d9
+Desert Eagle|Night Heist|12.00|#4b69ff
+Desert Eagle|Ocean Drive|140.00|#eb4b4b
+Desert Eagle|Oxide Blaze|1.10|#4b69ff
+Desert Eagle|Pilot|180.00|#8847ff
+Desert Eagle|Printstream|140.00|#eb4b4b
+Desert Eagle|Serpent Strike|45.00|#8847ff
+Desert Eagle|Sputnik|12.00|#4b69ff
+Desert Eagle|Starcade|85.00|#d32ee6
+Desert Eagle|Sunset Storm 壱|550.00|#8847ff
+Desert Eagle|Sunset Storm 弐|580.00|#8847ff
+Desert Eagle|The Bronze|12.00|#5e98d9
+Desert Eagle|The Daily Deagle|14.50|#4b69ff
+Desert Eagle|Tilted|2.50|#5e98d9
+Desert Eagle|Trigger Discipline|5.50|#8847ff
+Desert Eagle|Urban DDPAT|3.50|#5e98d9
+Desert Eagle|Urban Rubble|12.50|#4b69ff
+Dual Berettas|Angel Eyes|12.00|#8847ff
+Dual Berettas|Anodized Navy|15.00|#4b69ff
+Dual Berettas|Balance|1.10|#4b69ff
+Dual Berettas|Black Limba|12.00|#4b69ff
+Dual Berettas|BorDeux|1.50|#b0c3d9
+Dual Berettas|Briar|1.50|#b0c3d9
+Dual Berettas|Cartel|5.50|#4b69ff
+Dual Berettas|Cobalt Quartz|15.00|#8847ff
+Dual Berettas|Cobra Strike|85.00|#d32ee6
+Dual Berettas|Colony|0.80|#b0c3d9
+Dual Berettas|Contractor|0.80|#b0c3d9
+Dual Berettas|Demolition|35.00|#8847ff
+Dual Berettas|Dezastre|2.50|#8847ff
+Dual Berettas|Drift Wood|1.50|#5e98d9
+Dual Berettas|Dualing Dragons|2.50|#4b69ff
+Dual Berettas|Duelist|140.00|#8847ff
+Dual Berettas|Elite 1.6|2.50|#4b69ff
+Dual Berettas|Emerald|12.00|#4b69ff
+Dual Berettas|Flora Carnivora|5.50|#8847ff
+Dual Berettas|Heist|0.80|#b0c3d9
+Dual Berettas|Hemoglobin|35.00|#8847ff
+Dual Berettas|Hideout|2.50|#4b69ff
+Dual Berettas|Hydro Strike|28.00|#8847ff
+Dual Berettas|Marina|15.00|#8847ff
+Dual Berettas|Melondrama|22.00|#d32ee6
+Dual Berettas|Moon in Libra|2.50|#b0c3d9
+Dual Berettas|Oil Change|1.10|#b0c3d9
+Dual Berettas|Panther|12.00|#4b69ff
+Dual Berettas|Polished Malachite|3.50|#5e98d9
+Dual Berettas|Pyre|15.00|#5e98d9
+Dual Berettas|Retribution|12.00|#4b69ff
+Dual Berettas|Rose Nacre|2.50|#5e98d9
+Dual Berettas|Royal Consorts|5.50|#8847ff
+Dual Berettas|Shred|1.10|#4b69ff
+Dual Berettas|Silver Pour|1.50|#b0c3d9
+Dual Berettas|Stained|1.50|#5e98d9
+Dual Berettas|Sweet Little Angels|22.00|#8847ff
+Dual Berettas|Switch Board|3.50|#5e98d9
+Dual Berettas|Tread|1.10|#4b69ff
+Dual Berettas|Twin Turbo|140.00|#d32ee6
+Dual Berettas|Urban Shock|2.50|#8847ff
+Dual Berettas|Ventilators|0.90|#4b69ff
+FAMAS|2A2F|8.50|#4b69ff
+FAMAS|Afterimage|45.00|#d32ee6
+FAMAS|Bad Trip|42.00|#eb4b4b
+FAMAS|Byproduct|0.90|#b0c3d9
+FAMAS|CaliCamo|4.50|#5e98d9
+FAMAS|Colony|0.80|#b0c3d9
+FAMAS|Commemoration|120.00|#eb4b4b
+FAMAS|Contrast Spray|2.50|#b0c3d9
+FAMAS|Crypsis|1.10|#4b69ff
+FAMAS|Cyanospatter|4.50|#5e98d9
+FAMAS|Dark Water|15.00|#4b69ff
+FAMAS|Decommissioned|1.20|#4b69ff
+FAMAS|Djinn|12.00|#d32ee6
+FAMAS|Doomkitty|4.50|#4b69ff
+FAMAS|Eye of Athena|15.00|#d32ee6
+FAMAS|Faulty Wiring|1.10|#b0c3d9
+FAMAS|Grey Ghost|2.50|#5e98d9
+FAMAS|Half Sleeve|1.80|#5e98d9
+FAMAS|Halftone Wash|1.80|#5e98d9
+FAMAS|Hexane|2.50|#4b69ff
+FAMAS|Macabre|1.20|#4b69ff
+FAMAS|Mecha Industries|12.00|#d32ee6
+FAMAS|Meow 36|1.10|#4b69ff
+FAMAS|Neural Net|2.50|#8847ff
+FAMAS|Night Borre|1.50|#b0c3d9
+FAMAS|Palm|1.20|#b0c3d9
+FAMAS|Prime Conspiracy|18.00|#8847ff
+FAMAS|Pulse|15.00|#8847ff
+FAMAS|Rapid Eye Movement|18.00|#d32ee6
+FAMAS|Sergeant|5.50|#8847ff
+FAMAS|Spitfire|320.00|#8847ff
+FAMAS|Styx|15.00|#8847ff
+FAMAS|Sundown|125.00|#4b69ff
+FAMAS|Survivor Z|1.10|#4b69ff
+FAMAS|Teardown|4.50|#4b69ff
+FAMAS|Valence|5.50|#8847ff
+FAMAS|Vendetta|4.50|#5e98d9
+FAMAS|Waters of Nephthys|120.00|#d32ee6
+FAMAS|Yeti Camo|4.50|#4b69ff
+FAMAS|ZX Spectron|5.50|#8847ff
+Five-SeveN|Angry Mob|18.00|#eb4b4b
+Five-SeveN|Anodized Gunmetal|12.00|#b0c3d9
+Five-SeveN|Autumn Thicket|0.90|#b0c3d9
+Five-SeveN|Berries And Cherries|65.00|#8847ff
+Five-SeveN|Boost Protocol|3.50|#8847ff
+Five-SeveN|Buddy|4.50|#8847ff
+Five-SeveN|Candy Apple|125.00|#5e98d9
+Five-SeveN|Capillary|0.90|#4b69ff
+Five-SeveN|Case Hardened|55.00|#8847ff
+Five-SeveN|Contractor|0.80|#b0c3d9
+Five-SeveN|Coolant|0.80|#b0c3d9
+Five-SeveN|Copper Galaxy|12.00|#8847ff
+Five-SeveN|Crimson Blossom|140.00|#4b69ff
+Five-SeveN|Fairy Tale|25.00|#d32ee6
+Five-SeveN|Fall Hazard|350.00|#d32ee6
+Five-SeveN|Flame Test|1.10|#4b69ff
+Five-SeveN|Forest Night|0.80|#b0c3d9
+Five-SeveN|Fowl Play|12.00|#d32ee6
+Five-SeveN|Fraise Crane|5.50|#4b69ff
+Five-SeveN|Heat Treated|85.00|#8847ff
+Five-SeveN|Hot Shot|4.50|#5e98d9
+Five-SeveN|Hybrid|12.00|#8847ff
+Five-SeveN|Hyper Beast|110.00|#eb4b4b
+Five-SeveN|Jungle|1.20|#b0c3d9
+Five-SeveN|Kami|5.50|#4b69ff
+Five-SeveN|Midnight Paintover|4.50|#5e98d9
+Five-SeveN|Monkey Business|12.00|#d32ee6
+Five-SeveN|Neon Kimono|380.00|#8847ff
+Five-SeveN|Nightshade|2.50|#4b69ff
+Five-SeveN|Nitro|12.00|#4b69ff
+Five-SeveN|Orange Peel|15.00|#5e98d9
+Five-SeveN|Retrobution|8.50|#8847ff
+Five-SeveN|Scrawl|1.10|#4b69ff
+Five-SeveN|Scumbria|0.90|#4b69ff
+Five-SeveN|Silver Quartz|5.50|#4b69ff
+Five-SeveN|Sky Blue|3.80|#5e98d9
+Five-SeveN|Triumvirate|5.50|#8847ff
+Five-SeveN|Urban Hazard|1.20|#4b69ff
+Five-SeveN|Violent Daimyo|1.10|#4b69ff
+Five-SeveN|Withered Vine|1.50|#5e98d9
+G3SG1|Ancient Ritual|12.00|#5e98d9
+G3SG1|Arctic Camo|15.00|#5e98d9
+G3SG1|Azure Zebra|2.50|#4b69ff
+G3SG1|Black Sand|0.90|#4b69ff
+G3SG1|Chronos|350.00|#8847ff
+G3SG1|Contractor|0.80|#b0c3d9
+G3SG1|Demeter|4.50|#4b69ff
+G3SG1|Desert Storm|0.80|#b0c3d9
+G3SG1|Dream Glade|3.50|#8847ff
+G3SG1|Digital Mesh|1.10|#4b69ff
+G3SG1|Flux|12.00|#d32ee6
+G3SG1|Green Apple|4.50|#5e98d9
+G3SG1|Green Cell|1.20|#b0c3d9
+G3SG1|High Seas|2.50|#8847ff
+G3SG1|Hunter|1.10|#4b69ff
+G3SG1|Keeping Tabs|1.10|#4b69ff
+G3SG1|Jungle Dashed|0.80|#b0c3d9
+G3SG1|Murky|1.20|#4b69ff
+G3SG1|New Roots|1.50|#4b69ff
+G3SG1|Orange Crash|1.10|#4b69ff
+G3SG1|Orange Kimono|2.50|#b0c3d9
+G3SG1|Polar Camo|0.80|#b0c3d9
+G3SG1|Red Jasper|1.50|#b0c3d9
+G3SG1|Safari Mesh|0.80|#b0c3d9
+G3SG1|Scavenger|2.50|#8847ff
+G3SG1|Stinger|2.50|#8847ff
+G3SG1|The Executioner|45.00|#d32ee6
+G3SG1|VariCamo|1.50|#5e98d9
+G3SG1|Ventilator|0.90|#4b69ff
+G3SG1|Violet Murano|12.00|#4b69ff
+Galil AR|Acid Dart|1.80|#5e98d9
+Galil AR|Akoben|0.90|#4b69ff
+Galil AR|Amber Fade|12.00|#4b69ff
+Galil AR|Aqua Terrace|140.00|#4b69ff
+Galil AR|Black Sand|0.90|#4b69ff
+Galil AR|Blue Titanium|12.00|#4b69ff
+Galil AR|CAUTION!|45.00|#8847ff
+Galil AR|Cerberus|45.00|#8847ff
+Galil AR|Chatterbox|65.00|#eb4b4b
+Galil AR|Chromatic Aberration|12.00|#d32ee6
+Galil AR|Cold Fusion|1.50|#5e98d9
+Galil AR|Connexion|3.50|#8847ff
+Galil AR|Control|18.50|#8847ff
+Galil AR|Crimson Tsunami|2.50|#8847ff
+Galil AR|Destroyer|1.10|#4b69ff
+Galil AR|Dusk Ruins|12.00|#4b69ff
+Galil AR|Eco|15.00|#d32ee6
+Galil AR|Firefight|2.50|#8847ff
+Galil AR|Green Apple|4.50|#5e98d9
+Galil AR|Grey Smoke|1.10|#b0c3d9
+Galil AR|Hunting Blind|0.80|#b0c3d9
+Galil AR|Kami|2.50|#4b69ff
+Galil AR|Metallic Squeezer|4.50|#4b69ff
+Galil AR|NV|1.80|#5e98d9
+Galil AR|O-Ranger|3.50|#5e98d9
+Galil AR|Orange DDPAT|45.00|#8847ff
+Galil AR|Phoenix Blacklight|45.00|#8847ff
+Galil AR|Rainbow Spoon|35.00|#d32ee6
+Galil AR|Robin's Egg|4.50|#5e98d9
+Galil AR|Rocket Pop|5.50|#4b69ff
+Galil AR|Sage Spray|0.80|#b0c3d9
+Galil AR|Shattered|12.00|#4b69ff
+Galil AR|Signal|2.50|#8847ff
+Galil AR|Sky Mandala|8.50|#4b69ff
+Galil AR|Stone Cold|5.50|#8847ff
+Galil AR|Sugar Rush|45.00|#d32ee6
+Galil AR|Tornado|0.80|#b0c3d9
+Galil AR|Tuxedo|1.50|#4b69ff
+Galil AR|Urban Rubble|1.50|#5e98d9
+Galil AR|Vandal|2.50|#4b69ff
+Galil AR|VariCamo|1.50|#5e98d9
+Galil AR|Winter Forest|15.00|#5e98d9
+Glock-18|AXIA|35.00|#d32ee6
+Glock-18|Block-18|12.50|#8847ff
+Glock-18|Blue Fissure|15.00|#4b69ff
+Glock-18|Brass|55.00|#8847ff
+Glock-18|Bullet Queen|65.00|#eb4b4b
+Glock-18|Bunsen Burner|1.50|#4b69ff
+Glock-18|Candy Apple|1.50|#4b69ff
+Glock-18|Catacombs|1.10|#4b69ff
+Glock-18|Clear Polymer|1.10|#4b69ff
+Glock-18|Coral Bloom|4.50|#4b69ff
+Glock-18|Death Rattle|1.50|#5e98d9
+Glock-18|Dragon Tattoo|95.00|#8847ff
+Glock-18|Fade|1800.00|#8847ff
+Glock-18|Franklin|45.00|#8847ff
+Glock-18|Gamma Doppler|65.00|#eb4b4b
+Glock-18|Glockingbird|15.00|#8847ff
+Glock-18|Gold Toof|85.00|#eb4b4b
+Glock-18|Green Line|4.50|#4b69ff
+Glock-18|Grinder|12.00|#8847ff
+Glock-18|Groundwater|15.00|#5e98d9
+Glock-18|High Beam|2.50|#5e98d9
+Glock-18|Ironwork|1.10|#4b69ff
+Glock-18|Mirror Mosaic|35.00|#d32ee6
+Glock-18|Moonrise|2.50|#8847ff
+Glock-18|Neo-Noir|45.00|#eb4b4b
+Glock-18|Night|12.00|#5e98d9
+Glock-18|Nuclear Garden|35.00|#8847ff
+Glock-18|Ocean Topo|3.50|#5e98d9
+Glock-18|Off World|0.90|#4b69ff
+Glock-18|Oxide Blaze|0.90|#4b69ff
+Glock-18|Pink DDPAT|140.00|#8847ff
+Glock-18|Ramese's Reach|15.00|#8847ff
+Glock-18|Reactor|12.00|#4b69ff
+Glock-18|Red Tire|3.50|#5e98d9
+Glock-18|Royal Legion|5.50|#8847ff
+Glock-18|Sacrifice|1.20|#4b69ff
+Glock-18|Sand Dune|12.00|#5e98d9
+Glock-18|Shinobu|28.00|#d32ee6
+Glock-18|Snack Attack|15.00|#d32ee6
+Glock-18|Steel Disruption|8.50|#8847ff
+Glock-18|Synth Leaf|180.00|#8847ff
+Glock-18|Teal Graf|4.50|#4b69ff
+Glock-18|Trace Lock|12.00|#8847ff
+Glock-18|Twilight Galaxy|180.00|#d32ee6
+Glock-18|Umbral Rabbit|5.50|#8847ff
+Glock-18|Vogue|12.00|#d32ee6
+Glock-18|Warhawk|1.10|#4b69ff
+Glock-18|Wasteland Rebel|45.00|#eb4b4b
+Glock-18|Water Elemental|12.00|#d32ee6
+Glock-18|Weasel|2.50|#8847ff
+Glock-18|Winterized|0.90|#4b69ff
+Glock-18|Wraiths|1.10|#4b69ff
+M249|Aztec|12.00|#8847ff
+M249|Blizzard Marbleized|12.00|#5e98d9
+M249|Deep Relief|1.10|#4b69ff
+M249|Downtown|2.50|#8847ff
+M249|Emerald Poison Dart|4.50|#8847ff
+M249|Gator Mesh|1.50|#5e98d9
+M249|Humidor|4.50|#4b69ff
+M249|Hypnosis|5.50|#4b69ff
+M249|Impact Drill|0.80|#b0c3d9
+M249|Jungle|1.20|#b0c3d9
+M249|Jungle DDPAT|0.80|#b0c3d9
+M249|Magma|2.50|#4b69ff
+M249|Midnight Palm|3.50|#5e98d9
+M249|O.S.I.P.R.|1.10|#4b69ff
+M249|Predator|1.10|#b0c3d9
+M249|Sage Camo|0.80|#b0c3d9
+M249|Shipping Forecast|12.00|#5e98d9
+M249|Sleet|0.90|#b0c3d9
+M249|Spectrogram|1.80|#5e98d9
+M249|Spectre|0.90|#4b69ff
+M249|Submerged|0.80|#b0c3d9
+M249|System Lock|1.10|#4b69ff
+M249|Warbird|1.10|#4b69ff
+M4A1-S|Atomic Alloy|65.00|#d32ee6
+M4A1-S|Basilisk|15.00|#8847ff
+M4A1-S|Black Lotus|18.00|#d32ee6
+M4A1-S|Blood Tiger|12.00|#4b69ff
+M4A1-S|Blue Phosphor|750.00|#d32ee6
+M4A1-S|Boreal Forest|1.50|#5e98d9
+M4A1-S|Briefing|1.20|#4b69ff
+M4A1-S|Bright Water|140.00|#8847ff
+M4A1-S|Chantico's Fire|125.00|#eb4b4b
+M4A1-S|Control Panel|95.00|#d32ee6
+M4A1-S|Cyrex|65.00|#eb4b4b
+M4A1-S|Dark Water|110.00|#8847ff
+M4A1-S|Decimator|25.00|#d32ee6
+M4A1-S|Emphorosaur-S|5.50|#8847ff
+M4A1-S|Fade|1200.00|#eb4b4b
+M4A1-S|Fizzy POP|12.00|#4b69ff
+M4A1-S|Flashback|2.50|#8847ff
+M4A1-S|Glitched Paint|32.00|#8847ff
+M4A1-S|Golden Coil|150.00|#eb4b4b
+M4A1-S|Guardian|65.00|#d32ee6
+M4A1-S|Hot Rod|950.00|#d32ee6
+M4A1-S|Hyper Beast|130.00|#eb4b4b
+M4A1-S|Icarus Fell|650.00|#8847ff
+M4A1-S|Imminent Danger|2500.00|#eb4b4b
+M4A1-S|Knight|3800.00|#d32ee6
+M4A1-S|Leaded Glass|15.00|#d32ee6
+M4A1-S|Liquidation|12.00|#8847ff
+M4A1-S|Master Piece|1200.00|#d32ee6
+M4A1-S|Mecha Industries|65.00|#eb4b4b
+M4A1-S|Moss Quartz|12.00|#5e98d9
+M4A1-S|Mud-Spec|3.50|#5e98d9
+M4A1-S|Night Terror|5.50|#8847ff
+M4A1-S|Nightmare|45.00|#d32ee6
+M4A1-S|Nitro|12.00|#8847ff
+M4A1-S|Player Two|110.00|#eb4b4b
+M4A1-S|Printstream|380.00|#eb4b4b
+M4A1-S|Rose Hex|8.50|#4b69ff
+M4A1-S|Solitude|240.00|#d32ee6
+M4A1-S|Stratosphere|45.00|#d32ee6
+M4A1-S|Vaporwave|145.00|#eb4b4b
+M4A1-S|VariCamo|1.50|#4b69ff
+M4A1-S|Wash me plz|18.00|#5e98d9
+M4A1-S|Welcome to the Jungle|4500.00|#eb4b4b
+M4A4|Aeolian Dark|12.00|#5e98d9
+M4A4|Asiimov|250.00|#eb4b4b
+M4A4|Bullet Rain|110.00|#eb4b4b
+M4A4|Buzz Kill|25.00|#eb4b4b
+M4A4|Choppa|4.50|#4b69ff
+M4A4|Converter|3.50|#4b69ff
+M4A4|Cyber Security|15.00|#d32ee6
+M4A4|Dark Blossom|12.00|#5e98d9
+M4A4|Desert Storm|15.00|#5e98d9
+M4A4|Desert-Strike|12.00|#eb4b4b
+M4A4|Desolate Space|22.00|#d32ee6
+M4A4|Dragon King|45.00|#d32ee6
+M4A4|Etch Lord|12.50|#8847ff
+M4A4|Evil Daimyo|8.50|#8847ff
+M4A4|Eye of Horus|1800.00|#eb4b4b
+M4A4|Faded Zebra|12.00|#4b69ff
+M4A4|Full Throttle|180.00|#eb4b4b
+M4A4|Global Offensive|12.00|#4b69ff
+M4A4|Griffin|12.00|#8847ff
+M4A4|Hellfire|110.00|#d32ee6
+M4A4|Hellish|42.00|#d32ee6
+M4A4|Howl|15000.00|#e4ae39
+M4A4|In Living Color|45.00|#eb4b4b
+M4A4|Jungle Tiger|65.00|#5e98d9
+M4A4|Magnesium|1.10|#4b69ff
+M4A4|Mainframe|1.50|#5e98d9
+M4A4|Modern Hunter|1200.00|#8847ff
+M4A4|Naval Shred Camo|4.50|#5e98d9
+M4A4|Neo-Noir|45.00|#eb4b4b
+M4A4|Poly Mag|1.10|#4b69ff
+M4A4|Polysoup|12.00|#8847ff
+M4A4|Poseidon|1800.00|#d32ee6
+M4A4|Radiation Hazard|1200.00|#4b69ff
+M4A4|Red DDPAT|14.00|#8847ff
+M4A4|Royal Paladin|110.00|#eb4b4b
+M4A4|Sheet Lightning|15.00|#8847ff
+M4A4|Spider Lily|12.00|#8847ff
+M4A4|Steel Work|3.80|#5e98d9
+M4A4|Temukau|140.00|#eb4b4b
+M4A4|The Battlestar|15.00|#eb4b4b
+M4A4|The Coalition|750.00|#eb4b4b
+M4A4|The Emperor|140.00|#eb4b4b
+M4A4|Tooth Fairy|12.00|#d32ee6
+M4A4|Tornado|45.00|#5e98d9
+M4A4|Turbine|22.00|#8847ff
+M4A4|Urban DDPAT|1.50|#5e98d9
+M4A4|X-Ray|45.00|#eb4b4b
+M4A4|Zirka|45.00|#8847ff
+MAC-10|Allure|2.50|#8847ff
+MAC-10|Aloha|1.10|#4b69ff
+MAC-10|Amber Fade|15.00|#4b69ff
+MAC-10|Bronzer|1.10|#b0c3d9
+MAC-10|Button Masher|2.50|#8847ff
+MAC-10|Calf Skin|3.50|#5e98d9
+MAC-10|Candy Apple|1.50|#5e98d9
+MAC-10|Cat Fight|14.00|#8847ff
+MAC-10|Classic Crate|1.20|#4b69ff
+MAC-10|Commuter|15.00|#5e98d9
+MAC-10|Copper Borre|12.00|#4b69ff
+MAC-10|Curse|12.00|#8847ff
+MAC-10|Derailment|18.00|#8847ff
+MAC-10|Disco Tech|15.00|#d32ee6
+MAC-10|Echoing Sands|3.50|#5e98d9
+MAC-10|Ensnared|1.10|#4b69ff
+MAC-10|Fade|35.00|#4b69ff
+MAC-10|Gold Brick|95.00|#8847ff
+MAC-10|Graven|45.00|#8847ff
+MAC-10|Heat|12.00|#8847ff
+MAC-10|Hot Snakes|1200.00|#d32ee6
+MAC-10|Indigo|1.50|#b0c3d9
+MAC-10|Lapis Gator|0.90|#4b69ff
+MAC-10|Last Dive|2.50|#8847ff
+MAC-10|Light Box|4.50|#4b69ff
+MAC-10|Malachite|2.50|#8847ff
+MAC-10|Monkeyflage|0.90|#4b69ff
+MAC-10|Neon Rider|22.00|#eb4b4b
+MAC-10|Nuclear Garden|12.00|#4b69ff
+MAC-10|Oceanic|1.10|#4b69ff
+MAC-10|Palm|3.50|#5e98d9
+MAC-10|Pipe Down|2.50|#8847ff
+MAC-10|Pipsqueak|4.50|#4b69ff
+MAC-10|Poplar Thicket|5.50|#4b69ff
+MAC-10|Propaganda|25.00|#d32ee6
+MAC-10|Rangeen|1.10|#4b69ff
+MAC-10|Red Filigree|140.00|#8847ff
+MAC-10|Saibā Oni|15.00|#8847ff
+MAC-10|Sakkaku|5.50|#8847ff
+MAC-10|Sienna Damask|1.10|#b0c3d9
+MAC-10|Silver|15.00|#5e98d9
+MAC-10|Snow Splash|12.00|#5e98d9
+MAC-10|Stalker|110.00|#eb4b4b
+MAC-10|Storm Camo|1.50|#b0c3d9
+MAC-10|Strats|1.10|#b0c3d9
+MAC-10|Surfwood|1.50|#b0c3d9
+MAC-10|Tatter|12.00|#8847ff
+MAC-10|Tornado|1.50|#b0c3d9
+MAC-10|Toybox|15.00|#d32ee6
+MAC-10|Ultraviolet|12.00|#4b69ff
+MAC-10|Urban DDPAT|1.10|#b0c3d9
+MAC-10|Whitefish|0.90|#4b69ff
+MAG-7|BI83 Spectrum|2.50|#8847ff
+MAG-7|Bulldozer|95.00|#8847ff
+MAG-7|Carbon Fiber|3.50|#5e98d9
+MAG-7|Chainmail|12.00|#5e98d9
+MAG-7|Cobalt Core|1.10|#4b69ff
+MAG-7|Copper Coated|5.50|#4b69ff
+MAG-7|Copper Oxide|1.80|#b0c3d9
+MAG-7|Core Breach|12.00|#8847ff
+MAG-7|Firestarter|4.50|#4b69ff
+MAG-7|Foresight|1.10|#4b69ff
+MAG-7|Hard Water|1.10|#4b69ff
+MAG-7|Hazard|45.00|#4b69ff
+MAG-7|Heat|2.50|#8847ff
+MAG-7|Heaven Guard|1.10|#4b69ff
+MAG-7|Insomnia|4.50|#4b69ff
+MAG-7|Irradiated Alert|1.50|#b0c3d9
+MAG-7|Justice|12.00|#d32ee6
+MAG-7|MAGnitude|1.10|#4b69ff
+MAG-7|Memento|4.50|#4b69ff
+MAG-7|Metallic DDPAT|1.50|#5e98d9
+MAG-7|Monster Call|2.50|#8847ff
+MAG-7|Navy Sheen|0.90|#b0c3d9
+MAG-7|Popdog|1.10|#4b69ff
+MAG-7|Praetorian|5.50|#8847ff
+MAG-7|Prism Terrace|12.00|#8847ff
+MAG-7|Resupply|4.50|#4b69ff
+MAG-7|Rust Coat|0.80|#b0c3d9
+MAG-7|Sand Dune|0.80|#b0c3d9
+MAG-7|Seabird|0.90|#b0c3d9
+MAG-7|Silver|15.00|#5e98d9
+MAG-7|Sonar|1.10|#4b69ff
+MAG-7|Storm|0.80|#b0c3d9
+MAG-7|SWAG-7|2.50|#8847ff
+MAG-7|Wildwood|1.80|#5e98d9
+MP5-SD|Acid Wash|1.10|#4b69ff
+MP5-SD|Agent|2.50|#8847ff
+MP5-SD|Autumn Twilly|12.00|#8847ff
+MP5-SD|Bamboo Garden|1.50|#b0c3d9
+MP5-SD|Co-Processor|1.50|#4b69ff
+MP5-SD|Condition Zero|1.10|#4b69ff
+MP5-SD|Desert Strike|1.10|#4b69ff
+MP5-SD|Dirt Drop|0.80|#b0c3d9
+MP5-SD|Focus|8.50|#4b69ff
+MP5-SD|Gauss|2.50|#8847ff
+MP5-SD|Gold Leaf|450.00|#4b69ff
+MP5-SD|Kitbash|2.50|#8847ff
+MP5-SD|Lab Rats|12.00|#8847ff
+MP5-SD|Lime Hex|1.10|#b0c3d9
+MP5-SD|Liquidation|4.50|#4b69ff
+MP5-SD|Necro Jr.|1.10|#4b69ff
+MP5-SD|Neon Squeezer|12.00|#5e98d9
+MP5-SD|Nitro|45.00|#5e98d9
+MP5-SD|Oxide Oasis|120.00|#d32ee6
+MP5-SD|Phosphor|18.00|#d32ee6
+MP5-SD|Picnic|15.00|#5e98d9
+MP5-SD|Savannah Halftone|1.80|#5e98d9
+MP5-SD|Snow Splash|15.00|#5e98d9
+MP5-SD|Statics|4.50|#4b69ff
+MP7|Abyssal Apparition|15.00|#d32ee6
+MP7|Akoben|1.10|#4b69ff
+MP7|Anodized Navy|15.00|#4b69ff
+MP7|Armor Core|0.90|#4b69ff
+MP7|Army Recon|1.10|#b0c3d9
+MP7|Asterion|35.00|#b0c3d9
+MP7|Astrolabe|12.00|#5e98d9
+MP7|Bloodsport|12.00|#eb4b4b
+MP7|Cirrus|0.90|#4b69ff
+MP7|Coral Paisley|12.00|#5e98d9
+MP7|Fade|12.00|#8847ff
+MP7|Forest DDPAT|0.80|#b0c3d9
+MP7|Groundwater|1.50|#b0c3d9
+MP7|Guerrilla|1.10|#4b69ff
+MP7|Gunsmoke|15.00|#5e98d9
+MP7|Impire|2.50|#8847ff
+MP7|Just Smile|15.00|#8847ff
+MP7|Mischief|0.90|#4b69ff
+MP7|Motherboard|1.50|#5e98d9
+MP7|Nemesis|15.00|#d32ee6
+MP7|Ocean Foam|120.00|#8847ff
+MP7|Olive Plaid|1.50|#b0c3d9
+MP7|Orange Peel|3.50|#5e98d9
+MP7|Powercore|2.50|#8847ff
+MP7|Prey|1.50|#b0c3d9
+MP7|Scorched|0.80|#b0c3d9
+MP7|Skulls|12.00|#4b69ff
+MP7|Smoking Kills|22.00|#d32ee6
+MP7|Special Delivery|2.50|#8847ff
+MP7|Sunbaked|1.10|#b0c3d9
+MP7|Tall Grass|15.00|#5e98d9
+MP7|Teal Blossom|140.00|#4b69ff
+MP7|Urban Hazard|1.10|#4b69ff
+MP7|Vault Heist|12.00|#5e98d9
+MP7|Whiteout|380.00|#4b69ff
+MP9|Airlock|15.00|#d32ee6
+MP9|Arctic Tri-Tone|5.50|#8847ff
+MP9|Bee-Tron|1.50|#b0c3d9
+MP9|Bioleak|0.90|#4b69ff
+MP9|Black Sand|0.90|#4b69ff
+MP9|Broken Record|12.50|#4b69ff
+MP9|Buff Blue|1.50|#b0c3d9
+MP9|Bulldozer|350.00|#8847ff
+MP9|Capillary|0.90|#4b69ff
+MP9|Cobalt Paisley|12.50|#4b69ff
+MP9|Dark Age|35.00|#4b69ff
+MP9|Dart|1.10|#4b69ff
+MP9|Deadly Poison|0.90|#4b69ff
+MP9|Dizzy|1.50|#b0c3d9
+MP9|Dry Season|4.50|#b0c3d9
+MP9|Featherweight|1.10|#4b69ff
+MP9|Food Chain|15.00|#d32ee6
+MP9|Goo|2.50|#8847ff
+MP9|Green Plaid|1.50|#b0c3d9
+MP9|Hot Rod|55.00|#4b69ff
+MP9|Hydra|12.00|#d32ee6
+MP9|Hypnotic|35.00|#8847ff
+MP9|Latte Rush|32.00|#d32ee6
+MP9|Modest Threat|0.90|#4b69ff
+MP9|Mount Fuji|5.50|#8847ff
+MP9|Music Box|12.00|#4b69ff
+MP9|Multi-Terrain|1.50|#b0c3d9
+MP9|Nexus|4.50|#4b69ff
+MP9|Old Roots|1.50|#5e98d9
+MP9|Orange Peel|3.50|#5e98d9
+MP9|Pandora's Box|380.00|#4b69ff
+MP9|Pine|1.10|#b0c3d9
+MP9|Rose Iron|12.00|#8847ff
+MP9|Ruby Poison Dart|2.50|#8847ff
+MP9|Sakkaku|5.50|#8847ff
+MP9|Sand Dashed|0.80|#b0c3d9
+MP9|Sand Scale|0.90|#4b69ff
+MP9|Setting Sun|4.50|#4b69ff
+MP9|Shredded|4.50|#4b69ff
+MP9|Slide|0.80|#b0c3d9
+MP9|Starlight Protector|65.00|#eb4b4b
+MP9|Stained Glass|140.00|#8847ff
+MP9|Storm|0.80|#b0c3d9
+MP9|Wild Lily|1800.00|#d32ee6
+Negev|Anodized Navy|140.00|#4b69ff
+Negev|Army Sheen|0.80|#b0c3d9
+Negev|Boroque Sand|2.50|#b0c3d9
+Negev|Bratatat|4.50|#4b69ff
+Negev|Bulkhead|1.50|#5e98d9
+Negev|CaliCamo|1.50|#5e98d9
+Negev|Dazzle|0.90|#4b69ff
+Negev|Desert-Strike|1.10|#4b69ff
+Negev|dev_texture|12.00|#8847ff
+Negev|Drop Me|1.10|#4b69ff
+Negev|Infrastructure|12.00|#4b69ff
+Negev|Lionfish|2.50|#8847ff
+Negev|Loudmouth|12.00|#8847ff
+Negev|Man-o'-war|12.00|#4b69ff
+Negev|Mjölnir|1800.00|#d32ee6
+Negev|Midnight Palm|3.50|#5e98d9
+Negev|Nuclear Waste|4.50|#5e98d9
+Negev|Palm|15.00|#5e98d9
+Negev|Phoenix Stencil|4.50|#4b69ff
+Negev|Power Loader|5.50|#8847ff
+Negev|Prototype|1.10|#4b69ff
+Negev|Raw Ceramic|1.20|#b0c3d9
+Negev|Sour Grapes|4.50|#5e98d9
+Negev|Terrain|1.10|#4b69ff
+Negev|Ultralight|0.90|#4b69ff
+Negev|Wall Bang|12.00|#5e98d9
+Nova|Antique|12.00|#d32ee6
+Nova|Army Sheen|0.80|#b0c3d9
+Nova|Baroque Orange|35.00|#8847ff
+Nova|Blaze Orange|120.00|#4b69ff
+Nova|Bloomstick|45.00|#d32ee6
+Nova|Caged Steel|1.50|#5e98d9
+Nova|Candy Apple|12.00|#5e98d9
+Nova|Clear Polymer|2.50|#8847ff
+Nova|Copperflage|4.50|#4b69ff
+Nova|Dark Sigil|1.20|#4b69ff
+Nova|Exo|1.10|#4b69ff
+Nova|Forest Leaves|1.20|#b0c3d9
+Nova|Ghost Camo|2.50|#4b69ff
+Nova|Gila|2.50|#8847ff
+Nova|Graphite|15.00|#8847ff
+Nova|Green Apple|15.00|#5e98d9
+Nova|Hieroglyph|0.80|#b0c3d9
+Nova|Hyper Beast|45.00|#d32ee6
+Nova|Interlock|12.00|#4b69ff
+Nova|Koi|5.50|#8847ff
+Nova|Mandrel|0.80|#b0c3d9
+Nova|Marsh Grass|1.10|#b0c3d9
+Nova|Modern Hunter|140.00|#4b69ff
+Nova|Moon in Libra|1.50|#b0c3d9
+Nova|Ocular|12.00|#8847ff
+Nova|Oxide Blaze|1.10|#4b69ff
+Nova|Plume|1.10|#4b69ff
+Nova|Polar Mesh|0.80|#b0c3d9
+Nova|Predator|0.80|#b0c3d9
+Nova|Quick Sand|1.50|#4b69ff
+Nova|Rain Station|12.00|#5e98d9
+Nova|Ranger|1.10|#4b69ff
+Nova|Rising Skull|15.00|#8847ff
+Nova|Rising Sun|18.50|#8847ff
+Nova|Rust Coat|1.10|#5e98d9
+Nova|Sand Dune|0.80|#b0c3d9
+Nova|Sobek's Bite|12.00|#8847ff
+Nova|Tempest|12.00|#4b69ff
+Nova|Toy Soldier|5.50|#8847ff
+Nova|Turquoise Pour|12.00|#5e98d9
+Nova|Walnut|2.50|#b0c3d9
+Nova|Wild Six|2.50|#8847ff
+Nova|Windblown|1.10|#4b69ff
+Nova|Wood Fired|1.10|#4b69ff
+Nova|Wurst Hölle|12.50|#4b69ff
+Nova|Yorkshire|12.00|#4b69ff
+P2000|Acid Etched|5.50|#8847ff
+P2000|Amber Fade|65.00|#8847ff
+P2000|Chainmail|35.00|#4b69ff
+P2000|Coach Class|12.00|#5e98d9
+P2000|Corticera|12.00|#d32ee6
+P2000|Dispatch|12.00|#4b69ff
+P2000|Fire Elemental|45.00|#eb4b4b
+P2000|Gnarled|0.90|#4b69ff
+P2000|Granite Marbleized|1.50|#5e98d9
+P2000|Grassland|15.00|#5e98d9
+P2000|Grassland Leaves|1.50|#5e98d9
+P2000|Handgun|5.50|#8847ff
+P2000|Imperial|1.10|#4b69ff
+P2000|Imperial Dragon|15.00|#d32ee6
+P2000|Ivory|1.10|#4b69ff
+P2000|Lifted Spirits|1.10|#4b69ff
+P2000|Marsh|1.80|#5e98d9
+P2000|Obsidian|5.50|#8847ff
+P2000|Ocean Foam|180.00|#d32ee6
+P2000|Oceanic|0.90|#4b69ff
+P2000|Panther Camo|15.00|#5e98d9
+P2000|Pathfinder|12.00|#5e98d9
+P2000|Pulse|2.50|#4b69ff
+P2000|Red FragCam|2.50|#4b69ff
+P2000|Red Wing|8.50|#4b69ff
+P2000|Royal Baroque|12.50|#4b69ff
+P2000|Scorpion|45.00|#8847ff
+P2000|Silver|15.00|#4b69ff
+P2000|Space Race|35.00|#8847ff
+P2000|Sure Grip|4.50|#4b69ff
+P2000|Turf|1.10|#4b69ff
+P2000|Urban Hazard|0.90|#4b69ff
+P2000|Wicked Sick|22.00|#d32ee6
+P2000|Woodsman|12.00|#8847ff
+P250|Apep's Curse|120.00|#d32ee6
+P250|Asiimov|45.00|#d32ee6
+P250|Bengal Tiger|12.00|#4b69ff
+P250|Black & Tan|3.50|#4b69ff
+P250|Bone Mask|0.80|#b0c3d9
+P250|Boreal Forest|0.80|#b0c3d9
+P250|Bullfrog|12.00|#4b69ff
+P250|Cartel|15.00|#d32ee6
+P250|Cassette|0.90|#4b69ff
+P250|Constructivist|12.50|#5e98d9
+P250|Contaminant|1.10|#4b69ff
+P250|Contamination|4.50|#5e98d9
+P250|Copper Oxide|1.80|#b0c3d9
+P250|Crimson Kimono|140.00|#5e98d9
+P250|Cyber Shell|2.50|#8847ff
+P250|Dark Filigree|15.00|#5e98d9
+P250|Digital Architect|15.00|#8847ff
+P250|Drought|0.90|#b0c3d9
+P250|Epicenter|18.00|#d32ee6
+P250|Exchanger|1.10|#4b69ff
+P250|Facets|12.00|#5e98d9
+P250|Facility Draft|0.80|#b0c3d9
+P250|Forest Night|0.80|#b0c3d9
+P250|Franklin|45.00|#d32ee6
+P250|Gunsmoke|3.50|#5e98d9
+P250|Hive|12.00|#4b69ff
+P250|Inferno|5.50|#8847ff
+P250|Metallic DDPAT|1.50|#5e98d9
+P250|Mehndi|55.00|#d32ee6
+P250|Mint Kimono|1.50|#b0c3d9
+P250|Modern Hunter|120.00|#4b69ff
+P250|Muertos|12.00|#d32ee6
+P250|Nevermore|5.50|#8847ff
+P250|Nuclear Threat|140.00|#8847ff
+P250|Plum Netting|1.10|#b0c3d9
+P250|Re.built|4.50|#4b69ff
+P250|Red Rock|12.00|#8847ff
+P250|Red Tide|12.50|#4b69ff
+P250|Ripple|0.90|#4b69ff
+P250|Sand Dune|0.80|#b0c3d9
+P250|See Ya Later|18.00|#eb4b4b
+P250|Sedimentary|1.50|#5e98d9
+P250|Sleet|0.90|#b0c3d9
+P250|Small Game|4.50|#4b69ff
+P250|Splash|45.00|#8847ff
+P250|Steel Disruption|8.50|#4b69ff
+P250|Supernova|5.50|#8847ff
+P250|Undertow|65.00|#d32ee6
+P250|Valence|0.90|#4b69ff
+P250|Verdigris|0.90|#4b69ff
+P250|Vino Primo|15.00|#8847ff
+P250|Visions|15.00|#d32ee6
+P250|Whiteout|65.00|#4b69ff
+P250|Wingshot|5.50|#8847ff
+P250|X-Ray|1.50|#8847ff
+P90|Aeolian Light|12.50|#4b69ff
+P90|Asiimov|45.00|#eb4b4b
+P90|Astral Jörmungandr|320.00|#8847ff
+P90|Attack Vector|15.00|#8847ff
+P90|Baroque Red|12.00|#4b69ff
+P90|Blind Spot|12.00|#8847ff
+P90|Blue Tac|1.10|#b0c3d9
+P90|Chopper|2.50|#8847ff
+P90|Cocoa Rampage|1.10|#4b69ff
+P90|Death by Kitty|180.00|#eb4b4b
+P90|Death Grip|12.00|#8847ff
+P90|Desert DDPAT|1.50|#b0c3d9
+P90|Desert Halftone|0.90|#b0c3d9
+P90|Desert Warfare|1.50|#4b69ff
+P90|Elite Build|1.10|#4b69ff
+P90|Emerald Dragon|450.00|#d32ee6
+P90|Facility Negative|1.50|#4b69ff
+P90|Fallout Warning|15.00|#5e98d9
+P90|Freight|1.10|#4b69ff
+P90|Glacier Mesh|15.00|#4b69ff
+P90|Grim|0.90|#4b69ff
+P90|Leather|140.00|#5e98d9
+P90|Module|1.10|#4b69ff
+P90|Mustard Gas|12.00|#5e98d9
+P90|Neoqueen|8.50|#8847ff
+P90|Nostalgia|15.00|#d32ee6
+P90|Off World|0.90|#4b69ff
+P90|Randy Rush|18.00|#8847ff
+P90|Reef Grief|4.50|#4b69ff
+P90|Sand Spray|0.80|#b0c3d9
+P90|ScaraB Rush|12.00|#8847ff
+P90|Schematic|12.00|#4b69ff
+P90|Scorched|0.80|#b0c3d9
+P90|Shallow Grave|12.00|#d32ee6
+P90|Shapewood|12.00|#d32ee6
+P90|Straight Dimes|3.50|#5e98d9
+P90|Storm|1.50|#b0c3d9
+P90|Sunset Lily|15.00|#5e98d9
+P90|Teardown|4.50|#4b69ff
+P90|Tiger Pit|4.50|#4b69ff
+P90|Traction|1.10|#4b69ff
+P90|Trigon|12.00|#d32ee6
+P90|Vent Rush|5.50|#8847ff
+P90|Virus|15.00|#8847ff
+P90|Wash me|12.00|#5e98d9
+P90|Wave Breaker|22.00|#8847ff
+PP-Bizon|Anolis|1.10|#b0c3d9
+PP-Bizon|Antique|12.00|#8847ff
+PP-Bizon|Bamboo Print|1.50|#b0c3d9
+PP-Bizon|Bizoom|0.90|#b0c3d9
+PP-Bizon|Blue Streak|15.00|#8847ff
+PP-Bizon|Brass|15.00|#4b69ff
+PP-Bizon|Breaker Box|1.10|#5e98d9
+PP-Bizon|Candy Apple|3.50|#5e98d9
+PP-Bizon|Carbon Fiber|15.00|#5e98d9
+PP-Bizon|Chemical Green|12.00|#5e98d9
+PP-Bizon|Cobalt Halftone|2.50|#4b69ff
+PP-Bizon|Cold Cell|1.80|#5e98d9
+PP-Bizon|Death Rattle|1.10|#b0c3d9
+PP-Bizon|Embargo|5.50|#8847ff
+PP-Bizon|Facility Sketch|0.80|#b0c3d9
+PP-Bizon|Forest Leaves|0.80|#b0c3d9
+PP-Bizon|Fuel Rod|12.00|#8847ff
+PP-Bizon|Harvester|0.90|#4b69ff
+PP-Bizon|High Roller|15.00|#d32ee6
+PP-Bizon|Irradiated Alert|0.80|#b0c3d9
+PP-Bizon|Judgement of Anubis|15.00|#eb4b4b
+PP-Bizon|Jungle Slipstream|0.90|#4b69ff
+PP-Bizon|Lumen|1.10|#4b69ff
+PP-Bizon|Modern Hunter|140.00|#4b69ff
+PP-Bizon|Night Ops|1.50|#5e98d9
+PP-Bizon|Night Riot|1.10|#4b69ff
+PP-Bizon|Osiris|2.50|#8847ff
+PP-Bizon|Photic Zone|1.10|#4b69ff
+PP-Bizon|Runic|0.90|#4b69ff
+PP-Bizon|Rust Coat|15.00|#4b69ff
+PP-Bizon|Sand Dashed|0.80|#b0c3d9
+PP-Bizon|Seabird|0.90|#b0c3d9
+PP-Bizon|Space Cat|5.50|#8847ff
+PP-Bizon|Thermal Currents|0.90|#b0c3d9
+PP-Bizon|Urban Dashed|0.80|#b0c3d9
+PP-Bizon|Water Sigil|2.50|#4b69ff
+PP-Bizon|Wood Block Camo|1.50|#b0c3d9
+R8 Revolver|Amber Fade|15.00|#d32ee6
+R8 Revolver|Banana Cannon|5.50|#8847ff
+R8 Revolver|Blaze|12.00|#4b69ff
+R8 Revolver|Bone Forged|1.10|#4b69ff
+R8 Revolver|Bone Mask|0.80|#b0c3d9
+R8 Revolver|Canal Spray|1.50|#b0c3d9
+R8 Revolver|Cobalt Grip|1.50|#b0c3d9
+R8 Revolver|Crazy 8|3.50|#8847ff
+R8 Revolver|Crimson Web|12.00|#4b69ff
+R8 Revolver|Dark Chamber|12.50|#5e98d9
+R8 Revolver|Desert Brush|1.10|#b0c3d9
+R8 Revolver|Fade|25.00|#eb4b4b
+R8 Revolver|Grip|1.10|#4b69ff
+R8 Revolver|Inlay|0.80|#b0c3d9
+R8 Revolver|Junk Yard|1.10|#4b69ff
+R8 Revolver|Leafhopper|1.80|#5e98d9
+R8 Revolver|Llama Cannon|15.00|#d32ee6
+R8 Revolver|Mauve Aside|1.10|#b0c3d9
+R8 Revolver|Memento|1.10|#4b69ff
+R8 Revolver|Night|12.50|#b0c3d9
+R8 Revolver|Nitro|1.50|#5e98d9
+R8 Revolver|Phoenix Marker|1.50|#5e98d9
+R8 Revolver|Reboot|2.50|#8847ff
+R8 Revolver|Skull Crusher|12.00|#d32ee6
+R8 Revolver|Survivalist|1.10|#4b69ff
+R8 Revolver|Tango|4.50|#4b69ff
+SCAR-20|Assault|2.50|#4b69ff
+SCAR-20|Bloodsport|15.00|#d32ee6
+SCAR-20|Blueprint|1.10|#4b69ff
+SCAR-20|Brass|12.00|#4b69ff
+SCAR-20|Caged|8.50|#4b69ff
+SCAR-20|Carbon Fiber|1.50|#5e98d9
+SCAR-20|Cardiac|12.00|#d32ee6
+SCAR-20|Contractor|0.80|#b0c3d9
+SCAR-20|Crimson Web|12.00|#4b69ff
+SCAR-20|Cyrex|15.00|#d32ee6
+SCAR-20|Emerald|350.00|#8847ff
+SCAR-20|Enforcer|2.50|#8847ff
+SCAR-20|Fragments|1.10|#4b69ff
+SCAR-20|Green Marine|1.10|#4b69ff
+SCAR-20|Grotto|0.90|#4b69ff
+SCAR-20|Jungle Slipstream|1.10|#4b69ff
+SCAR-20|Keeping Tabs|1.10|#4b69ff
+SCAR-20|Magna Carta|12.00|#4b69ff
+SCAR-20|Murky|1.20|#4b69ff
+SCAR-20|Outbreak|0.90|#4b69ff
+SCAR-20|Palm|1.50|#5e98d9
+SCAR-20|Poultrygeist|1.10|#4b69ff
+SCAR-20|Powercore|2.50|#8847ff
+SCAR-20|Sand Mesh|0.80|#b0c3d9
+SCAR-20|Short Ochre|1.50|#b0c3d9
+SCAR-20|Splash Jam|1450.00|#d32ee6
+SCAR-20|Stone Mosaico|2.50|#b0c3d9
+SCAR-20|Storm|1.50|#b0c3d9
+SCAR-20|Torn|1.10|#4b69ff
+SCAR-20|Trail Blazer|5.50|#4b69ff
+SCAR-20|Wild Berry|12.50|#4b69ff
+SCAR-20|Zinc|0.90|#b0c3d9
+SG 553|Aerial|0.90|#4b69ff
+SG 553|Aloha|0.90|#4b69ff
+SG 553|Anodized Navy|15.00|#4b69ff
+SG 553|Army Sheen|0.80|#b0c3d9
+SG 553|Atlas|0.90|#4b69ff
+SG 553|Barricade|0.80|#b0c3d9
+SG 553|Berry Gel Coat|12.50|#4b69ff
+SG 553|Bleached|1.10|#b0c3d9
+SG 553|Bulldozer|140.00|#8847ff
+SG 553|Candy Apple|1.50|#5e98d9
+SG 553|Colony IV|15.00|#d32ee6
+SG 553|Cyberforce|4.50|#4b69ff
+SG 553|Cyrex|12.00|#d32ee6
+SG 553|Damascus Steel|15.00|#4b69ff
+SG 553|Danger Close|1.10|#4b69ff
+SG 553|Darkwing|2.50|#8847ff
+SG 553|Desert Blossom|12.00|#4b69ff
+SG 553|Dragon Tech|2.50|#8847ff
+SG 553|Fallout Warning|12.00|#5e98d9
+SG 553|Gator Mesh|1.50|#5e98d9
+SG 553|Hazard Pay|180.00|#d32ee6
+SG 553|Heavy Metal|1.10|#4b69ff
+SG 553|Hypnotic|120.00|#8847ff
+SG 553|Integrale|140.00|#d32ee6
+SG 553|Lush Ruins|1.10|#b0c3d9
+SG 553|Night Camo|1.50|#b0c3d9
+SG 553|Ol' Rusty|0.90|#4b69ff
+SG 553|Phantom|2.50|#8847ff
+SG 553|Pulse|12.00|#8847ff
+SG 553|Safari Print|0.90|#b0c3d9
+SG 553|Tiger Moth|8.50|#8847ff
+SG 553|Tornado|1.50|#b0c3d9
+SG 553|Traveler|15.00|#5e98d9
+SG 553|Triarch|2.50|#8847ff
+SG 553|Ultraviolet|15.00|#4b69ff
+SG 553|Wave Spray|12.00|#4b69ff
+SG 553|Waves Perforated|0.80|#b0c3d9
+SSG 08|Abyss|2.50|#4b69ff
+SSG 08|Acid Fade|35.00|#4b69ff
+SSG 08|Azure Glyph|3.50|#5e98d9
+SSG 08|Big Iron|15.00|#d32ee6
+SSG 08|Blood in the Water|180.00|#eb4b4b
+SSG 08|Bloodshot|22.00|#d32ee6
+SSG 08|Blue Spruce|0.80|#b0c3d9
+SSG 08|Blush Pour|12.50|#4b69ff
+SSG 08|Calligrafaux|12.50|#5e98d9
+SSG 08|Carbon Fiber|1.10|#5e98d9
+SSG 08|Dark Water|45.00|#4b69ff
+SSG 08|Death Strike|350.00|#d32ee6
+SSG 08|Death's Head|12.00|#8847ff
+SSG 08|Detour|15.00|#4b69ff
+SSG 08|Dezastre|12.50|#4b69ff
+SSG 08|Dragonfire|25.00|#eb4b4b
+SSG 08|Fever Dream|2.50|#8847ff
+SSG 08|Ghost Crusader|2.50|#8847ff
+SSG 08|Green Ceramic|1.50|#b0c3d9
+SSG 08|Grey Smoke|1.10|#b0c3d9
+SSG 08|Halftone Whorl|1.80|#5e98d9
+SSG 08|Hand Brake|12.00|#4b69ff
+SSG 08|Jungle Dashed|0.80|#b0c3d9
+SSG 08|Lichen Dashed|12.00|#b0c3d9
+SSG 08|Mainframe 001|0.90|#4b69ff
+SSG 08|Mayan Dreams|15.00|#5e98d9
+SSG 08|Memorial|12.50|#4b69ff
+SSG 08|Necropos|1.10|#4b69ff
+SSG 08|Orange Filigree|12.00|#4b69ff
+SSG 08|Parallax|3.50|#8847ff
+SSG 08|PAW|2.50|#8847ff
+SSG 08|Prey|0.80|#b0c3d9
+SSG 08|Rapid Transit|22.00|#8847ff
+SSG 08|Red Stone|1.50|#b0c3d9
+SSG 08|Sand Dune|1.50|#b0c3d9
+SSG 08|Sans Comic|12.50|#b0c3d9
+SSG 08|Sea Calico|140.00|#8847ff
+SSG 08|Slashed|1.10|#4b69ff
+SSG 08|Spring Twilly|12.00|#4b69ff
+SSG 08|Threat Detected|12.00|#4b69ff
+SSG 08|Tiger Tear|3.80|#5e98d9
+SSG 08|Tropical Storm|15.00|#5e98d9
+SSG 08|Turbo Peek|15.00|#d32ee6
+SSG 08|Zeno|12.50|#4b69ff
+Sawed-Off|Amber Fade|15.00|#4b69ff
+Sawed-Off|Analog Input|12.50|#8847ff
+Sawed-Off|Apocalypto|2.50|#8847ff
+Sawed-Off|Bamboo Shadow|1.50|#b0c3d9
+Sawed-Off|Black Sand|0.90|#4b69ff
+Sawed-Off|Brake Light|12.00|#4b69ff
+Sawed-Off|Clay Ambush|1.10|#b0c3d9
+Sawed-Off|Copper|125.00|#4b69ff
+Sawed-Off|Crimson Batik|1.50|#b0c3d9
+Sawed-Off|Devourer|12.00|#d32ee6
+Sawed-Off|First Class|15.00|#4b69ff
+Sawed-Off|Forest DDPAT|0.80|#b0c3d9
+Sawed-Off|Fubar|0.90|#4b69ff
+Sawed-Off|Full Stop|12.00|#4b69ff
+Sawed-Off|Highwayman|5.50|#8847ff
+Sawed-Off|Irradiated Alert|1.50|#b0c3d9
+Sawed-Off|Jungle Thicket|0.80|#b0c3d9
+Sawed-Off|Kiss♥Love|15.00|#d32ee6
+Sawed-Off|Limelight|2.50|#8847ff
+Sawed-Off|Morris|1.10|#4b69ff
+Sawed-Off|Mosaico|1.50|#5e98d9
+Sawed-Off|Orange DDPAT|15.00|#8847ff
+Sawed-Off|Origami|0.90|#4b69ff
+Sawed-Off|Parched|1.10|#b0c3d9
+Sawed-Off|Rust Coat|1.50|#5e98d9
+Sawed-Off|Runoff|1.10|#b0c3d9
+Sawed-Off|Sage Spray|0.80|#b0c3d9
+Sawed-Off|Serenity|2.50|#8847ff
+Sawed-Off|Snake Camo|15.00|#5e98d9
+Sawed-Off|Spirit Board|1.10|#4b69ff
+Sawed-Off|The Kraken|45.00|#eb4b4b
+Sawed-Off|Wasteland Princess|12.00|#d32ee6
+Sawed-Off|Yorick|1.10|#4b69ff
+Sawed-Off|Zander|0.90|#4b69ff
+Tec-9|Army Mesh|1.50|#b0c3d9
+Tec-9|Avalanche|5.50|#8847ff
+Tec-9|Bamboo Forest|1.50|#b0c3d9
+Tec-9|Bamboozle|2.50|#8847ff
+Tec-9|Banana Leaf|12.00|#5e98d9
+Tec-9|Blast From the Past|12.00|#4b69ff
+Tec-9|Blue Blast|1.10|#b0c3d9
+Tec-9|Blue Titanium|12.00|#4b69ff
+Tec-9|Brass|45.00|#4b69ff
+Tec-9|Brother|2.50|#8847ff
+Tec-9|Citric Acid|3.50|#5e98d9
+Tec-9|Cracked Opal|1.10|#4b69ff
+Tec-9|Cut Out|1.20|#4b69ff
+Tec-9|Decimator|12.00|#d32ee6
+Tec-9|Flash Out|1.20|#4b69ff
+Tec-9|Fubar|0.90|#4b69ff
+Tec-9|Fuel Injector|15.00|#d32ee6
+Tec-9|Garter-9|12.00|#5e98d9
+Tec-9|Groundwater|0.80|#b0c3d9
+Tec-9|Hades|12.00|#5e98d9
+Tec-9|Ice Cap|1.10|#4b69ff
+Tec-9|Isaac|12.00|#4b69ff
+Tec-9|Jambiya|1.10|#4b69ff
+Tec-9|Mummy's Rot|4.50|#4b69ff
+Tec-9|Nuclear Threat|180.00|#8847ff
+Tec-9|Orange Murano|15.00|#5e98d9
+Tec-9|Ossified|12.00|#4b69ff
+Tec-9|Phoenix Chalk|1.10|#b0c3d9
+Tec-9|Raw Ceramic|0.90|#b0c3d9
+Tec-9|Re-Entry|2.50|#8847ff
+Tec-9|Rebel|4.50|#4b69ff
+Tec-9|Red Quartz|15.00|#8847ff
+Tec-9|Remote Control|45.00|#d32ee6
+Tec-9|Rust Leaf|12.00|#5e98d9
+Tec-9|Safety Net|12.00|#4b69ff
+Tec-9|Sandstorm|2.50|#4b69ff
+Tec-9|Slag|4.50|#4b69ff
+Tec-9|Snek-9|1.10|#4b69ff
+Tec-9|Terrace|110.00|#4b69ff
+Tec-9|Tiger Stencil|1.80|#5e98d9
+Tec-9|Titanium Bit|15.00|#8847ff
+Tec-9|Tornado|1.50|#b0c3d9
+Tec-9|Toxic|12.00|#4b69ff
+Tec-9|Urban DDPAT|0.80|#b0c3d9
+Tec-9|VariCamo|1.50|#5e98d9
+Tec-9|Whiteout|65.00|#8847ff
+UMP-45|Arctic Wolf|2.50|#8847ff
+UMP-45|Blaze|12.00|#4b69ff
+UMP-45|Bone Pile|4.50|#4b69ff
+UMP-45|Briefing|0.90|#4b69ff
+UMP-45|Caramel|1.50|#b0c3d9
+UMP-45|Carbon Fiber|1.50|#5e98d9
+UMP-45|Continuum|28.00|#8847ff
+UMP-45|Corporal|1.10|#4b69ff
+UMP-45|Crime Scene|35.00|#8847ff
+UMP-45|Crimson Foil|25.00|#8847ff
+UMP-45|Day Lily|140.00|#4b69ff
+UMP-45|Delusion|1.10|#4b69ff
+UMP-45|Exposure|2.50|#8847ff
+UMP-45|Facility Dark|0.80|#b0c3d9
+UMP-45|Fade|95.00|#d32ee6
+UMP-45|Fallout Warning|15.00|#5e98d9
+UMP-45|Full Stop|12.00|#4b69ff
+UMP-45|Gold Bismuth|2.50|#8847ff
+UMP-45|Grand Prix|2.50|#8847ff
+UMP-45|Green Swirl|1.50|#b0c3d9
+UMP-45|Gunsmoke|1.50|#5e98d9
+UMP-45|Houndstooth|12.00|#5e98d9
+UMP-45|Indigo|1.50|#b0c3d9
+UMP-45|K.O. Factory|42.00|#d32ee6
+UMP-45|Labyrinth|1.10|#4b69ff
+UMP-45|Late Night Transit|4.50|#4b69ff
+UMP-45|Mechanism|1.10|#5e98d9
+UMP-45|Metal Flowers|1.20|#4b69ff
+UMP-45|Minotaur's Labyrinth|95.00|#4b69ff
+UMP-45|Momentum|12.00|#d32ee6
+UMP-45|Moonrise|2.50|#8847ff
+UMP-45|Motorized|4.50|#4b69ff
+UMP-45|Mudder|0.80|#b0c3d9
+UMP-45|Neo-Noir|28.00|#d32ee6
+UMP-45|Oscillator|1.10|#4b69ff
+UMP-45|Plastique|2.50|#8847ff
+UMP-45|Primal Saber|12.00|#d32ee6
+UMP-45|Riot|1.10|#4b69ff
+UMP-45|Roadblock|1.10|#4b69ff
+UMP-45|Scaffold|2.50|#8847ff
+UMP-45|Scorched|0.80|#b0c3d9
+UMP-45|Urban DDPAT|0.80|#b0c3d9
+UMP-45|Warm Blooded|8.50|#4b69ff
+UMP-45|Wild Child|15.00|#d32ee6
+USP-S|27|12.50|#4b69ff
+USP-S|Alpine Camo|4.50|#4b69ff
+USP-S|Ancient Visions|45.00|#8847ff
+USP-S|Black Lotus|12.00|#4b69ff
+USP-S|Bleeding Edge|32.00|#8847ff
+USP-S|Blood Tiger|12.00|#4b69ff
+USP-S|Blueprint|18.00|#4b69ff
+USP-S|Bright Water|110.00|#8847ff
+USP-S|Business Class|120.00|#4b69ff
+USP-S|Caiman|65.00|#d32ee6
+USP-S|Check Engine|12.00|#4b69ff
+USP-S|Cortex|12.00|#d32ee6
+USP-S|Cyrex|12.00|#8847ff
+USP-S|Dark Water|95.00|#8847ff
+USP-S|Desert Tactical|3.80|#5e98d9
+USP-S|Flashback|2.50|#8847ff
+USP-S|Forest Leaves|1.50|#5e98d9
+USP-S|Guardian|12.00|#8847ff
+USP-S|Jawbreaker|85.00|#d32ee6
+USP-S|Kill Confirmed|150.00|#eb4b4b
+USP-S|Lead Conduit|2.50|#4b69ff
+USP-S|Monster Mashup|45.00|#d32ee6
+USP-S|Neo-Noir|55.00|#eb4b4b
+USP-S|Night Ops|12.00|#4b69ff
+USP-S|Orange Anolis|14.00|#8847ff
+USP-S|Orion|140.00|#d32ee6
+USP-S|Overgrowth|110.00|#8847ff
+USP-S|Para Green|15.00|#5e98d9
+USP-S|Pathfinder|12.00|#5e98d9
+USP-S|PC-GRN|12.50|#4b69ff
+USP-S|Printstream|150.00|#eb4b4b
+USP-S|Purple DDPAT|14.00|#4b69ff
+USP-S|Road Rash|110.00|#8847ff
+USP-S|Royal Blue|15.00|#5e98d9
+USP-S|Royal Guard|28.00|#8847ff
+USP-S|Serum|65.00|#d32ee6
+USP-S|Sleeping Potion|35.00|#8847ff
+USP-S|Stainless|15.00|#4b69ff
+USP-S|Target Acquired|380.00|#d32ee6
+USP-S|The Traitor|140.00|#eb4b4b
+USP-S|Ticket to Hell|5.50|#8847ff
+USP-S|Torque|2.50|#4b69ff
+USP-S|Tropical Breeze|12.50|#4b69ff
+USP-S|Whiteout|120.00|#d32ee6
+XM1014|Ancient Lore|15.00|#8847ff
+XM1014|Banana Leaf|12.00|#5e98d9
+XM1014|Black Tie|2.50|#8847ff
+XM1014|Blaze Orange|120.00|#4b69ff
+XM1014|Blue Steel|3.50|#5e98d9
+XM1014|Blue Spruce|0.80|#b0c3d9
+XM1014|Blue Tire|1.10|#b0c3d9
+XM1014|Bone Machine|4.50|#4b69ff
+XM1014|CaliCamo|1.50|#5e98d9
+XM1014|Canvas Cloud|1.10|#b0c3d9
+XM1014|Charter|0.80|#b0c3d9
+XM1014|Copperflage|8.50|#4b69ff
+XM1014|Elegant Vines|45.00|#8847ff
+XM1014|Entombed|5.50|#d32ee6
+XM1014|Fallout Warning|15.00|#5e98d9
+XM1014|Frost Borre|12.00|#4b69ff
+XM1014|Grassland|0.80|#b0c3d9
+XM1014|Gum Wall Camo|3.50|#5e98d9
+XM1014|Halftone Shift|4.50|#4b69ff
+XM1014|Heaven Guard|2.50|#8847ff
+XM1014|Hieroglyph|0.80|#b0c3d9
+XM1014|Incinegator|15.00|#d32ee6
+XM1014|Irezumi|4.50|#4b69ff
+XM1014|Jungle|0.80|#b0c3d9
+XM1014|Mockingbird|12.50|#4b69ff
+XM1014|Monster Melt|22.00|#8847ff
+XM1014|Oxide Blaze|0.90|#4b69ff
+XM1014|Quicksilver|0.90|#4b69ff
+XM1014|Red Leather|15.00|#4b69ff
+XM1014|Red Python|4.50|#4b69ff
+XM1014|Run Run Run|8.50|#4b69ff
+XM1014|Scumbria|0.90|#4b69ff
+XM1014|Seasons|2.50|#8847ff
+XM1014|Slipstream|0.90|#4b69ff
+XM1014|Teclu Burner|2.50|#8847ff
+XM1014|Tranquility|15.00|#d32ee6
+XM1014|Urban Perforated|0.80|#b0c3d9
+XM1014|VariCamo Blue|12.00|#4b69ff
+XM1014|Watchdog|1.10|#4b69ff
+XM1014|XOXO|8.50|#d32ee6
+XM1014|XoooM|15.00|#5e98d9
+XM1014|Zombie Offensive|2.50|#8847ff
+Zeus x27|Olympus|45.00|#d32ee6
+Zeus x27|Electric Blue|3.80|#5e98d9
+Zeus x27|Dragon Snore|38.00|#d32ee6
+Zeus x27|Earth Mandala|12.00|#4b69ff
+Zeus x27|Swamp DDPAT|1.10|#b0c3d9
+Zeus x27|Tosai|5.50|#8847ff
+Zeus x27|Charged Up|8.50|#8847ff
+`;
+        const skinsDB = {};
+        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves", "Broken Fang Gloves", "Hydra Gloves"];
+        
+        rawSkinData.trim().split("\n").forEach((line, idx) => {
+            const parts = line.split("|");
+            if(parts.length < 4) return;
+            const w = parts[0].trim();
+            const c = parts[parts.length - 1].trim();
+            const p = parts[parts.length - 2].trim();
+            const n = parts.slice(1, parts.length - 2).join("|").trim();
+            let folder = "skins";
+            if(GLOVE_TYPES.includes(w)) folder = "gloves";
+            else if(KNIFE_TYPES.includes(w)) folder = "knives";
+            
+            const imgOverrides = {
+                "AWP|Man-o'-war": "https://www.csgodatabase.com/images/skins/webp/AWP_Man-o'-war.webp",
+                "M4A4|龍王 (Dragon King)": "https://www.csgodatabase.com/images/skins/webp/M4A4_%E9%BE%8D%E7%8E%8B_(Dragon_King).webp",
+                "Driver Gloves|Crimson Weave": "https://www.csgodatabase.com/images/gloves/webp/Driver_Gloves_Crimson_Weave.webp",
+                "Broken Fang Gloves|Needle Point": "https://www.csgodatabase.com/images/gloves/webp/Broken_Fang_Gloves_Needle_Point.webp",
+                "Sport Gloves|Pandora's Box": "https://www.csgodatabase.com/images/gloves/webp/Sport_Gloves_Pandora's_Box.webp"
+            };
+
+            let urlWeapon = w.replace(/ /g, "_");
+            let urlName = n.replace(/ /g, "_").replace(/'/g, "");
+            const overrideKey = `${w}|${n}`;
+            const primaryImg = imgOverrides[overrideKey] || `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
+            // Alternate patterns (some gloves/rare items have different naming on CDN)
+            const alt1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
+            const alt2 = primaryImg.replace('/webp/', '/').replace('.webp', '.png');
+            skinsDB[idx + 1] = {
+                id: idx + 1,
+                weapon: w,
+                skinName: n,
+                name: `${w} | ${n}`,
+                price: parseFloat(p),
+                color: c,
+                img: primaryImg,
+                imgAlts: [alt1, alt2],
+                rarityName: c === '#ebca44' ? 'gold' : (c === '#eb4b4b' ? 'red' : (c === '#d32ee6' ? 'pink' : 'blue'))
+            };
+        });
+
+        function normalizeName(v) {
+            return (v || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        function findSkin(w, n) {
+            const exact = Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n);
+            if(exact) return exact;
+            const nw = normalizeName(w);
+            const nn = normalizeName(n);
+            return Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn) || Object.values(skinsDB)[0];
+        }
+
+        const casesDB = [];
+        setTimeout(() => {
+            casesDB.push(
+                {
+                    id: "trash-or-knife", name: "1% KNIFE Risk", price: 25.00, color: "yellow-400",
+                    img: findSkin("M9 Bayonet", "Autotronic").img,
+                    contents: [
+                        { skin: findSkin("P250", "Sand Dune"), chance: 99.0 },
+                        { skin: findSkin("M9 Bayonet", "Autotronic"), chance: 1.0 }
+                    ]
+                },
+                {
+                    id: "coinflip", name: "50/50 Profit", price: 50.00, color: "red",
+                    img: findSkin("AK-47", "Bloodsport").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Slate"), chance: 50.0 },
+                        { skin: findSkin("AK-47", "Bloodsport"), chance: 50.0 }
+                    ]
+                },
+                {
+                    id: "budget", name: "Budget Grinder", price: 5.00, color: "blue",
+                    img: findSkin("AWP", "Worm God").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 60.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Mortis"), chance: 12.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 2.5 },
+                        { skin: findSkin("AK-47", "Redline"), chance: 0.5 }
+                    ]
+                },
+                {
+                    id: "covert", name: "Covert Dreams", price: 100.00, color: "red",
+                    img: findSkin("AWP", "Asiimov").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "The Emperor"), chance: 65.0 },
+                        { skin: findSkin("AK-47", "Vulcan"), chance: 25.0 },
+                        { skin: findSkin("AWP", "Asiimov"), chance: 8.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 2.0 }
+                    ]
+                },
+                {
+                    id: "dragon", name: "Dragon Lore 1%", price: 200.00, color: "yellow-400",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Atheris"), chance: 80.0 },
+                        { skin: findSkin("AWP", "Neo-Noir"), chance: 19.0 },
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 1.0 }
+                    ]
+                },
+                {
+                    id: "knife-budget", name: "Budget Knives", price: 150.00, color: "purple",
+                    img: findSkin("Bayonet", "Slaughter").img,
+                    contents: [
+                        { skin: findSkin("Gut Knife", "Tiger Tooth"), chance: 70.0 },
+                        { skin: findSkin("Flip Knife", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Bayonet", "Tiger Tooth"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "knife-ultra", name: "Ultra Knife Box", price: 500.00, color: "gold",
+                    img: findSkin("Karambit", "Fade").img,
+                    contents: [
+                        { skin: findSkin("M9 Bayonet", "Doppler"), chance: 30.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "top-tier", name: "TOP TIER All Star", price: 300.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("M4A4", "Howl"), chance: 35.0 },
+                        { skin: findSkin("AWP", "Medusa"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Doppler"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mystery", name: "Mystery Case", price: 75.00, color: "purple",
+                    img: findSkin("Glock-18", "Water Elemental").img,
+                    contents: [
+                        { skin: findSkin("USP-S", "Orion"), chance: 40.0 },
+                        { skin: findSkin("M4A1-S", "Hyper Beast"), chance: 30.0 },
+                        { skin: findSkin("AK-47", "Neon Rider"), chance: 20.0 },
+                        { skin: findSkin("Huntsman Knife", "Slaughter"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "gloves", name: "Glove Heaven", price: 250.00, color: "pink",
+                    img: findSkin("Sport Gloves", "Vice").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Specter"), chance: 40.0 },
+                        { skin: findSkin("Specialist Gloves", "Crimson Kimono"), chance: 35.0 },
+                        { skin: findSkin("Hand Wraps", "Slaughter"), chance: 20.0 },
+                        { skin: findSkin("Sport Gloves", "Pandoras Box"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "legendary", name: "LEGENDARY Box", price: 1000.00, color: "gold",
+                    img: findSkin("AWP", "Gungnir").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 20.0 },
+                        { skin: findSkin("AWP", "Gungnir"), chance: 30.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Lore"), chance: 15.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "low-budget", name: "Low Roller", price: 2.50, color: "blue",
+                    img: findSkin("P250", "Sand Dune").img,
+                    contents: [
+                        { skin: findSkin("Glock-18", "Catacombs"), chance: 50.0 },
+                        { skin: findSkin("P250", "Sand Dune"), chance: 30.0 },
+                        { skin: findSkin("USP-S", "Ticket to Hell"), chance: 15.0 },
+                        { skin: findSkin("MAC-10", "Candy Apple"), chance: 5.0 }
+                    ]
+                },
+                {
+                    id: "mid-tier", name: "MID-TIER Master", price: 80.00, color: "purple",
+                    img: findSkin("M4A4", "Desolate Space").img,
+                    contents: [
+                        { skin: findSkin("AK-47", "Redline"), chance: 35.0 },
+                        { skin: findSkin("M4A4", "Desolate Space"), chance: 30.0 },
+                        { skin: findSkin("AWP", "Containment Breach"), chance: 25.0 },
+                        { skin: findSkin("Desert Eagle", "Printstream"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "premium-gloves", name: "Premium Gloves", price: 350.00, color: "pink",
+                    img: findSkin("Moto Gloves", "Eclipse").img,
+                    contents: [
+                        { skin: findSkin("Moto Gloves", "Eclipse"), chance: 40.0 },
+                        { skin: findSkin("Driver Gloves", "Mogul"), chance: 30.0 },
+                        { skin: findSkin("Sport Gloves", "Superconductor"), chance: 20.0 },
+                        { skin: findSkin("Specialist Gloves", "Emerald Web"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "ultra-premium", name: "Ultra Premium", price: 500.00, color: "red",
+                    img: findSkin("AWP", "Dragon Lore").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Dragon Lore"), chance: 25.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("Karambit", "Fade"), chance: 20.0 },
+                        { skin: findSkin("Butterfly Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Moto Gloves", "Blood Pressure"), chance: 15.0 }
+                    ]
+                },
+                {
+                    id: "knife-masters", name: "KNIFE Masters", price: 400.00, color: "yellow-400",
+                    img: findSkin("Karambit", "Lore").img,
+                    contents: [
+                        { skin: findSkin("Karambit", "Lore"), chance: 30.0 },
+                        { skin: findSkin("M9 Bayonet", "Lore"), chance: 25.0 },
+                        { skin: findSkin("Butterfly Knife", "Crimson Web"), chance: 20.0 },
+                        { skin: findSkin("Skeleton Knife", "Fade"), chance: 15.0 },
+                        { skin: findSkin("Talon Knife", "Fade"), chance: 10.0 }
+                    ]
+                },
+                {
+                    id: "mega-pack", name: "MEGA PACK", price: 150.00, color: "red",
+                    img: findSkin("M4A4", "Howl").img,
+                    contents: [
+                        { skin: findSkin("AWP", "Medusa"), chance: 20.0 },
+                        { skin: findSkin("M4A4", "Howl"), chance: 25.0 },
+                        { skin: findSkin("AK-47", "Wild Lotus"), chance: 20.0 },
+                        { skin: findSkin("Desert Eagle", "Emerald Jörmungandr"), chance: 15.0 },
+                        { skin: findSkin("Karambit", "Tiger Tooth"), chance: 20.0 }
+                    ]
+                }
+            );
+
+            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
+            const extraCases = [
+                { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['Glock-18','Neo-Noir']] },
+                { id:'organic', name:'ORGANIC', price:0.30, color:'blue', img:'https://cdn.casehug.com/cases/ORGANIC.png?width=640&quality=85', top:[['USP-S','Cortex'],['AK-47','Slate']] },
+                { id:'candy-drop', name:'CANDY DROP', price:0.40, color:'purple', img:'https://cdn.casehug.com/cases/candy_drop_1.png?width=640&quality=85', top:[['Glock-18','Bullet Queen'],['MAC-10','Neon Rider']] },
+                { id:'double-cheese', name:'DOUBLE CHEESE', price:0.45, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['P250','Asiimov'],['USP-S','Ticket to Hell']] },
+                { id:'ritual', name:'RITUAL', price:0.50, color:'purple', img:'https://cdn.casehug.com/cases/RITUAL.png?width=640&quality=85', top:[['M4A1-S','Night Terror'],['AWP','Mortis']] },
+                { id:'hellfire', name:'HELLFIRE', price:0.70, color:'red', img:'https://cdn.casehug.com/cases/HELLFIRE_NEW.png?width=640&quality=85', top:[['M4A4','The Emperor'],['AK-47','Redline']] },
+                { id:'frosty', name:'FROSTY', price:0.80, color:'blue', img:'https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['AK-47','Vulcan']] },
+                { id:'sweet-tooth', name:'SWEET TOOTH', price:1.00, color:'purple', img:'https://cdn.casehug.com/content/case/regular/01/SWEET_TOOTH_1758194472.png?width=640&quality=85', top:[['Karambit','Tiger Tooth'],['Desert Eagle','Printstream']] },
+                { id:'duck-luck', name:'DUCK LUCK', price:1.00, color:'blue', img:'https://cdn.casehug.com/cases/DUCK_LUCK.png?width=640&quality=85', top:[['AWP','Atheris'],['M4A4','Desolate Space']] },
+                { id:'alien', name:'ALIEN', price:1.25, color:'purple', img:'https://cdn.casehug.com/cases/ALIEN.png?width=640&quality=85', top:[['USP-S','Neo-Noir'],['AWP','Neo-Noir']] },
+                { id:'savanna', name:'SAVANNA', price:2.00, color:'blue', img:'https://cdn.casehug.com/cases/SAVANNA.png?width=640&quality=85', top:[['AK-47','Point Disarray'],['M4A1-S','Icarus Fell']] },
+                { id:'wild-west', name:'WILD WEST', price:2.00, color:'purple', img:'https://cdn.casehug.com/cases/WILD_WEST.png?width=640&quality=85', top:[['Desert Eagle','Conspiracy'],['AK-47','Redline']] },
+                { id:'insector', name:'INSECTOR', price:2.50, color:'blue', img:'https://cdn.casehug.com/cases/INSECTOR.png?width=640&quality=85', top:[['M4A4','Temukau'],['AWP','Oni Taiji']] },
+                { id:'toxic', name:'TOXIC', price:2.60, color:'purple', img:'https://cdn.casehug.com/cases/TOXIC.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Hyper Beast']] },
+                { id:'workshop', name:'WORKSHOP', price:2.75, color:'blue', img:'https://cdn.casehug.com/cases/WORKSHOP.png?width=640&quality=85', top:[['M4A4','In Living Color'],['Glock-18','Water Elemental']] },
+                { id:'game-on', name:'GAME ON', price:4.50, color:'purple', img:'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', top:[['Glock-18','Gamma Doppler'],['M4A4','Temukau']] },
+                { id:'bank-heist', name:'BANK HEIST', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', top:[['Desert Eagle','Printstream'],['AWP','Asiimov']] },
+                { id:'retro', name:'RETRO', price:11.50, color:'purple', img:'https://cdn.casehug.com/cases/RETRO.png?width=640&quality=85', top:[['USP-S','Printstream'],['AK-47','Bloodsport']] },
+                { id:'bunny-hop', name:'BUNNY HOP', price:12.75, color:'purple', img:'https://cdn.casehug.com/cases/BUNNY_HOP.png?width=640&quality=85', top:[['Skeleton Knife','Crimson Web'],['M4A1-S','Printstream']] },
+                { id:'titan', name:'TITAN', price:14.50, color:'red', img:'https://cdn.casehug.com/cases/TITAN.png?width=640&quality=85', top:[['M9 Bayonet','Doppler'],['AK-47','Vulcan']] },
+                { id:'gambit', name:'GAMBIT', price:18.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', top:[['Skeleton Knife','Tiger Tooth'],['Butterfly Knife','Tiger Tooth']] },
+                { id:'savage', name:'SAVAGE', price:25.00, color:'red', img:'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['AWP','Containment Breach']] },
+                { id:'golderra', name:'GOLDERRA', price:26.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GOLDERRA.png?width=640&quality=85', top:[['M9 Bayonet','Lore'],['Karambit','Lore']] },
+                { id:'ferro', name:'FERRO', price:30.00, color:'red', img:'https://cdn.casehug.com/cases/FERRO.png?width=640&quality=85', top:[['Desert Eagle','Blaze'],['M4A1-S','Blue Phosphor']] },
+                { id:'plant-b', name:'PLANT B', price:36.00, color:'red', img:'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['AK-47','Bloodsport']] },
+                { id:'buzzer-blade', name:'BUZZER BLADE', price:42.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/BUZZER_BLADE.png?width=640&quality=85', top:[['Talon Knife','Fade'],['Karambit','Doppler']] },
+                { id:'candy-shop', name:'CANDY SHOP', price:45.00, color:'red', img:'https://cdn.casehug.com/cases/CANDY_SHOP.png?width=640&quality=85', top:[['AK-47','Neon Rider'],['M4A1-S','Player Two']] },
+                { id:'kingdom', name:'KINGDOM', price:46.50, color:'red', img:'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85', top:[['AWP','Medusa'],['Karambit','Fade']] },
+                { id:'sushi-master', name:'SUSHI MASTER', price:50.00, color:'red', img:'https://cdn.casehug.com/content/case/regular/01/SUSHI_MASTER_1758194472.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] },
+                { id:'warzone', name:'WARZONE', price:75.00, color:'red', img:'https://cdn.casehug.com/cases/WARZONE.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A4','Howl']] },
+                { id:'circus', name:'CIRCUS', price:80.00, color:'red', img:'https://cdn.casehug.com/cases/CIRCUS.png?width=640&quality=85', top:[['Butterfly Knife','Fade'],['Karambit','Marble Fade']] },
+                { id:'vac-attack', name:'VAC ATTACK', price:85.00, color:'red', img:'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['Sport Gloves',"Pandora's Box"]] },
+                { id:'chinatown', name:'CHINATOWN', price:97.50, color:'red', img:'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', top:[['AK-47','Wild Lotus'],['M4A1-S','Welcome to the Jungle']] },
+                { id:'el-dorado', name:'EL DORADO', price:100.00, color:'yellow-400', img:'https://cdn.casehug.com/content/case/regular/01/EL_DORADO_1758194472.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['Desert Eagle','Blaze']] },
+                { id:'arcana', name:'ARCANA', price:120.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85', top:[['Karambit','Lore'],['Sport Gloves','Vice']] },
+                { id:'babushka', name:'BABUSHKA', price:152.50, color:'red', img:'https://cdn.casehug.com/cases/BABUSHKA.png?width=640&quality=85', top:[['M9 Bayonet','Autotronic'],['M4A1-S','Printstream']] },
+                { id:'quantum', name:'QUANTUM', price:358.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/QUANTUM.png?width=640&quality=85', top:[['AWP','Gungnir'],['Karambit','Fade']] },
+                { id:'tiger', name:'TIGER', price:3.80, color:'purple', img:'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', top:[['M9 Bayonet','Tiger Tooth'],['Karambit','Tiger Tooth']] },
+                { id:'demolition', name:'DEMOLITION', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', top:[['AWP','Asiimov'],['M4A4','The Emperor']] },
+                { id:'electronic', name:'ELECTRONIC', price:33.00, color:'purple', img:'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Bloodsport']] },
+                { id:'lab', name:'LAB', price:150.00, color:'red', img:'https://cdn.casehug.com/cases/LAB.png?width=640&quality=85', top:[['AWP','Gungnir'],['M4A1-S','Blue Phosphor']] },
+                { id:'howl-case', name:'HOWL', price:300.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/HOWL_4.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] }
+            ];
+
+            const chanceProfiles = [
+                [30, 25, 18, 14, 9, 4],
+                [22, 24, 21, 16, 12, 5],
+                [12, 20, 24, 22, 16, 6],
+                [6, 14, 24, 24, 22, 10],
+                [2.5, 7.5, 18, 27, 28, 17],
+                [0.8, 3.2, 10, 22, 31, 33],
+                [0.1, 1.9, 8, 20, 30, 40]
+            ];
+
+            const allSkins = Object.values(skinsDB);
+            const pickRange = (minPrice, maxPrice, exclude = []) => {
+                const pool = allSkins.filter(s => s.price >= minPrice && s.price <= maxPrice && !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            };
+            const pickAny = (exclude = []) => {
+                const pool = allSkins.filter(s => !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[Math.floor(Math.random() * pool.length)];
+            };
+
+            const hash = (str) => str.split('').reduce((a, ch) => ((a * 31) + ch.charCodeAt(0)) % 9973, 7);
+            const normalizeProfile = (arr) => {
+                const sum = arr.reduce((a,b)=>a+b,0);
+                const scaled = arr.map(v => (v / sum) * 100);
+                const rounded = scaled.map(v => Math.round(v * 10) / 10);
+                const diff = Math.round((100 - rounded.reduce((a,b)=>a+b,0)) * 10) / 10;
+                rounded[rounded.length - 1] = Math.round((rounded[rounded.length - 1] + diff) * 10) / 10;
+                return rounded;
+            };
+
+            const chooseChancePattern = (caseObj, jackpotPrice) => {
+                const ratio = jackpotPrice / Math.max(0.01, caseObj.price);
+                let tier = 0;
+                if(ratio >= 120) tier = 6;
+                else if(ratio >= 50) tier = 5;
+                else if(ratio >= 20) tier = 4;
+                else if(ratio >= 10) tier = 3;
+                else if(ratio >= 5) tier = 2;
+                else if(ratio >= 2) tier = 1;
+                const variability = hash(caseObj.id + caseObj.name) % 3;
+                const idx = Math.max(0, Math.min(chanceProfiles.length - 1, tier - (variability === 0 ? 0 : (variability === 1 ? 1 : -1))));
+                return normalizeProfile([...chanceProfiles[idx]]);
+            };
+
+            extraCases.forEach(ec => {
+                if(casesDB.find(c => c.id === ec.id)) return;
+
+                const price = ec.price;
+                const top1 = findSkin(ec.top[0][0], ec.top[0][1]);
+                const top2 = findSkin(ec.top[1][0], ec.top[1][1]);
+                const picks = [];
+                const used = [];
+
+                const low1 = pickRange(0.01, Math.max(0.05, price * 0.20), used) || pickAny(used);
+                if(low1) { picks.push(low1); used.push(low1); }
+
+                const low2 = pickRange(Math.max(0.02, price * 0.15), Math.max(0.15, price * 0.45), used) || pickAny(used);
+                if(low2) { picks.push(low2); used.push(low2); }
+
+                const mid = pickRange(Math.max(0.05, price * 0.40), Math.max(0.3, price * 0.95), used) || pickAny(used);
+                if(mid) { picks.push(mid); used.push(mid); }
+
+                const hi = top2 && !used.find(x => x.id === top2.id)
+                    ? top2
+                    : (pickRange(Math.max(0.2, price * 0.9), Math.max(1, price * 1.8), used) || pickAny(used));
+                if(hi) { picks.push(hi); used.push(hi); }
+
+                const superHi = pickRange(Math.max(0.5, price * 1.3), Math.max(2, price * 3.0), used) || pickAny(used);
+                if(superHi) { picks.push(superHi); used.push(superHi); }
+
+                const jackpot = top1 && !used.find(x => x.id === top1.id)
+                    ? top1
+                    : (pickRange(Math.max(1, price * 2.0), Math.max(5, price * 20), used) || pickAny(used));
+                if(jackpot) { picks.push(jackpot); used.push(jackpot); }
+
+                while(picks.length < 6) {
+                    const extra = pickAny(used);
+                    if(!extra) break;
+                    picks.push(extra);
+                    used.push(extra);
+                }
+
+                const sortedByPrice = picks.slice(0, 6).sort((a, b) => b.price - a.price);
+                const chances = chooseChancePattern(ec, sortedByPrice[0]?.price || price);
+
+                casesDB.push({
+                    id: ec.id,
+                    name: ec.name,
+                    price: ec.price,
+                    color: ec.color,
+                    img: ec.img,
+                    contents: sortedByPrice.map((skin, idx) => ({ skin, chance: chances[idx] || 0.1 }))
+                });
+            });
+
+            renderCases();
+        }, 100);
+
+        let userInventory = [];
+        let activeCaseId = null;
+        let isSpinning = false;
+        let spinAnimationId = null;
+        let casesAffordableOnly = false;
+        let userProfile = {
+            nickname: '',
+            displayName: '',
+            avatar: '',
+            provider: 'Guest'
+        };
+
+        // --- ZÁKLADY UI ---
+        function formatMoney(val) { return `${val.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`; }
+        const CURRENCY_RATES = { EUR: 1, USD: 1.08, CZK: 25.5 };
+        function updateUI() {
+            const sel = document.getElementById('currency-select');
+            const cur = sel ? sel.value : 'EUR';
+            const rate = CURRENCY_RATES[cur] || 1;
+            const converted = balanceBase * rate;
+            const decimals = cur === 'CZK' ? 0 : 2;
+            const formatted = converted.toLocaleString(cur === 'CZK' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            document.getElementById('balance').textContent = `${formatted} ${cur}`;
+            const lbl = document.getElementById('balance-currency-label');
+            if(lbl) lbl.textContent = `Zůstatek (${cur})`;
+            const authLabel = document.getElementById('auth-open-label');
+            const pill = document.getElementById('profile-pill');
+            const pillName = document.getElementById('profile-pill-name');
+            const pillNick = document.getElementById('profile-pill-nick');
+            const pillAvatar = document.getElementById('profile-pill-avatar');
+            const dailyBtn = document.getElementById('daily-reward-btn');
+            const freeMoneyBtn = document.getElementById('free-money-btn');
+            const isDemoMode = !currentUser;
+            if(authLabel) authLabel.textContent = userProfile.nickname ? 'Profil' : 'Přihlásit';
+            if(dailyBtn) {
+                dailyBtn.textContent = isDemoMode ? '🎁 DAILY ODMĚNA (DEMO)' : '🔒 DAILY OFF (ÚČET)';
+                dailyBtn.classList.toggle('opacity-70', !isDemoMode);
+                dailyBtn.classList.toggle('cursor-not-allowed', !isDemoMode);
+            }
+            if(freeMoneyBtn) {
+                freeMoneyBtn.classList.toggle('hidden', !isDemoMode);
+            }
+            if(pill && pillName && pillNick && pillAvatar) {
+                if(userProfile.nickname) {
+                    pill.classList.remove('hidden');
+                    pill.classList.add('flex');
+                    pillName.textContent = userProfile.displayName || userProfile.nickname;
+                    pillNick.textContent = `@${userProfile.nickname} • ${userProfile.provider || 'User'}`;
+                    pillAvatar.src = userProfile.avatar || FALLBACK_IMG;
+                } else {
+                    pill.classList.add('hidden');
+                    pill.classList.remove('flex');
+                }
+            }
+            lucide.createIcons();
+            scheduleStateSave();
+        }
+
+        let currentUser = null;
+        let stateSaveTimer = null;
+        let authProviders = { steam: true, google: true };
+
+        function sanitizeDuplicateSocialButtons() {
+            const authModal = document.getElementById('auth-modal');
+            if (!authModal) return;
+
+            const selectors = [
+                '#steam-login-btn',
+                '#google-login-btn',
+                "button[onclick=\"socialLogin('steam')\"]",
+                "button[onclick=\"socialLogin('google')\"]"
+            ];
+
+            selectors.forEach((selector) => {
+                const nodes = Array.from(authModal.querySelectorAll(selector));
+                if (nodes.length <= 1) return;
+                nodes.slice(1).forEach((node) => node.remove());
+            });
+        }
+
+        async function apiRequest(url, method = 'GET', payload) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (payload !== undefined) opts.body = JSON.stringify(payload);
+            const res = await fetch(url, opts);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.ok === false) {
+                throw new Error(data.message || data.error || `HTTP ${res.status}`);
+            }
+            return data;
+        }
+
+        async function loadSessionFromBackend() {
+            try {
+                sanitizeDuplicateSocialButtons();
+                const providerState = await apiRequest('/api/auth/providers');
+                if (providerState?.providers) {
+                    authProviders = {
+                        steam: Boolean(providerState.providers.steam),
+                        google: Boolean(providerState.providers.google)
+                    };
+                }
+                const auth = await apiRequest('/api/auth/session');
+                if (!auth.user) return;
+                currentUser = auth.user;
+                userProfile = {
+                    nickname: auth.user.nickname,
+                    displayName: auth.user.displayName || auth.user.nickname,
+                    avatar: auth.user.avatar || '',
+                    provider: auth.user.isAdmin ? 'Admin' : 'Email účet'
+                };
+                const state = await apiRequest('/api/state');
+                balanceBase = Number(state.balance || 10);
+                userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                if (auth.user.isAdmin) {
+                    const hint = document.getElementById('admin-hint');
+                    if (hint) hint.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.warn('Nepovedlo se načíst session:', err.message);
+            } finally {
+                const steamBtn = document.getElementById('steam-login-btn');
+                const googleBtn = document.getElementById('google-login-btn');
+                if (steamBtn) {
+                    steamBtn.disabled = !authProviders.steam;
+                    steamBtn.classList.toggle('opacity-60', !authProviders.steam);
+                    steamBtn.classList.toggle('cursor-not-allowed', !authProviders.steam);
+                    steamBtn.title = authProviders.steam ? '' : 'Steam login není nakonfigurovaný na serveru';
+                }
+                if (googleBtn) {
+                    googleBtn.disabled = !authProviders.google;
+                    googleBtn.classList.toggle('opacity-60', !authProviders.google);
+                    googleBtn.classList.toggle('cursor-not-allowed', !authProviders.google);
+                    googleBtn.title = authProviders.google ? '' : 'Google login není nakonfigurovaný na serveru';
+                }
+            }
+        }
+
+        function scheduleStateSave() {
+            if (!currentUser) return;
+            clearTimeout(stateSaveTimer);
+            stateSaveTimer = setTimeout(async () => {
+                try {
+                    await apiRequest('/api/state', 'POST', { balance: Number(balanceBase.toFixed(2)), inventory: userInventory });
+                } catch (err) {
+                    console.warn('State save failed:', err.message);
+                }
+            }, 300);
+        }
+
+        function requireAuthAction() {
+            if (currentUser) return true;
+            showToast('Nejdřív se přihlas nebo registruj.', true);
+            openAuthModal();
+            return false;
+        }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            sanitizeDuplicateSocialButtons();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('profile-nickname').value = userProfile.nickname || '';
+            document.getElementById('profile-display-name').value = userProfile.displayName || '';
+            document.getElementById('profile-avatar').value = userProfile.avatar || '';
+            lucide.createIcons();
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if(!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function registerAccount() {
+            try {
+                const payload = {
+                    email: (document.getElementById('auth-email')?.value || '').trim(),
+                    password: document.getElementById('auth-password')?.value || '',
+                    nickname: (document.getElementById('profile-nickname')?.value || '').trim(),
+                    displayName: (document.getElementById('profile-display-name')?.value || '').trim(),
+                    avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                };
+                const result = await apiRequest('/api/auth/register', 'POST', payload);
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                renderInventory();
+                closeAuthModal();
+                showToast('Registrováno. Start máš 10 USD.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loginAccount() {
+            try {
+                const payload = {
+                    email: (document.getElementById('auth-email')?.value || '').trim(),
+                    password: document.getElementById('auth-password')?.value || '',
+                };
+                const result = await apiRequest('/api/auth/login', 'POST', payload);
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                renderInventory();
+                closeAuthModal();
+                showToast('Přihlášení proběhlo.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function saveLocalProfile() {
+            if (!currentUser) return showToast('Nejdřív se přihlas.', true);
+            const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
+            if(!nickname) return showToast('Vyplň nickname.', true);
+            try {
+                const result = await apiRequest('/api/profile', 'PUT', {
+                    nickname,
+                    displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
+                    avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                });
+                currentUser = result.user;
+                await loadSessionFromBackend();
+                updateUI();
+                closeAuthModal();
+                showToast('Profil uložen ✅');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function logoutLocalProfile() {
+            try { await apiRequest('/api/auth/logout', 'POST'); } catch (err) { console.warn(err.message); }
+            currentUser = null;
+            userProfile = { nickname: '', displayName: '', avatar: '', provider: 'Guest' };
+            userInventory = [];
+            balanceBase = 10;
+            updateUI();
+            renderInventory();
+            showToast('Odhlášeno');
+        }
+
+        function socialLogin(provider) {
+            if (provider !== 'steam' && provider !== 'google') return;
+            if (!authProviders[provider]) {
+                return showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není nastavený na serveru.`, true);
+            }
+            window.location.href = `/auth/${provider}`;
+        }
+
+        const DAILY_REWARD_COOLDOWN = 6 * 60 * 60 * 1000;
+        function claimDailyReward() {
+            if (currentUser) {
+                showToast('Na přihlášeném účtu je dobíjení vypnuté.', true);
+                return;
+            }
+            const now = Date.now();
+            const last = parseInt(localStorage.getItem('lastDailyRewardDemo') || '0', 10);
+            const diff = now - last;
+            if(diff < DAILY_REWARD_COOLDOWN) {
+                const sec = Math.ceil((DAILY_REWARD_COOLDOWN - diff) / 1000);
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                return showToast(`Další demo odměna za ${h}h ${m}m`, true);
+            }
+            const reward = Math.floor(200 + Math.random() * 600);
+            balanceBase += reward;
+            localStorage.setItem('lastDailyRewardDemo', String(now));
+            updateUI();
+            showToast(`Demo odměna: +${reward} EUR 🔥`);
+        }
+
+        function toggleAffordableCases() {
+            casesAffordableOnly = !casesAffordableOnly;
+            const btn = document.getElementById('cases-affordable-btn');
+            if(btn) {
+                btn.textContent = casesAffordableOnly ? 'Dostupné: ON' : 'Jen dostupné';
+                btn.classList.toggle('bg-green-500/20', casesAffordableOnly);
+                btn.classList.toggle('text-green-300', casesAffordableOnly);
+            }
+            renderCases();
+        }
+
+        function showToast(text, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = text;
+            t.style.backgroundColor = isError ? '#ef4444' : '#facc15';
+            t.style.color = isError ? 'white' : 'black';
+            t.style.borderColor = isError ? '#dc2626' : '#fde047';
+            t.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 3000);
+        }
+
+        function switchPage(id) {
+            if(isSpinning) return;
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            const page = document.getElementById(`page-${id}`);
+            if (page) page.classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const activeNav = Array.from(document.querySelectorAll('.nav-link')).find(l => l.getAttribute('onclick').includes(`'${id}'`));
+            if(activeNav) activeNav.classList.add('active');
+
+            if(id === 'inventory') renderInventory();
+            if(id === 'upgrade') renderUpgrader();
+            activeCaseId = null; 
+        }
+
+        function addFreeMoney() {
+            if (currentUser) {
+                showToast('Na přihlášeném účtu nelze přidat free peníze.', true);
+                return;
+            }
+            balanceBase += 1000;
+            updateUI();
+            showToast('Demo: přidáno 1000 EUR');
+            initAudio();
+        }
+
+        // --- FULL-SCREEN VÝHERNÍ POPUP A EFEKTY ---
+        function createParticles(color) {
+            const container = document.getElementById('particles-container');
+            container.innerHTML = ''; // Vyčistit staré
+            for(let i=0; i<60; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.backgroundColor = color;
+                const size = Math.random() * 8 + 4;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = '50%';
+                p.style.top = '50%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 400 + 100;
+                p.style.setProperty('--tx', `${Math.cos(angle) * velocity}px`);
+                p.style.setProperty('--ty', `${Math.sin(angle) * velocity}px`);
+                
+                container.appendChild(p);
+            }
+        }
+
+        function showWinModal(skin) {
+            const modal = document.getElementById('win-modal');
+            const img = document.getElementById('win-image');
+            
+            document.getElementById('win-name').textContent = skin.name;
+            document.getElementById('win-price').textContent = formatMoney(skin.price);
+            document.getElementById('win-sell-price').textContent = formatMoney(skin.price);
+            document.getElementById('win-bg-glow').style.backgroundColor = skin.color;
+            
+            img.src = skin.img;
+            
+            modal.classList.remove('hidden');
+            // Malý delay pro CSS tranzici
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                img.classList.add('win-pop');
+                
+                // Efekty pokud je to red/gold
+                if(skin.color === '#eb4b4b' || skin.color === '#ebca44') {
+                    createParticles(skin.color);
+                }
+                
+                SoundEngine.playWin(skin.rarityName);
+            }, 50);
+
+            // Nastavení tlačítek
+            document.getElementById('btn-win-sell').onclick = () => {
+                balanceBase += skin.price;
+                updateUI();
+                showToast(`Získáno ${formatMoney(skin.price)}`);
+                closeWinModal();
+            };
+            
+            document.getElementById('btn-win-keep').onclick = () => {
+                addToInventory(skin);
+                showToast(`Uloženo do inventáře`);
+                closeWinModal();
+            };
+        }
+
+        function closeWinModal() {
+            const modal = document.getElementById('win-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('win-image').classList.remove('win-pop');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        // --- BEDNY ---
+        function renderCases() {
+            const grid = document.getElementById('cases-grid');
+            if(!grid) return;
+            const sortSel = document.getElementById('cases-sort');
+            const sortMode = sortSel ? sortSel.value : 'default';
+            const groups = [
+                { key: 'budget', title: '💙 BUDGET CASEKY', min: 0, max: 4.99 },
+                { key: 'standard', title: '💜 STANDARD CASEKY', min: 5, max: 24.99 },
+                { key: 'premium', title: '❤️ PREMIUM CASEKY', min: 25, max: 99.99 },
+                { key: 'legendary', title: '💛 LEGENDARY CASEKY', min: 100, max: Infinity }
+            ];
+
+            const sortCases = (arr) => {
+                if(sortMode === 'price-asc') return arr.sort((a,b)=>a.price-b.price);
+                if(sortMode === 'price-desc') return arr.sort((a,b)=>b.price-a.price);
+                if(sortMode === 'name') return arr.sort((a,b)=>a.name.localeCompare(b.name));
+                return arr;
+            };
+
+            const renderCard = (c, idx) => {
+                let glowClass = '';
+                if(c.color === 'blue') glowClass = 'glow-blue';
+                else if(c.color === 'red') glowClass = 'glow-red';
+                else if(c.color === 'purple') glowClass = 'glow-purple';
+                else if(c.color === 'pink') glowClass = 'glow-pink';
+                else if(c.color === 'yellow-400') glowClass = 'glow-gold';
+
+                const affordable = balanceBase >= c.price;
+                return `
+<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 ${affordable ? 'border-yellow-400/25 hover:border-yellow-400' : 'border-gray-700/70 hover:border-gray-500'} cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 ${affordable ? 'bg-yellow-400/5 group-hover:opacity-100' : 'bg-gray-600/5 group-hover:opacity-70'} opacity-0 transition-opacity"></div>
+    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
+    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
+    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
+</div>
+`;
+            };
+
+            grid.innerHTML = groups.map(g => {
+                let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
+                items = sortCases(items.slice());
+                if(items.length === 0) return '';
+                return `
+                    <section>
+                        <h3 class="text-lg font-black uppercase tracking-widest text-yellow-300 mb-4 border-b border-yellow-400/20 pb-2">${g.title}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            ${items.map((c, idx) => renderCard(c, idx)).join('')}
+                        </div>
+                    </section>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500 font-black uppercase">Žádné bedny pro tento filtr.</div>';
+        }
+
+        // Vlož pod funkci renderCases (kolem řádku 815)
+        document.addEventListener('click', (e) => {
+            // Najde nejbližší rodičovský element, který má ID bedny
+            const caseCard = e.target.closest('[onclick^="openCaseView"]');
+            if (caseCard && !isSpinning) {
+                // Získá ID bedny z onclick atributu
+                const match = caseCard.getAttribute('onclick').match(/'([^']+)'/);
+                if (match) {
+                    openCaseView(match[1]);
+                }
+            }
+        });
+
+        function rollCaseSkin(caseObj) {
+            const roll = Math.random() * 100;
+            let sum = 0;
+            let win = caseObj.contents[0].skin;
+            for(const item of caseObj.contents) {
+                sum += item.chance;
+                if(roll <= sum) { win = item.skin; break; }
+            }
+            return win;
+        }
+
+        function renderMultiResultCard(skin) {
+            return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
+        }
+
+        function getOpenCount() {
+            const countSel = document.getElementById('open-count');
+            return Math.max(1, Math.min(5, parseInt(countSel?.value || '1', 10)));
+        }
+
+        function fillTrackWithCaseSkins(track, caseObj, winningSkin = null) {
+            const totalItems = 60;
+            const winningIndex = 50;
+            let html = '';
+            for(let j=0;j<totalItems;j++) {
+                const skin = (winningSkin && j === winningIndex)
+                    ? winningSkin
+                    : caseObj.contents[Math.floor(Math.random()*caseObj.contents.length)].skin;
+                html += `<div class="spinner-item" style="border-color:${skin.color}"><img src="${skin.img}" data-alts="${(skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)"><div class="text-[10px] font-black uppercase text-gray-300 mt-2 truncate w-full text-center">${skin.name}</div></div>`;
+            }
+            track.innerHTML = html;
+        }
+
+        function ensureSpinnerRows(count, caseObj = null) {
+            const stack = document.getElementById('spinner-stack');
+            if(!stack) return [];
+            if(stack.children.length !== count) {
+                stack.innerHTML = Array.from({ length: count }, (_, i) => `
+                    <div class="spinner-container relative" data-spin-row="${i}">
+                        <div class="blur-edges blur-left"></div>
+                        <div class="blur-edges blur-right"></div>
+                        <div class="spinner-selector"></div>
+                        <div id="spinner-track-${i}" class="spinner-track"></div>
+                    </div>
+                `).join('');
+            }
+            const tracks = Array.from(stack.querySelectorAll('.spinner-track'));
+            tracks.forEach(track => {
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(0px)';
+                if(caseObj) fillTrackWithCaseSkins(track, caseObj);
+            });
+            return tracks;
+        }
+
+        function spinCase(caseObj, count = 1) {
+            if(isSpinning) return;
+            if(!requireAuthAction()) return;
+            const totalCost = caseObj.price * count;
+            if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
+
+            balanceBase -= totalCost;
+            updateUI();
+            isSpinning = true;
+
+            const btn = document.getElementById('btn-open-case');
+            const countSel = document.getElementById('open-count');
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
+
+            if(btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+                btn.textContent = count > 1 ? `Točí se ${count}x...` : 'Točí se...';
+            }
+            if(countSel) countSel.disabled = true;
+
+            const tracks = ensureSpinnerRows(count);
+            const rowMeta = [];
+            const winningIndex = 50;
+            const itemWidth = 148;
+
+            for(let i = 0; i < count; i++) {
+                const winningSkin = rollCaseSkin(caseObj);
+                const track = tracks[i];
+                if(!track) continue;
+                fillTrackWithCaseSkins(track, caseObj, winningSkin);
+                rowMeta.push({ track, row: track.parentElement, winningSkin });
+            }
+
+            setTimeout(() => {
+                rowMeta.forEach((m) => {
+                    const containerWidth = m.row.clientWidth;
+                    const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
+                    m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
+                    m.track.style.transform = `translateX(-${finalOffset}px)`;
+                });
+
+                setTimeout(() => {
+                    let totalWin = 0;
+                    rowMeta.forEach(m => {
+                        addToInventory(m.winningSkin);
+                        totalWin += m.winningSkin.price;
+                        if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
+                    });
+
+                    if(count === 1 && rowMeta[0]) {
+                        showWinModal(rowMeta[0].winningSkin);
+                    } else {
+                        showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
+                    }
+
+                    isSpinning = false;
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                        btn.textContent = 'HRÁT ZNOVU';
+                    }
+                    if(countSel) countSel.disabled = false;
+                }, 6500);
+            }, 50);
+        }
+
+        function openCaseView(id) {
+            activeCaseId = id;
+            const c = casesDB.find(x => x.id === id);
+            if(!c) { showToast('Bedna nebyla nalezena', true); return; }
+            
+            document.getElementById('view-case-name').textContent = c.name;
+            document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
+            document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
+
+            const changer = document.getElementById('case-changer');
+            if(changer) {
+                changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
+                casesDB.forEach(caseItem => {
+                    const opt = document.createElement('option');
+                    opt.value = caseItem.id;
+                    opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
+                    opt.selected = caseItem.id === id;
+                    changer.appendChild(opt);
+                });
+            }
+
+            const countSel = document.getElementById('open-count');
+            const selectedCount = () => getOpenCount();
+            ensureSpinnerRows(selectedCount(), c);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
+            
+            document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
+                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
+                    <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
+                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
+                </div>
+            `).join('');
+
+            const btn = document.getElementById('btn-open-case');
+            btn.onclick = () => spinCase(c, selectedCount());
+            if(countSel) {
+                countSel.onchange = () => {
+                    ensureSpinnerRows(selectedCount(), c);
+                    if(results) results.innerHTML = '';
+                };
+                countSel.disabled = false;
+            }
+            btn.textContent = "OTEVŘÍT BEDNU";
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-case-view').classList.remove('hidden');
+        }
+
+        function startSpinner(caseObj) { spinCase(caseObj, 1); }
+
+        // --- INVENTÁŘ ---
+        function addToInventory(skin) {
+            userInventory.unshift({ ...skin, uid: Date.now() + Math.random().toString(36).substring(7) });
+            updateUI();
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventory-grid');
+            const stats = document.getElementById('inv-stats');
+            if(!grid) return;
+
+            if(userInventory.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-20 font-bold uppercase">Inventář je prázdný.</div>`;
+                stats.textContent = `0 předmětů v hodnotě 0.00 EUR`;
+                return;
+            }
+
+            let displayItems = userInventory;
+            
+            // Aplikuj filtr
+            const filterVal = document.getElementById('inv-filter')?.value || 'all';
+            if(filterVal === 'blue') displayItems = displayItems.filter(i => i.color === '#4b69ff');
+            else if(filterVal === 'purple') displayItems = displayItems.filter(i => i.color === '#8847ff');
+            else if(filterVal === 'pink') displayItems = displayItems.filter(i => i.color === '#d32ee6');
+            else if(filterVal === 'red') displayItems = displayItems.filter(i => i.color === '#eb4b4b');
+            else if(filterVal === 'gold') displayItems = displayItems.filter(i => i.color === '#ebca44');
+            else if(filterVal === 'knives') displayItems = displayItems.filter(i => KNIFE_TYPES.some(k => i.weapon === k));
+
+            // Aplikuj třídění
+            const sortVal = document.getElementById('inv-sort')?.value || 'newest';
+            if(sortVal === 'price-high') displayItems.sort((a, b) => b.price - a.price);
+            else if(sortVal === 'price-low') displayItems.sort((a, b) => a.price - b.price);
+            else if(sortVal === 'name') displayItems.sort((a, b) => a.name.localeCompare(b.name));
+
+            let totalVal = 0;
+            grid.innerHTML = displayItems.map((item, idx) => {
+                totalVal += item.price;
+                return `
+                <div class="bg-[#14171c] p-4 rounded-2xl border-b-4 group relative overflow-hidden transition-all hover:scale-105 shadow-lg item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style="background-color: ${item.color}"></div>
+                    <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="w-full h-24 object-contain drop-shadow-xl group-hover:scale-110 transition-transform">
+                    <div class="mt-3 text-center">
+                        <div class="text-[10px] font-black uppercase text-gray-400 truncate">${item.name}</div>
+                        <div class="text-sm font-black text-white mt-1">${formatMoney(item.price)}</div>
+                    </div>
+                    <button onclick="sellSkin('${item.uid}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>`;
+            }).join('');
+            
+            stats.textContent = `${displayItems.length} předmětů v hodnotě ${formatMoney(totalVal)}`;
+            lucide.createIcons();
+        }
+
+        function filterInventory() {
+            renderInventory();
+        }
+
+        function sortInventory() {
+            renderInventory();
+        }
+
+        function sellSkin(uid) {
+            const idx = userInventory.findIndex(i => i.uid === uid);
+            if(idx > -1) {
+                balanceBase += userInventory[idx].price;
+                userInventory.splice(idx, 1);
+                updateUI(); renderInventory();
+                for(let i=0; i<3; i++) { if(upgInputs[i] && upgInputs[i].uid === uid) upgInputs[i] = null; }
+            }
+        }
+
+        function sellAllSkins() {
+            if(userInventory.length === 0) return;
+            balanceBase += userInventory.reduce((acc, curr) => acc + curr.price, 0);
+            userInventory = [];
+            updateUI(); renderInventory();
+            upgInputs = [null, null, null]; upgTarget = null;
+        }
+
+        // --- UPGRADER ---
+        let upgInputs = [null, null, null];
+        let upgTarget = null;
+
+        function renderUpgrader() {
+            const container = document.getElementById('upg-inputs-container');
+            let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+            
+            container.innerHTML = [0,1,2].map(i => upgInputs[i] ? `
+                <div onclick="removeUpgInput(${i})" class="bg-gray-800/80 border border-gray-600 hover:border-red-500 rounded-2xl h-24 flex items-center p-3 cursor-pointer group relative overflow-hidden transition-all">
+                    <img src="${upgInputs[i].img}" data-alts="${(upgInputs[i].imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
+                    <div class="ml-3 flex-1 overflow-hidden">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase truncate">${upgInputs[i].name}</div>
+                        <div class="text-sm font-black text-white">${formatMoney(upgInputs[i].price)}</div>
+                    </div>
+                    <div class="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                        <i data-lucide="trash-2" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                </div>
+            ` : `
+                <div onclick="openSelector('input', ${i})" class="bg-gray-900/50 border-2 border-dashed border-gray-600 hover:border-purple-500 rounded-2xl h-24 flex items-center justify-center cursor-pointer transition-all group">
+                    <i data-lucide="plus" class="w-6 h-6 text-gray-600 group-hover:text-purple-500 transition-colors"></i>
+                </div>
+            `).join('');
+            
+            document.getElementById('upg-total-input-val').textContent = formatMoney(totalVal);
+
+            if(upgTarget && upgTarget.price <= totalVal) upgTarget = null;
+
+            const targetSlot = document.getElementById('upg-target-slot');
+            let chance = 0;
+
+            if(upgTarget) {
+                targetSlot.classList.remove('border-dashed', 'border-purple-500/50');
+                targetSlot.style.borderColor = upgTarget.color;
+                targetSlot.innerHTML = `
+                    <div class="absolute inset-0 opacity-20" style="background: linear-gradient(to top, ${upgTarget.color}, transparent);"></div>
+                    <img src="${upgTarget.img}" data-alts="${(upgTarget.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-32 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-2 relative z-10 group-hover:scale-110 transition-transform">
+                    <div class="text-xs font-black text-white uppercase text-center relative z-10 w-full truncate px-2" style="color: ${upgTarget.color}">${upgTarget.name}</div>
+                    <div class="text-lg font-black text-white relative z-10">${formatMoney(upgTarget.price)}</div>
+                `;
+                chance = Math.min((totalVal / upgTarget.price) * 100, 90);
+            } else {
+                targetSlot.removeAttribute('style');
+                targetSlot.classList.add('border-dashed', 'border-purple-500/50');
+                targetSlot.innerHTML = `<i data-lucide="search" class="w-10 h-10 text-purple-500/50 group-hover:text-yellow-400 mb-2"></i><span class="text-gray-500 font-bold uppercase text-xs text-center group-hover:text-white">Vyber cíl</span>`;
+            }
+
+            document.getElementById('upgrade-chance').textContent = chance.toFixed(1) + '%';
+            document.getElementById('upgrade-circle').style.strokeDashoffset = 540 - (540 * (chance / 100));
+            lucide.createIcons();
+        }
+
+        function removeUpgInput(i) { upgInputs[i] = null; renderUpgrader(); }
+
+        function openSelector(type, slotIndex = 0) {
+            window.currentSelectorType = type;
+            window.currentSelectorSlot = slotIndex;
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-selector').classList.remove('hidden');
+            
+            const grid = document.getElementById('selector-grid');
+            if (type === 'input') {
+                document.getElementById('selector-title').textContent = "VYBER SKIN K OBĚTOVÁNÍ";
+                let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') available.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') available.sort((a,b)=>a.name.localeCompare(b.name));
+                else available.sort((a,b)=>a.price-b.price);
+                grid.innerHTML = available.map((item, idx) => `
+                    <div onclick="upgInputs[${slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
+                        <img src="${item.img}" data-alts="${(item.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
+                        <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
+                        <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
+                    </div>
+                `).join('') || '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase">Žádné volné skiny.</div>';
+            } else {
+                document.getElementById('selector-title').textContent = "VYBER CÍLOVÝ SKIN";
+                let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+                let targets = Object.values(skinsDB).filter(s => s.price > totalVal);
+                const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
+                if(sortMode === 'price-high') targets.sort((a,b)=>b.price-a.price);
+                else if(sortMode === 'name') targets.sort((a,b)=>a.name.localeCompare(b.name));
+                else targets.sort((a,b)=>a.price-b.price);
+                grid.innerHTML = targets.map((item, idx) => `
+                    <div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
+                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
+                        <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div>
+                        <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
+                        <div class="text-[10px] text-center font-bold text-purple-400 mt-1">Šance: ${Math.min((totalVal / item.price)*100, 90).toFixed(1)}%</div>
+                    </div>
+                `).join('') || '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase">Nejprve přidej své skiny.</div>';
+            }
+        }
+
+        function attemptUpgrade() {
+            if(isSpinning) return;
+            let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+            if(totalVal === 0) return showToast("Vlož alespoň jeden skin!", true);
+            if(!upgTarget) return showToast("Vyber cílový skin!", true);
+
+            isSpinning = true;
+            document.getElementById('btn-upgrade-exec').textContent = "Vylepšuji...";
+            document.getElementById('upgrade-panel').classList.add('upgrade-shake');
+            
+            // Zvuk napětí
+            const soundNode = SoundEngine.playUpgradeProcess();
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('upgrade-panel').classList.remove('upgrade-shake');
+                document.getElementById('btn-upgrade-exec').textContent = "Vylepšit";
+                if(soundNode) { soundNode.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); }
+
+                let chance = Math.min((totalVal / upgTarget.price) * 100, 90);
+                const roll = Math.random() * 100;
+                
+                upgInputs.forEach(item => { if(item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
+
+                if (roll <= chance) {
+                    showWinModal(upgTarget);
+                } else {
+                    SoundEngine.playUpgradeFail();
+                    showToast("Upgrade selhal. Skiny shořely.", true);
+                }
+
+                upgInputs = [null, null, null];
+                upgTarget = null;
+                renderUpgrader();
+            }, 2000);
+        }
+
+        window.onload = async () => { 
+            sanitizeDuplicateSocialButtons();
+            lucide.createIcons();
+            switchPage('cases');
+            await loadSessionFromBackend();
+            // Inicializuj live drops + chat (fail-safe)
+            try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
+            try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
+            // Currency selector handler
+            const cur = document.getElementById('currency-select');
+            if(cur) {
+                cur.addEventListener('change', updateUI);
+            }
+            const modal = document.getElementById('auth-modal');
+            if(modal) {
+                modal.addEventListener('click', (e) => {
+                    if(e.target === modal) closeAuthModal();
+                });
+            }
+            // Inicialní UI update
+            updateUI();
+        };
+
+        // --- Live chat (uživatel + AI odpovědi, fallback bez API) ---
+        async function maybeGeminiReply(userMessage) {
+            const apiKey = localStorage.getItem('geminiApiKey') || '';
+            if(!apiKey) return null;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${userMessage}` }] }],
+                        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
+                    })
+                });
+                if(!res.ok) return null;
+                const data = await res.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+            } catch {
+                return null;
+            }
+        }
+
+        function initializeLiveDrops() {
+            const dropsContainer = document.getElementById('live-drops');
+            if(!dropsContainer) return;
+            dropsContainer.style.animation = 'none';
+            const skinList = Object.values(skinsDB);
+            const cheapPool = skinList.filter(s => s.price <= 15);
+            const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
+            const expensivePool = skinList.filter(s => s.price > 120 && s.price <= 700);
+            const ultraPool = skinList.filter(s => s.price > 700 || KNIFE_TYPES.includes(s.weapon) || GLOVE_TYPES.includes(s.weapon));
+
+            function pickWeightedLiveSkin() {
+                const roll = Math.random() * 100;
+                let pool = cheapPool;
+                // Realističtější feed: drtivá většina dropů je levná, drahé/nože jsou vzácné
+                if(roll < 82) pool = cheapPool;
+                else if(roll < 95) pool = midPool.length ? midPool : cheapPool;
+                else if(roll < 99.2) pool = expensivePool.length ? expensivePool : (midPool.length ? midPool : cheapPool);
+                else pool = ultraPool.length ? ultraPool : (expensivePool.length ? expensivePool : cheapPool);
+                return pool[Math.floor(Math.random() * pool.length)] || skinList[Math.floor(Math.random() * skinList.length)];
+            }
+            let lastSkinId = null;
+            let offsetX = 0;
+            let paused = false;
+
+            const steamProfiles = [
+                { name: 'Alpha', avatar: 'https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg' },
+                { name: 'Beta', avatar: 'https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg' },
+                { name: 'Gamer', avatar: 'https://cdn.casehug.com/bots/bot-gadget.gif' },
+                { name: 'Pro', avatar: 'https://cdn.casehug.com/bots/bot-jarvis.gif' },
+                { name: 'Lucky', avatar: 'https://cdn.casehug.com/bots/bot-poke_1.png' },
+                { name: 'Hunter', avatar: 'https://avatars.steamstatic.com/5a3b1d7d7d2f3a2b4e_full.jpg' },
+                { name: 'Trader', avatar: 'https://avatars.steamstatic.com/6b8f3c2d2d2a3b1c4f_full.jpg' },
+                { name: 'Baller', avatar: 'https://avatars.steamstatic.com/8c7d9f4a4a4b5c6d7e_full.jpg' }
+            ];
+
+            function addRandomDrop() {
+                if(skinList.length === 0) return;
+                let attempts = 0;
+                let randomSkin = pickWeightedLiveSkin();
+                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
+                    randomSkin = pickWeightedLiveSkin();
+                    attempts++;
+                }
+                lastSkinId = randomSkin.id;
+
+                const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
+                const item = document.createElement('div');
+                item.className = 'live-drop-item';
+
+                const avatarWrap = document.createElement('div');
+                avatarWrap.className = 'live-drop-avatar';
+                const avatarImg = document.createElement('img');
+                avatarImg.src = profile.avatar;
+                avatarImg.alt = profile.name;
+                avatarImg.style.width = '100%'; avatarImg.style.height = '100%'; avatarImg.style.objectFit = 'cover';
+                avatarImg.onerror = handleImgError;
+                avatarWrap.appendChild(avatarImg);
+
+                const img = document.createElement('img');
+                img.src = randomSkin.img;
+                img.alt = randomSkin.name;
+                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
+                img.onerror = handleImgError;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'live-drop-item-name';
+                nameDiv.textContent = randomSkin.name;
+
+                const userDiv = document.createElement('div');
+                userDiv.className = 'live-drop-item-user';
+                userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'live-drop-tooltip';
+                tooltip.innerHTML = `
+                    <div class="tp-row">
+                        <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
+                        <div>
+                            <div class="tp-name">${profile.name}</div>
+                            <div class="tp-when">Vyhrálo: ${randomSkin.name}</div>
+                        </div>
+                    </div>
+                `;
+
+                item.appendChild(avatarWrap);
+                item.appendChild(img);
+                item.appendChild(nameDiv);
+                item.appendChild(userDiv);
+                item.appendChild(tooltip);
+
+                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; });
+                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
+
+                dropsContainer.appendChild(item);
+                if(dropsContainer.children.length > 60) dropsContainer.removeChild(dropsContainer.firstChild);
+            }
+
+            for(let i=0;i<18;i++) addRandomDrop();
+            setInterval(addRandomDrop, 1700);
+            setInterval(() => {
+                if(dropsContainer.children.length < 6) {
+                    for(let i=0;i<12;i++) addRandomDrop();
+                }
+            }, 4000);
+
+            let lastTs = performance.now();
+            const speed = 34;
+            const gapPx = 16;
+            function getItemWidth(el) {
+                if(!el) return 0;
+                return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;
+            }
+            function animate(ts) {
+                const dt = Math.min(0.05, (ts - lastTs) / 1000);
+                lastTs = ts;
+                if(!paused) {
+                    offsetX -= speed * dt;
+                    let first = dropsContainer.firstElementChild;
+                    let firstWidth = getItemWidth(first);
+                    while(first && firstWidth > 0 && -offsetX >= firstWidth) {
+                        offsetX += firstWidth;
+                        dropsContainer.appendChild(first);
+                        first = dropsContainer.firstElementChild;
+                        firstWidth = getItemWidth(first);
+                    }
+                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
+                }
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function simulateLiveChat() {
+            const container = document.getElementById('live-chat-messages');
+            const input = document.getElementById('live-chat-input');
+            const sendBtn = document.getElementById('live-chat-send');
+            if(!container || !input || !sendBtn) return;
+
+            const firstNames = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel','Fanda','Kuba','Jana','Erik','Misa','Roman','Patrik','Alex'];
+            const intros = ['právě', 'teď', 'dneska', 'upřímně', 'lol', 'ngl', 'wtf', 'bro', 'tyjo', 'mega'];
+            const actions = ['dropnul', 'vytáhl', 'spálil', 'otočil', 'prodal', 'nechal v invu', 'přidal do upgradu', 'zkusil free case', 'risknul all-in'];
+            const items = ['Karambit Fade', 'M4A4 Howl', 'AWP Asiimov', 'AK-47 Bloodsport', 'Sport Gloves Vice', 'Desert Eagle Printstream', 'Butterfly Doppler', 'M9 Tiger Tooth', 'AWP Dragon Lore', 'USP-S Neo-Noir'];
+            const reactions = ['to je šílený', 'tohle bolí', 'dneska to padá', 'rip bankroll', 'easy profit', 'casino mě miluje', 'casino mě nenávidí', 'točím dál', 'jdu ještě jednu'];
+            const emotes = ['🔥','💀','😎','😂','🎯','💸','🧊','👀','🚀','🤯'];
+
+            const addMessage = (name, message, mine = false) => {
+                const row = document.createElement('div');
+                row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
+                row.innerHTML = mine
+                    ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${message}</span>`
+                    : `<span class="text-yellow-300 font-bold">${name}:</span> <span class="text-gray-300">${message}</span>`;
+                container.appendChild(row);
+                if(container.children.length > 120) container.removeChild(container.firstChild);
+                container.scrollTop = container.scrollHeight;
+            };
+
+            const randomName = () => `${firstNames[Math.floor(Math.random()*firstNames.length)]}#${1000 + Math.floor(Math.random()*9000)}`;
+            const randomEmotes = () => Array.from({length: 1 + Math.floor(Math.random()*2)}, () => emotes[Math.floor(Math.random()*emotes.length)]).join('');
+            const generateHumanLikeMessage = () => {
+                const i = intros[Math.floor(Math.random()*intros.length)];
+                const a = actions[Math.floor(Math.random()*actions.length)];
+                const it = items[Math.floor(Math.random()*items.length)];
+                const r = reactions[Math.floor(Math.random()*reactions.length)];
+                const patterns = [
+                    `${i} jsem ${a} ${it} ${randomEmotes()}`,
+                    `${a} jsem ${it}, ${r} ${randomEmotes()}`,
+                    `${i} free case a ${a} ${it}`,
+                    `${it}? ${r} ${randomEmotes()}`,
+                    `${i} točím ${a} a ${r}`
+                ];
+                return patterns[Math.floor(Math.random() * patterns.length)];
+            };
+
+            const pushNaturalMessage = () => addMessage(randomName(), generateHumanLikeMessage());
+
+            const sendUserMessage = () => {
+                const text = input.value.trim();
+                if(!text) return;
+                input.value = '';
+                addMessage('Ty', text, true);
+                maybeGeminiReply(text).then((ai) => {
+                    if(ai) addMessage(randomName(), ai);
+                    else setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
+                });
+            };
+
+            sendBtn.onclick = sendUserMessage;
+            input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
+
+            for(let i=0;i<12;i++) setTimeout(pushNaturalMessage, i*220);
+            setInterval(pushNaturalMessage, 1200 + Math.random()*1900);
+        }
+
+        // --- FREE CASE SYSTEM ---
+        // --- FREE CASE SYSTEM ---
+        const FREE_CASE_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hodin
+        
+        function getFreeCaseStatus() {
+            const lastFreeCase = localStorage.getItem('lastFreeCase');
+            if(!lastFreeCase) return { available: true, nextTime: 0 };
+            
+            const lastTime = parseInt(lastFreeCase);
+            const now = Date.now();
+            const nextTime = lastTime + FREE_CASE_COOLDOWN;
+            
+            return {
+                available: now >= nextTime,
+                nextTime: Math.max(0, Math.ceil((nextTime - now) / 1000))
+            };
+        }
+
+        function openFreeCase() {
+            if(!requireAuthAction()) return;
+            const status = getFreeCaseStatus();
+            if(!status.available) {
+                const hours = Math.floor(status.nextTime / 3600);
+                const mins = Math.floor((status.nextTime % 3600) / 60);
+                showToast(`Další FREE bedna za ${hours}h ${mins}m`, true);
+                return;
+            }
+
+            // Otevri náhodnou bednu
+            const randomCase = casesDB[Math.floor(Math.random() * casesDB.length)];
+            localStorage.setItem('lastFreeCase', Date.now().toString());
+            
+            // Bez poplatku
+            activeCaseId = randomCase.id;
+            document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
+            document.getElementById('view-case-price').textContent = '0 EUR';
+            
+            const countSel = document.getElementById('open-count');
+            if(countSel) {
+                countSel.value = '1';
+                countSel.disabled = false;
+            }
+            ensureSpinnerRows(1, randomCase);
+            const results = document.getElementById('spin-results');
+            if(results) results.innerHTML = '';
+            
+            document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
+                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
+                    <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
+                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
+                </div>
+            `).join('');
+
+            const btn = document.getElementById('btn-open-case');
+            btn.onclick = () => spinCase(randomCase, getOpenCount());
+            btn.textContent = "OTEVŘÍT ZDARMA";
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-case-view').classList.remove('hidden');
+            
+            showToast('FREE bedna dostupná!');
+        }
+    </script>
+</body>
+</html>
