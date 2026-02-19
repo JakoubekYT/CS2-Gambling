@@ -2742,7 +2742,145 @@ Zeus x27|Charged Up|8.50|#8847ff
                     c.contents = normalizeRounded(items).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
+            const applyCaseCatalogRefresh = () => {
+                const renameMap = {
+                    'trash-or-knife': '1% Knife Rush',
+                    'dragon': '1% Dragon Lore',
+                    'frosty': 'FROSTBITE AK-47'
+                };
+                casesDB.forEach((c) => {
+                    if (renameMap[c.id]) c.name = renameMap[c.id];
+                    if (c.id === 'dragon') c.img = findSkin('AWP', 'Dragon Lore').img;
+                    if (c.id === 'frosty') c.img = findSkin('AK-47', 'Ice Coaled').img;
+                });
+            };
+
+            const diversifyCaseContents = () => {
+                const all = Object.values(skinsDB || {});
+                const byPrice = [...all].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+
+                const seeded = (seed) => {
+                    const str = String(seed || 'x');
+                    return str.split('').reduce((a, ch) => (a * 33 + ch.charCodeAt(0)) % 9973, 17);
+                };
+
+                const pick = (min, max, used, seed) => {
+                    const pool = byPrice.filter((s) => Number(s.price || 0) >= min && Number(s.price || 0) <= max && !used.has(s.id));
+                    if (!pool.length) return null;
+                    const idx = seeded(seed) % pool.length;
+                    return pool[idx];
+                };
+
+                casesDB.forEach((c) => {
+                    const p = Number(c.price || 0);
+                    const seedBase = seeded(c.id);
+                    const target = p <= 1 ? 20 : p <= 5 ? 18 : p <= 20 ? 16 : p <= 100 ? 14 : 12;
+                    const used = new Set();
+                    const chosen = [];
+
+                    const pushSkin = (skin) => {
+                        if (!skin || used.has(skin.id)) return;
+                        used.add(skin.id);
+                        chosen.push(skin);
+                    };
+
+                    // Keep current themed tops.
+                    const tops = (c.contents || []).slice().sort((a, b) => Number(b.skin?.price || 0) - Number(a.skin?.price || 0)).slice(0, 4).map((x) => x.skin);
+                    tops.forEach(pushSkin);
+
+                    if (c.id === 'frosty') pushSkin(findSkin('AK-47', 'Ice Coaled'));
+                    if (c.id === 'dragon') pushSkin(findSkin('AWP', 'Dragon Lore'));
+                    if (c.id === 'trash-or-knife') pushSkin(findSkin('M9 Bayonet', 'Autotronic'));
+
+                    while (chosen.length < target) {
+                        const slot = chosen.length;
+                        const r = slot / Math.max(1, target - 1);
+                        let minP = 0.01;
+                        let maxP = Math.max(0.03, p * 0.8);
+                        if (r > 0.62) { minP = Math.max(0.02, p * 0.85); maxP = Math.max(0.08, p * 1.6); }
+                        if (r > 0.85) { minP = Math.max(0.03, p * 1.0); maxP = Math.max(0.12, p * 4.0); }
+
+                        if (c.id === 'trash-or-knife') {
+                            if (slot < target - 1) { minP = 0.01; maxP = Math.max(0.05, p * 0.25); }
+                            else { minP = p * 90; maxP = p * 99; }
+                        }
+                        if (c.id === 'dragon') {
+                            if (slot < target - 1) { minP = 0.02; maxP = Math.max(0.08, p * 0.55); }
+                            else { minP = p * 60; maxP = p * 110; }
+                        }
+
+                        const skin = pick(minP, maxP, used, `${seedBase}-${slot}`)
+                            || pick(0.01, Math.max(0.06, p * 2.0), used, `${seedBase}-fb-${slot}`)
+                            || byPrice.find((s) => !used.has(s.id));
+                        if (!skin) break;
+                        pushSkin(skin);
+                    }
+
+                    if (!chosen.some((s) => Number(s.price || 0) > p)) {
+                        pushSkin(pick(Math.max(0.05, p * 1.03), Math.max(0.1, p * 4), used, `${seedBase}-winner`) || findSkin('AK-47', 'Redline'));
+                    }
+
+                    const winners = chosen.filter((s) => Number(s.price || 0) > p);
+                    const losers = chosen.filter((s) => Number(s.price || 0) <= p);
+                    const winnerShare = c.id === 'trash-or-knife' ? 1.0 : (c.id === 'dragon' ? 1.0 : (p <= 1 ? 35 : p <= 10 ? 28 : 22));
+                    const loserShare = 100 - winnerShare;
+
+                    const dist = (arr, total, fn) => {
+                        if (!arr.length) return [];
+                        const ws = arr.map((s) => Math.max(0.0001, fn(s)));
+                        const sum = ws.reduce((a, b) => a + b, 0) || 1;
+                        return arr.map((s, i) => ({ skin: s, chance: (ws[i] / sum) * total }));
+                    };
+
+                    const winnerDist = dist(winners, winnerShare, (s) => 1 / Math.max(p * 1.02, Number(s.price || p * 1.02)));
+                    const loserDist = dist(losers, loserShare, (s) => 1 / Math.max(0.01, Math.pow(Number(s.price || 0.01), 1.2)));
+
+                    c.contents = [...loserDist, ...winnerDist]
+                        .map((it) => ({ ...it, chance: Math.max(0.1, Math.round((it.chance || 0) * 10) / 10) }))
+                        .sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+
+                    const diff = Math.round((100 - c.contents.reduce((a, b) => a + (b.chance || 0), 0)) * 10) / 10;
+                    if (c.contents.length) c.contents[c.contents.length - 1].chance = Math.max(0.1, Math.round((c.contents[c.contents.length - 1].chance + diff) * 10) / 10);
+                });
+            };
+
+            const enforceHouseProfitStrict = () => {
+                const ev = (contents=[]) => contents.reduce((a,it)=>a+((Number(it?.skin?.price||0)*Number(it?.chance||0))/100),0);
+                const norm = (contents=[]) => {
+                    if (!contents.length) return contents;
+                    const sum = contents.reduce((a,b)=>a+Number(b.chance||0),0);
+                    const diff = Math.round((100 - sum) * 10) / 10;
+                    contents[contents.length - 1].chance = Math.max(0.1, Math.round((Number(contents[contents.length - 1].chance || 0) + diff) * 10) / 10);
+                    return contents;
+                };
+
+                casesDB.forEach((c) => {
+                    if (!c.contents?.length) return;
+                    c.contents = c.contents.map((it) => ({ ...it, chance: Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10) }));
+                    let guard = 0;
+                    while (ev(c.contents) >= Number(c.price || 0) && guard < 1200) {
+                        const winners = c.contents
+                            .filter((it) => Number(it.skin?.price || 0) > Number(c.price || 0) && Number(it.chance || 0) > 0.1)
+                            .sort((a, b) => (Number(b.skin?.price || 0) * Number(b.chance || 0)) - (Number(a.skin?.price || 0) * Number(a.chance || 0)));
+                        const losers = c.contents
+                            .filter((it) => Number(it.skin?.price || 0) <= Number(c.price || 0))
+                            .sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+                        if (!winners.length || !losers.length) break;
+                        const donor = winners[0];
+                        const receiver = losers[0];
+                        donor.chance = Math.max(0.1, Math.round((Number(donor.chance || 0) - 0.1) * 10) / 10);
+                        receiver.chance = Math.round((Number(receiver.chance || 0) + 0.1) * 10) / 10;
+                        norm(c.contents);
+                        guard += 1;
+                    }
+                    c.contents = norm(c.contents).sort((a,b)=>Number(a.skin?.price||0)-Number(b.skin?.price||0));
+                });
+            };
+
+            applyCaseCatalogRefresh();
+            diversifyCaseContents();
             applyHouseEdge();
+            enforceHouseProfitStrict();
             renderCases();
         }, 100);
 
@@ -3573,7 +3711,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                         imgEl.src = r.img || FALLBACK_IMG;
                         nameEl.textContent = r.name || 'Skin';
                     });
-                    await cbSleep(85);
+                    SoundEngine.playTick();
+                    await cbSleep(95);
                 }
 
                 (room.players || []).forEach((pl, idx) => {
@@ -3589,12 +3728,34 @@ Zeus x27|Charged Up|8.50|#8847ff
                         dotEl.classList.remove('active');
                         dotEl.classList.add('hit');
                     }
+                    const openEl = document.getElementById(`cb-opened-${idx}`);
+                    const totalEl = document.getElementById(`cb-total-${idx}`);
+                    if (openEl) {
+                        const opened = (pl.drops || []).slice(0, round + 1).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
+                        openEl.innerHTML = opened;
+                    }
+                    if (totalEl) totalEl.textContent = formatMoney(pl.score || 0);
                 });
                 await cbSleep(420);
             }
             cbAnimationLock = false;
         }
 
+
+        function applyCaseBattleLeaderStyles(room) {
+            const players = room?.players || [];
+            if (!players.length) return;
+            const topScore = Math.max(...players.map((p) => Number(p.score || 0)));
+            players.forEach((pl, idx) => {
+                const card = document.getElementById(`cb-player-${idx}`);
+                if (!card) return;
+                const isLeader = Number(pl.score || 0) >= topScore && topScore > 0;
+                if (room.status !== 'done') {
+                    card.classList.toggle('winner', isLeader);
+                    card.classList.remove('loser');
+                }
+            });
+        }
         function applyCaseBattleResultStyles(room) {
             if (room?.status !== 'done' || !room?.winnerId) return;
             (room.players || []).forEach((pl, idx) => {
@@ -3622,7 +3783,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const img = lastDrop?.img || FALLBACK_IMG;
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
                 const roundsDots = Array.from({ length: rounds }).map((_, rIdx) => `<span id="cb-dot-${idx}-${rIdx}" class="cb-round-dot"></span>`).join('');
-                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div></div>`;
+                const opened = (pl.drops || []).slice(0, rounds).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
+                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno: <span id="cb-total-${idx}">${formatMoney(pl.score || 0)}</span></div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>'}</div></div>`;
             }).join('');
 
             const signature = cbRoomSignature(room);
@@ -3631,6 +3793,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (shouldAnimate) {
                 cbLastAnimatedSignature = signature;
                 animateCaseBattleRounds(room).then(() => {
+                    applyCaseBattleLeaderStyles(room);
                     applyCaseBattleResultStyles(room);
                     if (room.status === 'done' && room.winnerId) {
                         const winner = (room.players || []).find((p) => String(p.userId) === String(room.winnerId));
@@ -3638,12 +3801,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                     }
                 });
             } else {
+                applyCaseBattleLeaderStyles(room);
                 applyCaseBattleResultStyles(room);
             }
 
-            if (room.status === 'done' && room.winnerId) {
-                setTimeout(() => leaveCaseBattleRoom(), 2600);
-            }
         }
 
         function socialLogin(provider) {
