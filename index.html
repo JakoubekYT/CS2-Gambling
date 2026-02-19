@@ -30,13 +30,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 1rem;
+            gap: 0.2rem;
+            padding: 0.35rem;
             background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
-            border-radius: 16px;
+            border-radius: 4px;
             border: 2px solid rgba(250,204,21,0.5);
-            min-width: 152px;
-            height: 182px;
+            min-width: 92px;
+            height: 86px;
             flex-shrink: 0;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -44,7 +44,7 @@
             overflow: visible;
         }
         .live-drop-item .live-drop-avatar {
-            width: 36px; height:36px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
+            width: 24px; height:24px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
         }
         .live-drop-tooltip {
             position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
@@ -64,9 +64,9 @@
             box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
             animation: none !important;
         }
-        .live-drop-item img { max-height: 78px; max-width: 132px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 11px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 30px; }
-        .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
+        .live-drop-item img { max-height: 34px; max-width: 72px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 8px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 0; }
+        .live-drop-item-user { font-size: 7px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
         
@@ -101,7 +101,7 @@
         .spinner-container {
             position: relative; width: 100%; height: 180px;
             background: linear-gradient(180deg, #101218 0%, #0a0b0e 100%);
-            border-radius: 16px; overflow: hidden;
+            border-radius: 4px; overflow: hidden;
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
         }
@@ -174,15 +174,15 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-56 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
-        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
-            🔴 LIVE DROPS
+    <div class="h-20 bg-gradient-to-r from-yellow-500/15 via-pink-500/10 to-purple-500/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
+        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 h-full flex items-center font-black text-[10px] uppercase italic mr-2 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+            🔴 Live
         </div>
-        <div class="flex-1 overflow-hidden py-2">
-            <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+        <div class="flex-1 overflow-hidden py-1">
+            <div class="flex items-center gap-2 live-drop-scroll" id="live-drops"></div>
         </div>
-        <!-- Live chat (simulovaný) -->
-        <div id="live-chat" class="mr-6 my-3 w-96 h-48 bg-[#0b0d11]/80 border border-yellow-400/10 rounded-xl p-3 text-sm overflow-hidden shadow-lg hidden lg:flex flex-col">
+        <!-- Live chat -->
+        <div id="live-chat" class="fixed right-6 bottom-6 z-[90] w-80 h-56 bg-[#0b0d11]/90 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl hidden lg:flex flex-col">
             <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
             <div class="flex gap-2">
                 <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
@@ -191,34 +191,26 @@
         </div>
     </div>
 
-    <header class="h-20 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-8 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-        <div class="flex items-center gap-10">
-            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchPage('cases')">
-                <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center text-black font-black text-2xl rotate-2 group-hover:rotate-0 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.3)] item-pulse">OD</div>
+    <header class="h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
+                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-20 h-20 object-contain drop-shadow-[0_0_28px_rgba(250,204,21,0.65)]">
                 <div class="flex flex-col leading-tight">
-                    <span class="text-3xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                    <span class="text-4xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                    <span class="text-[11px] uppercase tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
                 </div>
             </div>
 
-            <nav class="hidden 2xl:flex items-center gap-6">
-                <button onclick="switchPage('cases')" class="nav-link active py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="box" class="w-4 h-4"></i> Bedny
-                </button>
-
-                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-110">
-                    <i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span>
-                </button>
-
-                <button onclick="switchPage('upgrade')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade
-                </button>
-                <button onclick="switchPage('inventory')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář
-                </button>
+            <nav class="hidden xl:flex items-center gap-5">
+                <button onclick="switchPage('cases')" class="nav-link active py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="box" class="w-4 h-4"></i> Bedny</button>
+                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-105"><i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span></button>
+                <button onclick="switchPage('upgrade')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade</button>
+                <button onclick="switchPage('inventory')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář</button>
+                <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin</button>
             </nav>
         </div>
 
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
             <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 flex items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
                 <div class="text-right flex items-center gap-3">
                     <div>
@@ -242,6 +234,8 @@
             <button onclick="addFreeMoney()" id="free-money-btn" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
                 💰 + PENÍZE ZDARMA
             </button>
+            <button onclick="toggleTradeInbox()" id="trade-bell-btn" class="relative bg-black/40 hover:bg-black/60 text-yellow-300 px-3 py-3 rounded-xl border border-yellow-400/30"><i data-lucide="bell" class="w-4 h-4"></i><span id="trade-bell-count" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full min-w-4 h-4 px-1 text-center leading-4">0</span></button>
+            <button onclick="switchPage('profile')" id="profile-open-btn" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-blue-300/30 shadow-[0_0_20px_rgba(59,130,246,0.2)] active:scale-95 hover:scale-105 flex items-center gap-2"><i data-lucide="user-cog" class="w-4 h-4"></i><span>Profil</span></button>
             <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
                 <i data-lucide="user-round" class="w-4 h-4"></i>
                 <span id="auth-open-label">Přihlásit</span>
@@ -255,6 +249,12 @@
             </div>
         </div>
     </header>
+
+    <div id="trade-inbox-panel" class="hidden fixed top-28 right-6 z-[95] w-96 bg-[#131824]/95 border border-yellow-400/30 rounded-2xl p-3 shadow-2xl">
+        <div class="flex items-center justify-between mb-2"><div class="font-black text-yellow-300 uppercase text-xs">Trade notifikace</div><button onclick="toggleTradeInbox(false)" class="text-gray-400">✕</button></div>
+        <div id="trade-inbox-list" class="space-y-2 max-h-72 overflow-y-auto"></div>
+    </div>
+
 
     <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
@@ -390,6 +390,47 @@
                 <div id="inventory-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
 
+            <section id="page-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
+                <h2 class="text-3xl font-black uppercase">Profil & Přátelé</h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
+                        <input id="profile-phone" type="text" maxlength="32" placeholder="Telefon" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                        <button onclick="saveLocalProfile()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl font-black">Uložit profil</button>
+                        <div class="pt-3 border-t border-white/10 space-y-2">
+                            <div class="text-xs text-gray-400">Top-up (limitovaný)</div>
+                            <div class="flex gap-2"><input id="topup-amount" type="number" min="1" max="25" value="10" class="flex-1 bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white"><button onclick="requestTopUp()" class="bg-yellow-400 text-black font-black rounded-xl px-4">Top-up</button></div>
+                        </div>
+                    </div>
+                    <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
+                        <div class="flex gap-2"><input id="friend-search" type="text" placeholder="Najdi uživatele" class="flex-1 bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white"><button onclick="searchUsers()" class="bg-blue-500 text-white font-black rounded-xl px-4">Hledat</button></div>
+                        <div id="friend-search-results" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                        <h3 class="font-black">Moji přátelé</h3>
+                        <div id="friends-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-admin" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
+                <h2 class="text-3xl font-black uppercase">Admin panel</h2>
+                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
+                    <button onclick="loadAdminUsers()" class="bg-yellow-400 text-black font-black rounded-xl px-4 py-2">Načíst uživatele</button>
+                    <div id="admin-users" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+                </div>
+            </section>
+
+            <section id="page-user-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
+                <button onclick="switchPage('profile')" class="text-gray-400 text-xs uppercase font-black">← Zpět na profil</button>
+                <div id="user-profile-card" class="bg-[#14171c] border border-yellow-400/30 rounded-2xl p-5"></div>
+                <div>
+                    <h3 class="font-black text-xl mb-3">Nabídnout trade</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div><div class="text-xs text-gray-400 mb-2">Moje itemy</div><div id="trade-my-items" class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto"></div></div>
+                        <div><div class="text-xs text-gray-400 mb-2">Jeho itemy</div><div id="trade-target-items" class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto"></div></div>
+                    </div>
+                    <button id="trade-send-btn" class="mt-4 bg-yellow-400 text-black font-black px-4 py-2 rounded-xl">Poslat obchodní nabídku</button>
+                </div>
+            </section>
+
             <section id="page-selector" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex items-center justify-between border-b border-white/10 pb-6">
                     <div>
@@ -418,6 +459,7 @@
                 <input id="profile-nickname" type="text" maxlength="24" placeholder="Nickname" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <input id="profile-display-name" type="text" maxlength="32" placeholder="Display jméno" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <input id="profile-avatar" type="url" placeholder="URL profilové fotky" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
+                <input id="profile-phone-auth" type="text" maxlength="32" placeholder="Telefon" class="w-full bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white">
                 <div class="grid grid-cols-2 gap-3 pt-1">
                     <button onclick="registerAccount()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase rounded-xl py-3">Registrovat</button>
                     <button onclick="loginAccount()" class="bg-blue-500 hover:bg-blue-400 text-white font-black uppercase rounded-xl py-3">Přihlásit</button>
@@ -481,7 +523,7 @@
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.03);
@@ -513,7 +555,7 @@
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(100, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 2); // stoupá 2 sekundy
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
                 osc.start();
                 return { osc, gain };
             },
@@ -2289,6 +2331,37 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
             });
 
+            const applyHouseEdge = () => {
+                const targetRtp = 0.51; // 49% house edge
+                casesDB.forEach((c) => {
+                    if (!c.contents?.length) return;
+                    const sorted = c.contents.slice().sort((a,b)=>(a.skin.price||0)-(b.skin.price||0));
+
+                    let weights = sorted.map((it) => 1 / Math.max(0.01, Math.pow((it.skin?.price || 0.01), 1.35)));
+                    const normalize = () => {
+                        const sum = weights.reduce((a,b)=>a+b,0) || 1;
+                        return weights.map((w) => (w / sum) * 100);
+                    };
+                    const expectedBy = (probs) => sorted.reduce((acc, it, i) => acc + ((it.skin?.price || 0) * (probs[i] || 0) / 100), 0);
+
+                    let probs = normalize();
+                    let expected = expectedBy(probs);
+                    const target = c.price * targetRtp;
+
+                    let guard = 0;
+                    while (expected > target && guard < 120) {
+                        weights = weights.map((w, i) => i === 0 ? w * 1.06 : w * 0.992);
+                        probs = normalize();
+                        expected = expectedBy(probs);
+                        guard += 1;
+                    }
+
+                    c.contents = sorted.map((it, i) => ({ ...it, chance: Math.max(0.1, Math.round(probs[i] * 10) / 10) }));
+                    const diff = 100 - c.contents.reduce((a,b)=>a+(b.chance||0),0);
+                    c.contents[c.contents.length - 1].chance = Math.round((c.contents[c.contents.length - 1].chance + diff) * 10) / 10;
+                });
+            };
+            applyHouseEdge();
             renderCases();
         }, 100);
 
@@ -2334,6 +2407,11 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(freeMoneyBtn) {
                 freeMoneyBtn.classList.toggle('hidden', !isDemoMode);
             }
+            const adminBtn = document.getElementById('admin-nav-btn');
+            if (adminBtn) {
+                adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
+                adminBtn.classList.toggle('flex', !!currentUser?.isAdmin);
+            }
             if(pill && pillName && pillNick && pillAvatar) {
                 if(userProfile.nickname) {
                     pill.classList.remove('hidden');
@@ -2353,6 +2431,8 @@ Zeus x27|Charged Up|8.50|#8847ff
         let currentUser = null;
         let stateSaveTimer = null;
         let authProviders = { steam: true, google: true };
+        let selectedProfile = null;
+        let tradeInbox = [];
 
         function sanitizeDuplicateSocialButtons() {
             const authModal = document.getElementById('auth-modal');
@@ -2373,7 +2453,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         async function apiRequest(url, method = 'GET', payload) {
-            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
             if (payload !== undefined) opts.body = JSON.stringify(payload);
             const res = await fetch(url, opts);
             const data = await res.json().catch(() => ({}));
@@ -2400,7 +2480,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                     nickname: auth.user.nickname,
                     displayName: auth.user.displayName || auth.user.nickname,
                     avatar: auth.user.avatar || '',
-                    provider: auth.user.isAdmin ? 'Admin' : 'Email účet'
+                    provider: auth.user.isAdmin ? 'Admin' : 'Email účet',
+                    phone: auth.user.phone || ''
                 };
                 const state = await apiRequest('/api/state');
                 balanceBase = Number(state.balance || 10);
@@ -2409,6 +2490,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const hint = document.getElementById('admin-hint');
                     if (hint) hint.classList.remove('hidden');
                 }
+                loadTradeInbox();
             } catch (err) {
                 console.warn('Nepovedlo se načíst session:', err.message);
             } finally {
@@ -2449,6 +2531,8 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function openAuthModal() {
+            const friendInput = document.getElementById('friend-search');
+            if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
             if(!modal) return;
             sanitizeDuplicateSocialButtons();
@@ -2457,10 +2541,16 @@ Zeus x27|Charged Up|8.50|#8847ff
             document.getElementById('profile-nickname').value = userProfile.nickname || '';
             document.getElementById('profile-display-name').value = userProfile.displayName || '';
             document.getElementById('profile-avatar').value = userProfile.avatar || '';
+            const phoneAuth = document.getElementById('profile-phone-auth');
+            const phoneProfile = document.getElementById('profile-phone');
+            if (phoneAuth) phoneAuth.value = userProfile.phone || '';
+            if (phoneProfile) phoneProfile.value = userProfile.phone || '';
             lucide.createIcons();
         }
 
         function closeAuthModal() {
+            const friendInput = document.getElementById('friend-search');
+            if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
             if(!modal) return;
             modal.classList.add('hidden');
@@ -2475,6 +2565,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     nickname: (document.getElementById('profile-nickname')?.value || '').trim(),
                     displayName: (document.getElementById('profile-display-name')?.value || '').trim(),
                     avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                    phone: (document.getElementById('profile-phone-auth')?.value || document.getElementById('profile-phone')?.value || '').trim(),
                 };
                 const result = await apiRequest('/api/auth/register', 'POST', payload);
                 currentUser = result.user;
@@ -2515,6 +2606,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     nickname,
                     displayName: (document.getElementById('profile-display-name')?.value || nickname).trim(),
                     avatar: (document.getElementById('profile-avatar')?.value || '').trim(),
+                    phone: (document.getElementById('profile-phone-auth')?.value || document.getElementById('profile-phone')?.value || '').trim(),
                 });
                 currentUser = result.user;
                 await loadSessionFromBackend();
@@ -2535,6 +2627,178 @@ Zeus x27|Charged Up|8.50|#8847ff
             updateUI();
             renderInventory();
             showToast('Odhlášeno');
+        }
+
+        async function loadAdminUsers() {
+            if (!currentUser?.isAdmin) return;
+            const wrap = document.getElementById('admin-users');
+            if (!wrap) return;
+            try {
+                const data = await apiRequest('/api/admin/users');
+                wrap.innerHTML = (data.users || []).map((u) => `
+                    <div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 flex items-center justify-between gap-2">
+                        <div><div class="font-black text-white">${u.displayName || u.nickname || 'user'} (${u.email || '-'})</div><div class="text-xs text-yellow-300">Balance: ${formatMoney(Number(u.balance || 0))}</div></div>
+                        <div class="flex items-center gap-2"><input type="number" step="0.01" min="0" id="admin-add-${u.id}" class="w-24 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-white" value="10"><button onclick="adminAddBalance('${u.email}','admin-add-${u.id}')" class="bg-green-600 px-3 py-1 rounded font-black text-xs">Poslat</button></div>
+                    </div>`).join('');
+            } catch (err) {
+                wrap.innerHTML = `<div class="text-red-400">${err.message}</div>`;
+            }
+        }
+
+        async function adminAddBalance(email, inputId) {
+            const amount = Number(document.getElementById(inputId)?.value || 0);
+            try {
+                await apiRequest('/api/admin/add-balance', 'POST', { email, amount });
+                showToast('Zůstatek upraven');
+                loadAdminUsers();
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        async function requestTopUp() {
+            if (!requireAuthAction()) return;
+            const amount = Number(document.getElementById('topup-amount')?.value || 0);
+            try {
+                const data = await apiRequest('/api/wallet/topup', 'POST', { amount });
+                balanceBase = Number(data.balance || balanceBase);
+                updateUI();
+                showToast('Top-up připsán');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        async function searchUsers() {
+            if (!requireAuthAction()) return;
+            const q = (document.getElementById('friend-search')?.value || '').trim();
+            const out = document.getElementById('friend-search-results');
+            if (!out) return;
+            if (q.length < 2) { out.innerHTML = '<div class="text-gray-500 text-xs">Napiš aspoň 2 znaky…</div>'; return; }
+            try {
+                const data = await apiRequest(`/api/users/search?q=${encodeURIComponent(q)}`);
+                out.innerHTML = (data.users || []).map((u) => `
+                    <div class="bg-black/30 rounded-lg p-2 flex items-center justify-between gap-2 border border-yellow-400/10">
+                        <div class="flex items-center gap-2 min-w-0"><img src="${u.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover border border-yellow-400/30"><div class="truncate">${u.displayName || u.nickname}</div></div>
+                        <div class="flex gap-1"><button onclick="openUserProfile('${u.id}')" class="bg-purple-500 px-2 py-1 rounded text-xs font-black">Profil</button><button onclick="addFriend('${u.id}')" class="bg-blue-500 px-2 py-1 rounded text-xs font-black">Přidat</button></div>
+                    </div>`).join('') || '<div class="text-gray-500 text-xs">Nikdo nenalezen.</div>';
+            } catch (err) { out.innerHTML = `<div class="text-red-400">${err.message}</div>`; }
+        }
+
+        async function loadFriends() {
+            if (!currentUser) return;
+            const out = document.getElementById('friends-list');
+            if (!out) return;
+            try {
+                const data = await apiRequest('/api/friends');
+                out.innerHTML = (data.friends || []).map((u) => `
+                    <div class="bg-black/30 rounded-lg p-2 flex items-center justify-between gap-2 border border-yellow-400/10">
+                        <div class="flex items-center gap-2"><img src="${u.avatar || FALLBACK_IMG}" class="w-8 h-8 rounded-full object-cover border border-yellow-400/30"><div class="font-bold">${u.displayName || u.nickname}</div></div>
+                        <div class="flex gap-1"><button onclick="openUserProfile('${u.id}')" class="bg-purple-500 px-2 py-1 rounded text-xs font-black">Profil</button><input type="number" step="0.01" min="0.01" id="donate-${u.id}" value="1" class="w-16 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-xs"><button onclick="donateToFriend('${u.id}','donate-${u.id}')" class="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-black">Donate</button></div>
+                    </div>`).join('') || '<div class="text-gray-500">Zatím žádní přátelé.</div>';
+            } catch (err) { out.innerHTML = `<div class="text-red-400">${err.message}</div>`; }
+        }
+
+        async function addFriend(userId) {
+            try { await apiRequest('/api/friends/add', 'POST', { userId }); showToast('Přítel přidán'); loadFriends(); } catch (err) { showToast(err.message, true); }
+        }
+
+        async function donateToFriend(toUserId, amountId) {
+            const amount = Number(document.getElementById(amountId)?.value || 0);
+            try {
+                const data = await apiRequest('/api/transfer', 'POST', { toUserId, amount });
+                balanceBase = Number(data.balance || balanceBase);
+                updateUI();
+                showToast('Převod odeslán');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        function renderTradeInventory(gridId, items, selectedSet) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            grid.innerHTML = (items || []).map((it) => `
+                <label class="bg-black/30 border border-yellow-400/20 rounded p-2 text-xs cursor-pointer">
+                    <input type="checkbox" data-uid="${it.uid}" class="mr-1" ${selectedSet.has(String(it.uid)) ? 'checked' : ''}>
+                    <img src="${it.img}" class="h-14 w-full object-contain mb-1" onerror="handleImgError(this)">
+                    <div class="truncate">${it.name}</div>
+                    <div class="text-yellow-300">${formatMoney(it.price || 0)}</div>
+                </label>
+            `).join('') || '<div class="text-gray-500 text-xs">Prázdné.</div>';
+        }
+
+        async function openUserProfile(userId) {
+            try {
+                const data = await apiRequest(`/api/profile/${userId}`);
+                selectedProfile = data.profile;
+                const card = document.getElementById('user-profile-card');
+                if (card) {
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3 mb-3"><img src="${selectedProfile.avatar || FALLBACK_IMG}" class="w-14 h-14 rounded-full border border-yellow-400/40 object-cover"><div><div class="text-2xl font-black">${selectedProfile.displayName || selectedProfile.nickname}</div><div class="text-xs text-gray-400">@${selectedProfile.nickname || 'user'}</div></div></div>
+                        <div class="text-xs text-gray-400">Registrován: ${selectedProfile.createdAt ? new Date(selectedProfile.createdAt).toLocaleString('cs-CZ') : '-'}</div>
+                        <div class="text-xs text-gray-400">Poslední přihlášení: ${selectedProfile.lastLoginAt ? new Date(selectedProfile.lastLoginAt).toLocaleString('cs-CZ') : '-'}</div>
+                        <div class="mt-3 text-xs text-yellow-300">Inventář: ${selectedProfile.inventory?.length || 0} itemů</div>
+                    `;
+                }
+                const mineSelected = new Set();
+                const targetSelected = new Set();
+                renderTradeInventory('trade-my-items', userInventory, mineSelected);
+                renderTradeInventory('trade-target-items', selectedProfile.inventory || [], targetSelected);
+
+                const sendBtn = document.getElementById('trade-send-btn');
+                if (sendBtn) {
+                    sendBtn.onclick = async () => {
+                        const offeredUids = Array.from(document.querySelectorAll('#trade-my-items input[type="checkbox"]:checked')).map((n) => n.dataset.uid);
+                        const requestedUids = Array.from(document.querySelectorAll('#trade-target-items input[type="checkbox"]:checked')).map((n) => n.dataset.uid);
+                        try {
+                            await apiRequest('/api/trades/send', 'POST', { toUserId: selectedProfile.id, offeredUids, requestedUids });
+                            showToast('Trade nabídka odeslána');
+                        } catch (err) { showToast(err.message, true); }
+                    };
+                }
+
+                switchPage('user-profile');
+            } catch (err) { showToast(err.message, true); }
+        }
+
+        
+        async function loadTradeInbox() {
+            if (!currentUser) return;
+            try {
+                const data = await apiRequest('/api/trades/inbox');
+                tradeInbox = data.trades || [];
+                const badge = document.getElementById('trade-bell-count');
+                if (badge) {
+                    badge.textContent = String(tradeInbox.length);
+                    badge.classList.toggle('hidden', tradeInbox.length === 0);
+                }
+                const list = document.getElementById('trade-inbox-list');
+                if (list) {
+                    list.innerHTML = tradeInbox.map((t) => `
+                        <div class="bg-black/30 border border-yellow-400/20 rounded-lg p-2 text-xs">
+                            <div class="font-bold text-yellow-300 mb-1">Nabídka #${String(t.id).slice(-6)}</div>
+                            <div>Za tebe: ${t.requestedItems?.length || 0} itemů • Od nich: ${t.offeredItems?.length || 0} itemů</div>
+                            <div class="mt-2 flex gap-1"><button onclick="respondTrade('${t.id}','accept')" class="bg-green-600 px-2 py-1 rounded font-black">Přijmout</button><button onclick="respondTrade('${t.id}','reject')" class="bg-red-600 px-2 py-1 rounded font-black">Odmítnout</button></div>
+                        </div>
+                    `).join('') || '<div class="text-gray-500 text-xs">Žádné nové nabídky.</div>';
+                }
+            } catch (err) {
+                console.warn('trade inbox error', err.message);
+            }
+        }
+
+        function toggleTradeInbox(force = null) {
+            const panel = document.getElementById('trade-inbox-panel');
+            if (!panel) return;
+            const show = force === null ? panel.classList.contains('hidden') : Boolean(force);
+            panel.classList.toggle('hidden', !show);
+            if (show) loadTradeInbox();
+        }
+
+        async function respondTrade(tradeId, action) {
+            try {
+                await apiRequest(`/api/trades/${tradeId}/respond`, 'POST', { action });
+                showToast(action === 'accept' ? 'Trade přijat' : 'Trade odmítnut');
+                await loadTradeInbox();
+                if (action === 'accept') await loadSessionFromBackend();
+            } catch (err) {
+                showToast(err.message, true);
+            }
         }
 
         function socialLogin(provider) {
@@ -2590,6 +2854,14 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function switchPage(id) {
             if(isSpinning) return;
+            if (id === 'admin' && !currentUser?.isAdmin) {
+                showToast('Admin panel je jen pro admin účet.', true);
+                id = 'cases';
+            }
+            if (id === 'user-profile' && !selectedProfile) {
+                id = 'profile';
+            }
+
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             const page = document.getElementById(`page-${id}`);
             if (page) page.classList.remove('hidden');
@@ -2600,6 +2872,8 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             if(id === 'inventory') renderInventory();
             if(id === 'upgrade') renderUpgrader();
+            if(id === 'admin') loadAdminUsers();
+            if(id === 'profile') { loadFriends(); }
             activeCaseId = null; 
         }
 
@@ -2714,8 +2988,8 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 const affordable = balanceBase >= c.price;
                 return `
-<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 ${affordable ? 'border-yellow-400/25 hover:border-yellow-400' : 'border-gray-700/70 hover:border-gray-500'} cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
-    <div class="absolute inset-0 ${affordable ? 'bg-yellow-400/5 group-hover:opacity-100' : 'bg-gray-600/5 group-hover:opacity-70'} opacity-0 transition-opacity"></div>
+<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/25 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 bg-yellow-400/5 group-hover:opacity-100 opacity-0 transition-opacity"></div>
     <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
     <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
     <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
@@ -2809,6 +3083,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function spinCase(caseObj, count = 1) {
             if(isSpinning) return;
+            initAudio();
             if(!requireAuthAction()) return;
             const totalCost = caseObj.price * count;
             if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
@@ -2842,6 +3117,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 rowMeta.push({ track, row: track.parentElement, winningSkin });
             }
 
+            SoundEngine.playTick();
+            const tickInt = setInterval(() => SoundEngine.playTick(), 95);
             setTimeout(() => {
                 rowMeta.forEach((m) => {
                     const containerWidth = m.row.clientWidth;
@@ -2851,6 +3128,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
 
                 setTimeout(() => {
+                    clearInterval(tickInt);
                     let totalWin = 0;
                     rowMeta.forEach(m => {
                         addToInventory(m.winningSkin);
@@ -2903,7 +3181,8 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(results) results.innerHTML = '';
             
             document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
-                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                <div class="relative bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                    <div class="absolute top-1 right-1 text-[9px] bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded">${formatMoney(item.skin.price || 0)}</div>
                     <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
                     <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
                     <div class="text-[10px] font-black text-white">${item.chance}%</div>
@@ -3149,12 +3428,14 @@ Zeus x27|Charged Up|8.50|#8847ff
             await loadSessionFromBackend();
             // Inicializuj live drops + chat (fail-safe)
             try { initializeLiveDrops(); } catch(e) { console.error('live drops init failed', e); }
-            try { simulateLiveChat(); } catch(e) { console.error('live chat init failed', e); }
+            try { initLiveChat(); } catch(e) { console.error('live chat init failed', e); }
             // Currency selector handler
             const cur = document.getElementById('currency-select');
             if(cur) {
                 cur.addEventListener('change', updateUI);
             }
+            const friendInput = document.getElementById('friend-search');
+            if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
             if(modal) {
                 modal.addEventListener('click', (e) => {
@@ -3162,7 +3443,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
             }
             // Inicialní UI update
+            const onlineCount = document.getElementById('online-count');
+            if (onlineCount) onlineCount.textContent = (3800 + Math.floor(Math.random() * 1200)).toLocaleString('cs-CZ');
             updateUI();
+            setInterval(loadTradeInbox, 8000);
         };
 
         // --- Live chat (uživatel + AI odpovědi, fallback bez API) ---
@@ -3232,8 +3516,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                 lastSkinId = randomSkin.id;
 
                 const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
+                const matchingCases = casesDB.filter((c) => (c.contents || []).some((x) => x.skin?.id === randomSkin.id));
+                const sourceCase = matchingCases[Math.floor(Math.random() * Math.max(1, matchingCases.length))] || casesDB[Math.floor(Math.random()*casesDB.length)];
                 const item = document.createElement('div');
                 item.className = 'live-drop-item';
+                item.style.borderColor = randomSkin.color || 'rgba(250,204,21,0.7)';
+                item.style.background = `linear-gradient(135deg, ${randomSkin.color || '#facc15'}33 0%, rgba(11,13,17,0.55) 100%)`;
 
                 const avatarWrap = document.createElement('div');
                 avatarWrap.className = 'live-drop-avatar';
@@ -3265,9 +3553,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                         <div class="tp-avatar"><img src="${profile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'"></div>
                         <div>
                             <div class="tp-name">${profile.name}</div>
-                            <div class="tp-when">Vyhrálo: ${randomSkin.name}</div>
+                            <div class="tp-when">Drop: ${randomSkin.name}</div>
+                            <div class="tp-when">Bedna: <span style="color:#facc15">${sourceCase?.name || 'Unknown'}</span></div>
                         </div>
                     </div>
+                    <div class="mt-2 text-[11px] text-yellow-300">Klikni pro otevření bedny</div>
                 `;
 
                 item.appendChild(avatarWrap);
@@ -3277,6 +3567,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 item.appendChild(tooltip);
 
                 item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; });
+                item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); });
                 item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
 
                 dropsContainer.appendChild(item);
@@ -3318,65 +3609,52 @@ Zeus x27|Charged Up|8.50|#8847ff
             requestAnimationFrame(animate);
         }
 
-        function simulateLiveChat() {
+        function renderChatMessage(container, msg, mine = false) {
+            const row = document.createElement('div');
+            row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
+            row.innerHTML = mine
+                ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${msg.text}</span>`
+                : `<span class="text-yellow-300 font-bold">${msg.nickname}:</span> <span class="text-gray-300">${msg.text}</span>`;
+            container.appendChild(row);
+            if(container.children.length > 120) container.removeChild(container.firstChild);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function initLiveChat() {
             const container = document.getElementById('live-chat-messages');
             const input = document.getElementById('live-chat-input');
             const sendBtn = document.getElementById('live-chat-send');
             if(!container || !input || !sendBtn) return;
 
-            const firstNames = ['Marek','Dominik','Nela','Tomas','Vojta','Luky','Kiki','Radek','Stepan','Niki','Milan','Pavel','Fanda','Kuba','Jana','Erik','Misa','Roman','Patrik','Alex'];
-            const intros = ['právě', 'teď', 'dneska', 'upřímně', 'lol', 'ngl', 'wtf', 'bro', 'tyjo', 'mega'];
-            const actions = ['dropnul', 'vytáhl', 'spálil', 'otočil', 'prodal', 'nechal v invu', 'přidal do upgradu', 'zkusil free case', 'risknul all-in'];
-            const items = ['Karambit Fade', 'M4A4 Howl', 'AWP Asiimov', 'AK-47 Bloodsport', 'Sport Gloves Vice', 'Desert Eagle Printstream', 'Butterfly Doppler', 'M9 Tiger Tooth', 'AWP Dragon Lore', 'USP-S Neo-Noir'];
-            const reactions = ['to je šílený', 'tohle bolí', 'dneska to padá', 'rip bankroll', 'easy profit', 'casino mě miluje', 'casino mě nenávidí', 'točím dál', 'jdu ještě jednu'];
-            const emotes = ['🔥','💀','😎','😂','🎯','💸','🧊','👀','🚀','🤯'];
-
-            const addMessage = (name, message, mine = false) => {
-                const row = document.createElement('div');
-                row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
-                row.innerHTML = mine
-                    ? `<span class="text-yellow-300 font-bold">Ty:</span> <span class="text-white">${message}</span>`
-                    : `<span class="text-yellow-300 font-bold">${name}:</span> <span class="text-gray-300">${message}</span>`;
-                container.appendChild(row);
-                if(container.children.length > 120) container.removeChild(container.firstChild);
-                container.scrollTop = container.scrollHeight;
+            const loadMessages = async () => {
+                if (!currentUser) return;
+                try {
+                    const data = await apiRequest('/api/chat/messages');
+                    container.innerHTML = '';
+                    (data.messages || []).forEach((m) => renderChatMessage(container, m, String(m.userId) === String(currentUser?.id)));
+                } catch (e) {
+                    console.warn('chat load failed', e.message);
+                }
             };
 
-            const randomName = () => `${firstNames[Math.floor(Math.random()*firstNames.length)]}#${1000 + Math.floor(Math.random()*9000)}`;
-            const randomEmotes = () => Array.from({length: 1 + Math.floor(Math.random()*2)}, () => emotes[Math.floor(Math.random()*emotes.length)]).join('');
-            const generateHumanLikeMessage = () => {
-                const i = intros[Math.floor(Math.random()*intros.length)];
-                const a = actions[Math.floor(Math.random()*actions.length)];
-                const it = items[Math.floor(Math.random()*items.length)];
-                const r = reactions[Math.floor(Math.random()*reactions.length)];
-                const patterns = [
-                    `${i} jsem ${a} ${it} ${randomEmotes()}`,
-                    `${a} jsem ${it}, ${r} ${randomEmotes()}`,
-                    `${i} free case a ${a} ${it}`,
-                    `${it}? ${r} ${randomEmotes()}`,
-                    `${i} točím ${a} a ${r}`
-                ];
-                return patterns[Math.floor(Math.random() * patterns.length)];
-            };
-
-            const pushNaturalMessage = () => addMessage(randomName(), generateHumanLikeMessage());
-
-            const sendUserMessage = () => {
+            const sendUserMessage = async () => {
+                if (!requireAuthAction()) return;
                 const text = input.value.trim();
                 if(!text) return;
                 input.value = '';
-                addMessage('Ty', text, true);
-                maybeGeminiReply(text).then((ai) => {
-                    if(ai) addMessage(randomName(), ai);
-                    else setTimeout(() => pushNaturalMessage(), 450 + Math.random()*1400);
-                });
+                try {
+                    await apiRequest('/api/chat/messages', 'POST', { text });
+                    await loadMessages();
+                } catch (err) {
+                    showToast(err.message, true);
+                }
             };
 
             sendBtn.onclick = sendUserMessage;
             input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
 
-            for(let i=0;i<12;i++) setTimeout(pushNaturalMessage, i*220);
-            setInterval(pushNaturalMessage, 1200 + Math.random()*1900);
+            await loadMessages();
+            setInterval(loadMessages, 4000);
         }
 
         // --- FREE CASE SYSTEM ---
@@ -3407,13 +3685,25 @@ Zeus x27|Charged Up|8.50|#8847ff
                 return;
             }
 
-            // Otevri náhodnou bednu
-            const randomCase = casesDB[Math.floor(Math.random() * casesDB.length)];
+            // FREE case s levnými skiny (max 10 EUR)
+            const freeSkins = Object.values(skinsDB).filter((sk) => Number(sk.price || 0) <= 10).sort((a,b)=>a.price-b.price);
+            const freeCase = {
+                id: "free-lite",
+                name: "FREE LITE",
+                price: 0,
+                contents: [
+                    { skin: freeSkins[Math.floor(freeSkins.length*0.1)] || freeSkins[0], chance: 52 },
+                    { skin: freeSkins[Math.floor(freeSkins.length*0.35)] || freeSkins[0], chance: 27 },
+                    { skin: freeSkins[Math.floor(freeSkins.length*0.55)] || freeSkins[0], chance: 13 },
+                    { skin: freeSkins[Math.floor(freeSkins.length*0.75)] || freeSkins[0], chance: 7 },
+                    { skin: freeSkins[freeSkins.length - 1] || freeSkins[0], chance: 1 }
+                ]
+            };
             localStorage.setItem('lastFreeCase', Date.now().toString());
             
             // Bez poplatku
-            activeCaseId = randomCase.id;
-            document.getElementById('view-case-name').textContent = randomCase.name + ' (FREE)';
+            activeCaseId = freeCase.id;
+            document.getElementById('view-case-name').textContent = freeCase.name + ' (FREE)';
             document.getElementById('view-case-price').textContent = '0 EUR';
             
             const countSel = document.getElementById('open-count');
@@ -3421,12 +3711,13 @@ Zeus x27|Charged Up|8.50|#8847ff
                 countSel.value = '1';
                 countSel.disabled = false;
             }
-            ensureSpinnerRows(1, randomCase);
+            ensureSpinnerRows(1, freeCase);
             const results = document.getElementById('spin-results');
             if(results) results.innerHTML = '';
             
-            document.getElementById('view-case-contents').innerHTML = randomCase.contents.map(item => `
-                <div class="bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+            document.getElementById('view-case-contents').innerHTML = freeCase.contents.map(item => `
+                <div class="relative bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
+                    <div class="absolute top-1 right-1 text-[9px] bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded">${formatMoney(item.skin.price || 0)}</div>
                     <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
                     <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
                     <div class="text-[10px] font-black text-white">${item.chance}%</div>
@@ -3434,7 +3725,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             `).join('');
 
             const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => spinCase(randomCase, getOpenCount());
+            btn.onclick = () => spinCase(freeCase, getOpenCount());
             btn.textContent = "OTEVŘÍT ZDARMA";
             btn.disabled = false;
             btn.classList.remove('opacity-50');
