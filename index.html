@@ -241,7 +241,7 @@
             <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2 cursor-pointer hover:bg-black/55 transition-colors">
                 <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
                 <div class="leading-tight">
-                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                  <div id="profile-pill-name" class="text-xs text-white font-black"></div>
                     <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
                 </div>
             </div>
@@ -3570,6 +3570,27 @@ Zeus x27|Charged Up|8.50|#8847ff
             let lastTickStep = -1;
 
             setTimeout(() => {
+                spinStartAt = Date.now();
+                scheduleTick();
+                rowMeta.forEach((m) => {
+                    m.track.dataset.lastX = '0';
+                });
+                tickWatch = setInterval(() => {
+                    const t0 = rowMeta[0]?.track;
+                    if (!t0) return;
+                    const tr = getComputedStyle(t0).transform;
+                    const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
+                    let tx = 0;
+                    if (match) {
+                        const parts = match[1].split(',').map((x) => Number(x.trim()));
+                        tx = Number(parts[4] || 0);
+                    }
+                    const step = Math.floor(Math.abs(tx) / itemWidth);
+                    if (step !== lastTickStep) {
+                        lastTickStep = step;
+                        SoundEngine.playTick();
+                    }
+                }, 28);
                 rowMeta.forEach((m) => {
                     m.track.dataset.lastX = '0';
                 });
