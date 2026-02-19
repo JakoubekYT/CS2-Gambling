@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const SteamStrategy = require('passport-steam').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
 const path = require('path');
@@ -100,6 +99,19 @@ function ensureAuth(req, res, next) {
   return res.status(401).json({ ok: false, message: 'Nejsi přihlášený.' });
 }
 
+function ensureDbReady(req, res, next) {
+  if (mongoose.connection.readyState === 1) return next();
+  return res.status(503).json({ ok: false, message: 'Databáze není připojená. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).' });
+}
+
+function mapServerError(err, fallback = 'Chyba serveru.') {
+  const msg = String(err?.message || '');
+  if (/buffering timed out|ECONNREFUSED|ENOTFOUND|MongoServerSelectionError|failed to connect|topology/i.test(msg)) {
+    return 'Nelze se připojit k databázi. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).';
+  }
+  return fallback;
+}
+
 function ensureAdmin(req, res, next) {
   if (!req.user || !isAdminEmail(req.user.email || '')) {
     return res.status(403).json({ ok: false, message: 'Pouze admin.' });
@@ -171,33 +183,6 @@ passport.deserializeUser((id, done) => {
 if (!STEAM_API_KEY) {
   console.warn('Steam profile enrichment is disabled (missing STEAM_API_KEY).');
 }
-passport.use(
-  new SteamStrategy(
-    {
-      returnURL: `${DOMAIN}/auth/steam/return`,
-      realm: `${DOMAIN}/`,
-      apiKey: process.env.STEAM_API_KEY || ''
-    },
-    async (identifier, profile, done) => {
-      try {
-        let user = await User.findOne({ steamId: profile.id });
-        if (!user) {
-          user = await User.create({
-            steamId: profile.id,
-            nickname: profile._json?.personaname || profile.displayName || 'steam-user',
-            displayName: profile._json?.realname || profile.displayName || 'Steam User',
-            avatar: profile._json?.avatarfull || '',
-            balance: START_BALANCE,
-            inventory: []
-          });
-        }
-        return done(null, user);
-      } catch (err) {
-        return done(err);
-      }
-    }
-  )
-);
 
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   passport.use(
@@ -214,14 +199,22 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
           let user = await User.findOne({ email });
           if (!user) {
-            user = await User.create({
-              email,
-              nickname: profile.displayName || email.split('@')[0] || 'google-user',
-              displayName: profile.displayName || 'Google User',
-              avatar: profile.photos?.[0]?.value || '',
-              balance: START_BALANCE,
-              inventory: []
-            });
+            try {
+              user = await User.create({
+                email,
+                nickname: profile.displayName || email.split('@')[0] || 'google-user',
+                displayName: profile.displayName || 'Google User',
+                avatar: profile.photos?.[0]?.value || '',
+                balance: START_BALANCE,
+                inventory: []
+              });
+            } catch (createErr) {
+              if (createErr?.code === 11000) {
+                user = await User.findOne({ email });
+              } else {
+                throw createErr;
+              }
+            }
           } else {
             user.displayName = user.displayName || profile.displayName || 'Google User';
             user.nickname = user.nickname || profile.displayName || email.split('@')[0] || 'google-user';
@@ -229,8 +222,11 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             await user.save();
           }
 
+          if (!user) return done(new Error('Google účet se nepodařilo vytvořit/načíst.'));
+
           return done(null, user);
         } catch (err) {
+          console.error('Google strategy error:', err);
           return done(err);
         }
       }
@@ -241,7 +237,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 }
 
 // --- AUTH ROUTES (EMAIL/PASSWORD) ---
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', ensureDbReady, async (req, res) => {
   try {
     const email = (req.body.email || '').toString().trim().toLowerCase();
     const password = (req.body.password || '').toString();
@@ -281,11 +277,11 @@ app.post('/api/auth/register', async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    return res.status(500).json({ ok: false, message: 'Chyba registrace.' });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba registrace.') });
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', ensureDbReady, async (req, res) => {
   try {
     const email = (req.body.email || '').toString().trim().toLowerCase();
     const password = (req.body.password || '').toString();
@@ -306,7 +302,7 @@ app.post('/api/auth/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    return res.status(500).json({ ok: false, message: 'Chyba přihlášení.' });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba přihlášení.') });
   }
 });
 
@@ -341,7 +337,7 @@ app.get('/api/auth/providers', (_req, res) => {
 });
 
 // --- PROFILE + STATE ---
-app.put('/api/profile', ensureAuth, async (req, res) => {
+app.put('/api/profile', ensureDbReady, ensureAuth, async (req, res) => {
   try {
     const nickname = normalizeNickname(req.body.nickname);
     if (!nickname) {
@@ -356,11 +352,11 @@ app.put('/api/profile', ensureAuth, async (req, res) => {
     return res.json({ ok: true, user: toClientUser(req.user) });
   } catch (err) {
     console.error('Profile update error:', err);
-    return res.status(500).json({ ok: false, message: 'Chyba ukládání profilu.' });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba ukládání profilu.') });
   }
 });
 
-app.get('/api/state', ensureAuth, (req, res) => {
+app.get('/api/state', ensureDbReady, ensureAuth, (req, res) => {
   return res.json({
     ok: true,
     balance: Number(req.user.balance || START_BALANCE),
@@ -368,7 +364,7 @@ app.get('/api/state', ensureAuth, (req, res) => {
   });
 });
 
-app.post('/api/state', ensureAuth, async (req, res) => {
+app.post('/api/state', ensureDbReady, ensureAuth, async (req, res) => {
   try {
     const nextBalance = Number(req.body.balance);
     const nextInventory = Array.isArray(req.body.inventory) ? req.body.inventory : [];
@@ -384,12 +380,12 @@ app.post('/api/state', ensureAuth, async (req, res) => {
     return res.json({ ok: true });
   } catch (err) {
     console.error('State save error:', err);
-    return res.status(500).json({ ok: false, message: 'Chyba ukládání stavu.' });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba ukládání stavu.') });
   }
 });
 
 // --- ADMIN ---
-app.get('/api/admin/users', ensureAuth, ensureAdmin, async (_req, res) => {
+app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req, res) => {
   const users = await User.find({})
     .sort({ createdAt: -1 })
     .select('email nickname displayName balance steamId createdAt');
@@ -408,7 +404,7 @@ app.get('/api/admin/users', ensureAuth, ensureAdmin, async (_req, res) => {
   });
 });
 
-app.post('/api/admin/set-balance', ensureAuth, ensureAdmin, async (req, res) => {
+app.post('/api/admin/set-balance', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
   const email = (req.body.email || '').toString().trim().toLowerCase();
   const balance = Number(req.body.balance);
 
@@ -475,21 +471,26 @@ app.get('/auth/steam/return', async (req, res) => {
     return res.redirect('/?auth=steam-failed');
   }
 });
-// --- STEAM AUTH ---
-app.get('/auth/steam', passport.authenticate('steam'));
-app.get(
-  '/auth/steam/return',
-  passport.authenticate('steam', { failureRedirect: '/' }),
-  (_req, res) => res.redirect('/')
-);
 
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-  app.get(
-    '/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/?auth=google-failed' }),
-    (_req, res) => res.redirect('/')
-  );
+  app.get('/auth/google/callback', (req, res, next) => {
+    passport.authenticate('google', (err, user) => {
+      if (err) {
+        console.error('Google callback auth error:', err);
+        return res.redirect('/?auth=google-failed');
+      }
+      if (!user) return res.redirect('/?auth=google-failed');
+
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error('Google callback login error:', loginErr);
+          return res.redirect('/?auth=google-failed');
+        }
+        return res.redirect('/');
+      });
+    })(req, res, next);
+  });
 } else {
   app.get('/auth/google', (_req, res) => {
     res.status(503).json({ ok: false, message: 'Google login není nastavený na serveru.' });
@@ -508,6 +509,22 @@ app.get('/api/user', (req, res) => {
     });
   }
   return res.json({ ok: false });
+});
+
+app.get('/api/setup/check', (_req, res) => {
+  const mongoState = mongoose.connection.readyState;
+  return res.json({
+    ok: true,
+    checks: {
+      domain: DOMAIN,
+      mongoConnected: mongoState === 1,
+      hasMongoUri: Boolean(MONGO_URI),
+      hasSessionSecret: Boolean((process.env.SESSION_SECRET || '').trim()),
+      hasGoogleClientId: Boolean(GOOGLE_CLIENT_ID),
+      hasGoogleClientSecret: Boolean(GOOGLE_CLIENT_SECRET),
+      hasSteamApiKey: Boolean(STEAM_API_KEY)
+    }
+  });
 });
 
 app.get('/logout', (req, res) => {
