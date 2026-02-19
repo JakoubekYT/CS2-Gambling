@@ -16,7 +16,7 @@ const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
 const USER_TOPUP_COOLDOWN_MS = Number(process.env.USER_TOPUP_COOLDOWN_MS || 24 * 60 * 60 * 1000);
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/google/callback`;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'jakoubekyt@gmail.com').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
-const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '').split(',').map((v) => v.trim()).filter(Boolean);
+const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '76561199387062638').split(',').map((v) => v.trim()).filter(Boolean);
 const ADMIN_NICKNAMES = (process.env.ADMIN_NICKNAMES || 'P2').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
 
 // --- DB ---
