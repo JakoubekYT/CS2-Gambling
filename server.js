@@ -15,6 +15,9 @@ const SESSION_DAYS = Number(process.env.SESSION_DAYS || 30);
 const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
 const USER_TOPUP_COOLDOWN_MS = Number(process.env.USER_TOPUP_COOLDOWN_MS || 24 * 60 * 60 * 1000);
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/google/callback`;
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'jakoubekit@gmail.com').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
+const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '').split(',').map((v) => v.trim()).filter(Boolean);
+const ADMIN_NICKNAMES = (process.env.ADMIN_NICKNAMES || 'P2').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
 
 // --- DB ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
@@ -37,6 +40,7 @@ const userSchema = new mongoose.Schema(
     displayName: { type: String, trim: true, maxlength: 40 },
     avatar: { type: String, trim: true, maxlength: 500 },
     phone: { type: String, trim: true, maxlength: 32, default: '' },
+    isAdmin: { type: Boolean, default: false },
     balance: { type: Number, default: START_BALANCE },
     inventory: { type: Array, default: [] },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -84,10 +88,15 @@ function normalizeAvatar(input) {
   return (input || '').toString().trim().slice(0, 500);
 }
 
-function isAdminEmail(email = '') {
-  const fromEnv = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
-  if (!fromEnv) return false;
-  return email.toLowerCase().trim() === fromEnv;
+function isAdminUser(user) {
+  if (!user) return false;
+  if (user.isAdmin) return true;
+
+  const email = (user.email || '').toLowerCase().trim();
+  const steamId = (user.steamId || '').trim();
+  const nickname = (user.nickname || '').toLowerCase().trim();
+
+  return ADMIN_EMAILS.includes(email) || ADMIN_STEAM_IDS.includes(steamId) || ADMIN_NICKNAMES.includes(nickname);
 }
 
 function toClientUser(user) {
@@ -99,7 +108,7 @@ function toClientUser(user) {
     displayName: user.displayName || user.nickname || 'User',
     avatar: user.avatar || '',
     phone: user.phone || '',
-    isAdmin: isAdminEmail(user.email || ''),
+    isAdmin: isAdminUser(user),
     provider: user.steamId ? 'steam' : 'email'
   };
 }
@@ -123,7 +132,7 @@ function mapServerError(err, fallback = 'Chyba serveru.') {
 }
 
 function ensureAdmin(req, res, next) {
-  if (!req.user || !isAdminEmail(req.user.email || '')) {
+  if (!req.user || !isAdminUser(req.user)) {
     return res.status(403).json({ ok: false, message: 'Pouze admin.' });
   }
   return next();

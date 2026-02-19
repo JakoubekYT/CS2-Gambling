@@ -35,8 +35,8 @@
             background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
             border-radius: 16px;
             border: 2px solid rgba(250,204,21,0.5);
-            min-width: 120px;
-            height: 145px;
+            min-width: 92px;
+            height: 94px;
             flex-shrink: 0;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -44,7 +44,7 @@
             overflow: visible;
         }
         .live-drop-item .live-drop-avatar {
-            width: 36px; height:36px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
+            width: 24px; height:24px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
         }
         .live-drop-tooltip {
             position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
@@ -64,9 +64,9 @@
             box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
             animation: none !important;
         }
-        .live-drop-item img { max-height: 58px; max-width: 102px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 10px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 30px; }
-        .live-drop-item-user { font-size: 9px; color: #facc15; text-center; font-weight: bold; }
+        .live-drop-item img { max-height: 34px; max-width: 72px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+        .live-drop-item-name { font-size: 8px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 30px; }
+        .live-drop-item-user { font-size: 7px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
         
@@ -174,14 +174,14 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-40 bg-gradient-to-r from-yellow-400/10 via-purple-500/5 to-yellow-400/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
-        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 h-full flex items-center font-black text-xs uppercase italic mr-4 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
-            🔴 LIVE DROPS
+    <div class="h-20 bg-gradient-to-r from-yellow-500/15 via-pink-500/10 to-purple-500/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
+        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 h-full flex items-center font-black text-[10px] uppercase italic mr-2 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+            🔴 Live
         </div>
         <div class="flex-1 overflow-hidden py-1">
-            <div class="flex items-center gap-4 live-drop-scroll" id="live-drops"></div>
+            <div class="flex items-center gap-2 live-drop-scroll" id="live-drops"></div>
         </div>
-        <!-- Live chat (simulovaný) -->
+        <!-- Live chat -->
         <div id="live-chat" class="fixed right-6 bottom-6 z-[90] w-80 h-56 bg-[#0b0d11]/90 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl hidden lg:flex flex-col">
             <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
             <div class="flex gap-2">
@@ -191,37 +191,26 @@
         </div>
     </div>
 
-    <header class="h-20 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-8 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-        <div class="flex items-center gap-10">
-            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchPage('cases')">
-                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 object-contain drop-shadow-[0_0_18px_rgba(250,204,21,0.45)]">
+    <header class="h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
+                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-16 h-16 object-contain drop-shadow-[0_0_24px_rgba(250,204,21,0.55)]">
                 <div class="flex flex-col leading-tight">
-                    <span class="text-3xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                    <span class="text-4xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                    <span class="text-[11px] uppercase tracking-[0.25em] text-green-400 font-black"><span id="online-count">0</span> online</span>
                 </div>
             </div>
 
-            <nav class="hidden 2xl:flex items-center gap-6">
-                <button onclick="switchPage('cases')" class="nav-link active py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="box" class="w-4 h-4"></i> Bedny
-                </button>
-
-                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-110">
-                    <i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span>
-                </button>
-
-                <button onclick="switchPage('upgrade')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade
-                </button>
-                <button onclick="switchPage('inventory')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář
-                </button>
-                <button onclick="switchPage('admin')" class="nav-link py-7 px-2 font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-110">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i> Admin
-                </button>
+            <nav class="hidden xl:flex items-center gap-5">
+                <button onclick="switchPage('cases')" class="nav-link active py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="box" class="w-4 h-4"></i> Bedny</button>
+                <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-105"><i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span></button>
+                <button onclick="switchPage('upgrade')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade</button>
+                <button onclick="switchPage('inventory')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář</button>
+                <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin</button>
             </nav>
         </div>
 
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
             <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 flex items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
                 <div class="text-right flex items-center gap-3">
                     <div>
@@ -2380,6 +2369,11 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(freeMoneyBtn) {
                 freeMoneyBtn.classList.toggle('hidden', !isDemoMode);
             }
+            const adminBtn = document.getElementById('admin-nav-btn');
+            if (adminBtn) {
+                adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
+                adminBtn.classList.toggle('flex', !!currentUser?.isAdmin);
+            }
             if(pill && pillName && pillNick && pillAvatar) {
                 if(userProfile.nickname) {
                     pill.classList.remove('hidden');
@@ -2722,6 +2716,11 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function switchPage(id) {
             if(isSpinning) return;
+            if (id === 'admin' && !currentUser?.isAdmin) {
+                showToast('Admin panel je jen pro admin účet.', true);
+                id = 'cases';
+            }
+
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             const page = document.getElementById(`page-${id}`);
             if (page) page.classList.remove('hidden');
@@ -3298,6 +3297,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
             }
             // Inicialní UI update
+            const onlineCount = document.getElementById('online-count');
+            if (onlineCount) onlineCount.textContent = (3800 + Math.floor(Math.random() * 1200)).toLocaleString('cs-CZ');
             updateUI();
         };
 
