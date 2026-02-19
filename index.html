@@ -65,7 +65,7 @@
             animation: none !important;
         }
         .live-drop-item img { max-height: 40px; max-width: 80px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 9px; font-weight: bold; color: #fff; text-align: center; line-height: 1.25; max-width: 136px; word-break: break-word; min-height: 0; }
+        .live-drop-item-name { font-size: 9px; font-weight: bold; color: #fff; text-align: center; line-height: 1.15; max-width: 84px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .live-drop-item-user { font-size: 7px; color: #facc15; text-center; font-weight: bold; }
             animation: dropPulse 2s ease-in-out infinite;
         }
@@ -206,6 +206,7 @@
                 <button onclick="openFreeCase()" id="free-case-btn" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-green-400 hover:scale-105"><i data-lucide="gift" class="w-4 h-4"></i> <span id="free-case-label">FREE CASE</span></button>
                 <button onclick="switchPage('upgrade')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade</button>
                 <button onclick="switchPage('inventory')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář</button>
+                <button onclick="switchPage('case-battle')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="swords" class="w-4 h-4"></i> Case Battle</button>
                 <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin</button>
             </nav>
         </div>
@@ -271,7 +272,11 @@
                     </div>
                     <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
                 </div>
-                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-4"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="space-y-8" id="cases-grid"></div>
+                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-3"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-3 mb-4 flex flex-wrap items-center gap-2">
+                    <button onclick="switchPage('upgrade')" class="bg-purple-500/20 border border-purple-400/30 text-purple-200 rounded-lg px-3 py-2 text-xs font-black uppercase flex items-center gap-2"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Upgrade</button>
+                    <button onclick="openFreeCase()" class="bg-green-500/20 border border-green-400/30 text-green-200 rounded-lg px-3 py-2 text-xs font-black uppercase flex items-center gap-2"><i data-lucide="gift" class="w-4 h-4"></i> Free Cases</button>
+                    <button onclick="switchPage('case-battle')" class="bg-red-500/20 border border-red-400/30 text-red-200 rounded-lg px-3 py-2 text-xs font-black uppercase flex items-center gap-2"><i data-lucide="swords" class="w-4 h-4"></i> Case Battle</button>
+                </div><div class="space-y-8" id="cases-grid"></div>
             </section>
 
 
@@ -362,6 +367,19 @@
                 </div>
             </section>
 
+            <section id="page-case-battle" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
+                <div class="flex items-center justify-between"><h2 class="text-3xl font-black uppercase">Case Battle</h2><div class="text-xs text-gray-400">1v1 • 2v2 • 1v1v1v1 • underdog</div></div>
+                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
+                    <div class="grid md:grid-cols-4 gap-2">
+                        <select id="cb-mode" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="1v1v1v1">1v1v1v1</option><option value="underdog">Underdog</option></select>
+                        <select id="cb-rounds" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1">1 round</option><option value="3">3 rounds</option><option value="5">5 rounds</option></select>
+                        <select id="cb-case" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"></select>
+                        <button onclick="startCaseBattle()" class="bg-yellow-400 text-black font-black rounded-lg px-3 py-2 text-sm">Spustit battle</button>
+                    </div>
+                    <div id="cb-log" class="bg-black/30 border border-yellow-400/10 rounded-xl p-3 h-72 overflow-y-auto text-sm"></div>
+                </div>
+            </section>
+
             <section id="page-inventory" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6">
                     <div>
@@ -423,7 +441,7 @@
             <section id="page-user-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <button onclick="switchPage('profile')" class="text-gray-400 text-xs uppercase font-black">← Zpět na profil</button>
                 <div id="user-profile-card" class="bg-[#14171c] border border-yellow-400/30 rounded-2xl p-5"></div>
-              <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4">
+                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4">
                     <h3 class="font-black text-xl mb-3">Inventář uživatele</h3>
                     <div id="user-profile-inventory" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"></div>
                     <button id="open-trade-builder-btn" class="mt-4 bg-yellow-400 text-black font-black px-4 py-2 rounded-xl">Poslat obchodní nabídku</button>
@@ -2476,7 +2494,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let authProviders = { steam: true, google: true };
         let selectedProfile = null;
         let tradeInbox = [];
-          const tradeSelectedMine = new Set();
+        const tradeSelectedMine = new Set();
         const tradeSelectedTarget = new Set();
 
         function sanitizeDuplicateSocialButtons() {
@@ -2924,6 +2942,53 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
+
+        function initCaseBattle() {
+            const sel = document.getElementById('cb-case');
+            if (!sel) return;
+            if (!sel.dataset.ready) {
+                sel.innerHTML = casesDB.slice(0, 120).map((c) => `<option value="${c.id}">${c.name} (${formatMoney(c.price)})</option>`).join('');
+                sel.dataset.ready = '1';
+            }
+        }
+
+        function cbAddLog(text) {
+            const log = document.getElementById('cb-log');
+            if (!log) return;
+            const row = document.createElement('div');
+            row.className = 'mb-1';
+            row.textContent = text;
+            log.appendChild(row);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function startCaseBattle() {
+            if (!requireAuthAction()) return;
+            const mode = document.getElementById('cb-mode')?.value || '1v1';
+            const rounds = Number(document.getElementById('cb-rounds')?.value || 1);
+            const caseId = document.getElementById('cb-case')?.value;
+            const c = casesDB.find((x) => x.id === caseId) || casesDB[0];
+            if (!c) return;
+
+            const modePlayers = mode === '2v2' ? ['Ty','Bot A','Bot B','Bot C'] : mode === '1v1v1v1' ? ['Ty','Bot A','Bot B','Bot C'] : ['Ty','Bot A'];
+            let score = Object.fromEntries(modePlayers.map((p) => [p, 0]));
+            cbAddLog(`--- CASE BATTLE ${mode.toUpperCase()} | ${c.name} ---`);
+
+            for (let r = 1; r <= rounds; r++) {
+                cbAddLog(`Round ${r}`);
+                for (const pl of modePlayers) {
+                    const skin = rollCaseSkin(c);
+                    score[pl] += Number(skin?.price || 0);
+                    cbAddLog(`${pl} dropnul ${skin?.name || 'skin'} (${formatMoney(skin?.price || 0)})`);
+                    if (pl === 'Ty') addToInventory(skin);
+                }
+            }
+            const winner = Object.entries(score).sort((a,b)=>b[1]-a[1])[0];
+            cbAddLog(`WINNER: ${winner[0]} | ${formatMoney(winner[1])}`);
+            if (winner[0] === 'Ty') showToast('Vyhrál jsi case battle!');
+            else showToast('Case battle prohra.', true);
+        }
+
         function socialLogin(provider) {
             if (provider !== 'steam' && provider !== 'google') return;
             if (!authProviders[provider]) {
@@ -2997,6 +3062,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(id === 'upgrade') renderUpgrader();
             if(id === 'admin') loadAdminUsers();
             if(id === 'profile') { loadFriends(); }
+            if(id === 'case-battle') initCaseBattle();
             activeCaseId = null; 
         }
 
