@@ -11,7 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/, '');
 const START_BALANCE = 10;
+const SESSION_DAYS = Number(process.env.SESSION_DAYS || 30);
+const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
+const USER_TOPUP_COOLDOWN_MS = Number(process.env.USER_TOPUP_COOLDOWN_MS || 24 * 60 * 60 * 1000);
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${DOMAIN}/auth/google/callback`;
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'jakoubekit@gmail.com').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
+const ADMIN_STEAM_IDS = (process.env.ADMIN_STEAM_IDS || '').split(',').map((v) => v.trim()).filter(Boolean);
+const ADMIN_NICKNAMES = (process.env.ADMIN_NICKNAMES || 'P2').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);
 
 // --- DB ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
@@ -33,13 +39,19 @@ const userSchema = new mongoose.Schema(
     nickname: { type: String, trim: true, maxlength: 24 },
     displayName: { type: String, trim: true, maxlength: 40 },
     avatar: { type: String, trim: true, maxlength: 500 },
+    phone: { type: String, trim: true, maxlength: 32, default: '' },
+    isAdmin: { type: Boolean, default: false },
     balance: { type: Number, default: START_BALANCE },
-    inventory: { type: Array, default: [] }
+    inventory: { type: Array, default: [] },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    lastTopUpAt: { type: Date, default: null }
   },
   { timestamps: true }
 );
 
 const User = mongoose.model('User', userSchema);
+const liveChatMessages = [];
+const LIVE_CHAT_MAX = 100;
 
 // --- MIDDLEWARE ---
 app.set('trust proxy', 1);
@@ -50,8 +62,9 @@ app.use(
     secret: process.env.SESSION_SECRET || 'change-me-please',
     resave: false,
     saveUninitialized: false,
+    rolling: true,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000,
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production'
@@ -75,10 +88,15 @@ function normalizeAvatar(input) {
   return (input || '').toString().trim().slice(0, 500);
 }
 
-function isAdminEmail(email = '') {
-  const fromEnv = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
-  if (!fromEnv) return false;
-  return email.toLowerCase().trim() === fromEnv;
+function isAdminUser(user) {
+  if (!user) return false;
+  if (user.isAdmin) return true;
+
+  const email = (user.email || '').toLowerCase().trim();
+  const steamId = (user.steamId || '').trim();
+  const nickname = (user.nickname || '').toLowerCase().trim();
+
+  return ADMIN_EMAILS.includes(email) || ADMIN_STEAM_IDS.includes(steamId) || ADMIN_NICKNAMES.includes(nickname);
 }
 
 function toClientUser(user) {
@@ -89,7 +107,8 @@ function toClientUser(user) {
     nickname: user.nickname || user.displayName || 'user',
     displayName: user.displayName || user.nickname || 'User',
     avatar: user.avatar || '',
-    isAdmin: isAdminEmail(user.email || ''),
+    phone: user.phone || '',
+    isAdmin: isAdminUser(user),
     provider: user.steamId ? 'steam' : 'email'
   };
 }
@@ -113,7 +132,7 @@ function mapServerError(err, fallback = 'Chyba serveru.') {
 }
 
 function ensureAdmin(req, res, next) {
-  if (!req.user || !isAdminEmail(req.user.email || '')) {
+  if (!req.user || !isAdminUser(req.user)) {
     return res.status(403).json({ ok: false, message: 'Pouze admin.' });
   }
   return next();
@@ -244,6 +263,7 @@ app.post('/api/auth/register', ensureDbReady, async (req, res) => {
     const nickname = normalizeNickname(req.body.nickname);
     const displayName = normalizeDisplayName(req.body.displayName, nickname || 'User');
     const avatar = normalizeAvatar(req.body.avatar);
+    const phone = (req.body.phone || '').toString().trim().slice(0, 32);
 
     if (!email || !email.includes('@')) {
       return res.status(400).json({ ok: false, message: 'Vyplň platný e-mail.' });
@@ -267,6 +287,7 @@ app.post('/api/auth/register', ensureDbReady, async (req, res) => {
       nickname,
       displayName,
       avatar,
+      phone,
       balance: START_BALANCE,
       inventory: []
     });
@@ -347,6 +368,7 @@ app.put('/api/profile', ensureDbReady, ensureAuth, async (req, res) => {
     req.user.nickname = nickname;
     req.user.displayName = normalizeDisplayName(req.body.displayName, nickname);
     req.user.avatar = normalizeAvatar(req.body.avatar);
+    req.user.phone = (req.body.phone || '').toString().trim().slice(0, 32);
     await req.user.save();
 
     return res.json({ ok: true, user: toClientUser(req.user) });
@@ -420,6 +442,149 @@ app.post('/api/admin/set-balance', ensureDbReady, ensureAuth, ensureAdmin, async
   user.balance = Math.round(balance * 100) / 100;
   await user.save();
   return res.json({ ok: true, email: user.email, balance: user.balance });
+});
+
+app.post('/api/admin/add-balance', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
+  const email = (req.body.email || '').toString().trim().toLowerCase();
+  const amount = Number(req.body.amount);
+
+  if (!email || !Number.isFinite(amount) || amount === 0) {
+    return res.status(400).json({ ok: false, message: 'Zadej email a amount (nenulové číslo).' });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  }
+
+  user.balance = Math.max(0, Math.round((Number(user.balance || 0) + amount) * 100) / 100);
+  await user.save();
+  return res.json({ ok: true, email: user.email, balance: user.balance });
+});
+
+app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
+  const amount = Number(req.body.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'Neplatná částka.' });
+  }
+  if (amount > USER_TOPUP_MAX) {
+    return res.status(400).json({ ok: false, message: `Maximální jednorázový top-up je ${USER_TOPUP_MAX} EUR.` });
+  }
+
+  const now = Date.now();
+  const lastTopUpAt = req.user.lastTopUpAt ? new Date(req.user.lastTopUpAt).getTime() : 0;
+  if (lastTopUpAt && now - lastTopUpAt < USER_TOPUP_COOLDOWN_MS) {
+    const remainingMin = Math.ceil((USER_TOPUP_COOLDOWN_MS - (now - lastTopUpAt)) / (60 * 1000));
+    return res.status(429).json({ ok: false, message: `Další top-up za ${remainingMin} min.` });
+  }
+
+  req.user.balance = Math.round((Number(req.user.balance || 0) + amount) * 100) / 100;
+  req.user.lastTopUpAt = new Date(now);
+  await req.user.save();
+  return res.json({ ok: true, balance: req.user.balance });
+});
+
+app.get('/api/users/search', ensureDbReady, ensureAuth, async (req, res) => {
+  const q = (req.query.q || '').toString().trim();
+  if (!q || q.length < 2) return res.json({ ok: true, users: [] });
+
+  const users = await User.find({
+    _id: { $ne: req.user._id },
+    $or: [
+      { nickname: new RegExp(q, 'i') },
+      { displayName: new RegExp(q, 'i') },
+      { email: new RegExp(q, 'i') }
+    ]
+  })
+    .limit(20)
+    .select('_id nickname displayName avatar');
+
+  return res.json({
+    ok: true,
+    users: users.map((u) => ({ id: u._id, nickname: u.nickname, displayName: u.displayName, avatar: u.avatar || '' }))
+  });
+});
+
+app.get('/api/friends', ensureDbReady, ensureAuth, async (req, res) => {
+  const user = await User.findById(req.user._id).populate('friends', 'nickname displayName avatar');
+  return res.json({
+    ok: true,
+    friends: (user?.friends || []).map((f) => ({ id: f._id, nickname: f.nickname, displayName: f.displayName, avatar: f.avatar || '' }))
+  });
+});
+
+app.post('/api/friends/add', ensureDbReady, ensureAuth, async (req, res) => {
+  const friendId = (req.body.userId || '').toString();
+  if (!friendId || friendId === String(req.user._id)) return res.status(400).json({ ok: false, message: 'Neplatný uživatel.' });
+
+  const friend = await User.findById(friendId);
+  if (!friend) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  if (!Array.isArray(req.user.friends)) req.user.friends = [];
+  if (!req.user.friends.some((id) => String(id) === friendId)) req.user.friends.push(friend._id);
+  await req.user.save();
+  return res.json({ ok: true });
+});
+
+app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
+  const toUserId = (req.body.toUserId || '').toString();
+  const amount = Number(req.body.amount);
+
+  if (!toUserId || !Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'Neplatný převod.' });
+  }
+  if (String(req.user._id) === toUserId) {
+    return res.status(400).json({ ok: false, message: 'Nemůžeš poslat peníze sám sobě.' });
+  }
+  if (Number(req.user.balance || 0) < amount) {
+    return res.status(400).json({ ok: false, message: 'Nedostatek prostředků.' });
+  }
+
+  const target = await User.findById(toUserId);
+  if (!target) {
+    return res.status(404).json({ ok: false, message: 'Cílový uživatel nenalezen.' });
+  }
+
+  req.user.balance = Math.round((Number(req.user.balance || 0) - amount) * 100) / 100;
+  target.balance = Math.round((Number(target.balance || 0) + amount) * 100) / 100;
+  await req.user.save();
+  await target.save();
+
+  return res.json({ ok: true, balance: req.user.balance });
+});
+
+app.get('/api/users/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const user = await User.findById(req.params.id).select('nickname displayName avatar inventory');
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  return res.json({
+    ok: true,
+    user: {
+      id: user._id,
+      nickname: user.nickname,
+      displayName: user.displayName,
+      avatar: user.avatar || '',
+      inventory: Array.isArray(user.inventory) ? user.inventory : []
+    }
+  });
+});
+
+app.get('/api/chat/messages', ensureDbReady, ensureAuth, (_req, res) => {
+  return res.json({ ok: true, messages: liveChatMessages });
+});
+
+app.post('/api/chat/messages', ensureDbReady, ensureAuth, (req, res) => {
+  const text = (req.body.text || '').toString().trim().slice(0, 140);
+  if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
+
+  liveChatMessages.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    userId: String(req.user._id),
+    nickname: req.user.nickname || req.user.displayName || 'user',
+    text,
+    createdAt: new Date().toISOString()
+  });
+  if (liveChatMessages.length > LIVE_CHAT_MAX) liveChatMessages.splice(0, liveChatMessages.length - LIVE_CHAT_MAX);
+  return res.json({ ok: true });
 });
 
 // --- STEAM AUTH (minimal hardcoded OpenID validation) ---
