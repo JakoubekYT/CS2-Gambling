@@ -22,30 +22,27 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
-        .live-drop-scroll { display: flex; align-items: center; gap: 0.75rem; padding: 0 0.75rem; min-height: 100%; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
+        .live-drop-scroll { display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; min-height: 100%; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
         @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
-        .live-drop-item { 
+        .live-drop-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.2rem;
-            padding: 0.35rem;
-            background: linear-gradient(135deg, rgba(250,204,21,0.25) 0%, rgba(168,85,247,0.15) 100%);
-            border-radius: 4px;
-            border: 2px solid rgba(250,204,21,0.5);
-            min-width: 92px;
-            width: 92px;
-            height: 88px;
+            gap: 0.25rem;
+            padding: 0.35rem 0.45rem 0.3rem;
+            background: #1a1a24;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.06);
+            min-width: 98px;
+            width: 98px;
+            height: 76px;
             flex-shrink: 0;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: visible;
-        }
-        .live-drop-item .live-drop-avatar {
-            width: 24px; height:24px; border-radius:9999px; overflow:hidden; border:2px solid rgba(0,0,0,0.4); box-shadow:0 4px 12px rgba(0,0,0,0.5); margin-bottom:4px;
+            overflow: hidden;
         }
         .live-drop-tooltip {
             position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
@@ -58,20 +55,27 @@
         .live-drop-tooltip .tp-avatar { width:48px; height:48px; border-radius:9999px; overflow:hidden; border:2px solid rgba(255,255,255,0.04); }
         .live-drop-tooltip .tp-name { font-weight:800; color:#facc15; font-size:13px; }
         .live-drop-tooltip .tp-when { font-size:12px; color:#cbd5e1; }
-        .live-drop-item:hover {
-            transform: scale(1.08);
-            background: linear-gradient(135deg, rgba(250,204,21,0.5) 0%, rgba(168,85,247,0.3) 100%);
-            border-color: rgba(250,204,21,1);
-            box-shadow: 0 0 30px rgba(250,204,21,0.6), inset 0 0 20px rgba(250,204,21,0.2);
-            animation: none !important;
+        .live-drop-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 3px;
+            background: var(--drop-rarity-color, var(--rarity-blue));
+            box-shadow: 0 -4px 12px color-mix(in srgb, var(--drop-rarity-color, var(--rarity-blue)) 50%, transparent);
         }
-        .live-drop-item img { max-height: 40px; max-width: 80px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
-        .live-drop-item-name { font-size: 9px; font-weight: bold; color: #fff; text-align: center; line-height: 1.15; max-width: 84px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .live-drop-item-user { font-size: 7px; color: #facc15; text-center; font-weight: bold; }
-        .live-drop-item { animation: dropPulse 2s ease-in-out infinite; }
+        .live-drop-item:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255,255,255,0.2);
+            background: #1f2230;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+        }
+        .live-drop-item img { max-height: 34px; max-width: 82px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.55)); }
+        .live-drop-item-name { font-size: 10px; font-weight: 600; color: #b8bfcb; text-align: center; line-height: 1.1; max-width: 88px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         @keyframes dropPulse {
-            0%, 100% { opacity: 0.7; }
+            0%, 100% { opacity: 0.92; }
             50% { opacity: 1; }
         }
 
@@ -191,9 +195,9 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-24 bg-gradient-to-r from-yellow-500/15 via-pink-500/10 to-purple-500/10 border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
-        <div class="flex-shrink-0 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 h-full flex items-center font-black text-[10px] uppercase italic mr-2 tracking-widest shadow-[0_0_20px_rgba(250,204,21,0.5)]">
-            🔴 Live
+    <div class="h-20 bg-gradient-to-r from-[#111722] via-[#151a27] to-[#111722] border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
+        <div class="flex-shrink-0 text-yellow-400 px-4 h-full flex items-center font-black text-[11px] uppercase mr-2 tracking-[0.22em]">
+            <span class="inline-flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_12px_rgba(250,204,21,0.9)]"></span>LIVE</span>
         </div>
         <div class="flex-1 overflow-hidden py-0">
             <div class="flex items-center gap-2 live-drop-scroll" id="live-drops"></div>
@@ -284,8 +288,8 @@
                     </div>
                     <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
                 </div>
-                <div class="bg-[#14171c]/80 border border-yellow-400/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-3"><div class="text-xs uppercase tracking-widest font-black text-gray-400">Řazení beden</div><div class="flex items-center gap-2"><select id="cases-sort" class="bg-[#0b0d11] border border-yellow-400/30 text-sm text-white rounded-lg px-3 py-2" onchange="renderCases()"><option value="default">Doporučené</option><option value="price-asc">Cena: nejnižší</option><option value="price-desc">Cena: nejvyšší</option><option value="name">Název A-Z</option></select><button onclick="toggleAffordableCases()" id="cases-affordable-btn" class="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 rounded-lg px-3 py-2 text-xs font-black uppercase">Jen dostupné</button></div></div><div class="bg-[#14171c]/90 border border-yellow-400/30 rounded-2xl p-4 mb-4 flex flex-wrap items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-                    <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Upgrade</button>
+                <div class="bg-[#14171c]/90 border border-yellow-400/30 rounded-2xl p-4 mb-4 flex flex-wrap items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
+                    <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-right" class="w-5 h-5"></i> Upgrade</button>
                     <button onclick="openFreeCase()" class="bg-green-500/30 hover:bg-green-500/45 border border-green-300/40 text-green-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="gift" class="w-5 h-5"></i> Free Cases</button>
                     <button onclick="switchPage('case-battle')" class="bg-red-500/30 hover:bg-red-500/45 border border-red-300/40 text-red-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="swords" class="w-5 h-5"></i> Case Battle</button>
                 </div>
@@ -3068,7 +3072,6 @@ Zeus x27|Charged Up|8.50|#8847ff
         let activeCaseId = null;
         let isSpinning = false;
         let spinAnimationId = null;
-        let casesAffordableOnly = false;
         let casesCategoryFilter = 'all';
         let userProfile = {
             nickname: '',
@@ -4010,14 +4013,19 @@ Zeus x27|Charged Up|8.50|#8847ff
             window.location.href = `/auth/${provider}`;
         }
 
-        function toggleAffordableCases() {
-            casesAffordableOnly = !casesAffordableOnly;
-            const btn = document.getElementById('cases-affordable-btn');
-            if(btn) {
-                btn.textContent = casesAffordableOnly ? 'Dostupné: ON' : 'Jen dostupné';
-                btn.classList.toggle('bg-green-500/20', casesAffordableOnly);
-                btn.classList.toggle('text-green-300', casesAffordableOnly);
-            }
+        function setCasesCategoryFilter(category) {
+            casesCategoryFilter = category;
+            ['all','featured','regular','premium','high-risk'].forEach((key) => {
+                const el = document.getElementById(`tab-${key}`);
+                if (!el) return;
+                const active = key === category;
+                el.classList.toggle('bg-yellow-400/20', active);
+                el.classList.toggle('text-yellow-200', active);
+                el.classList.toggle('border-yellow-300/40', active);
+                el.classList.toggle('bg-white/5', !active);
+                el.classList.toggle('text-gray-300', !active);
+                el.classList.toggle('border-white/20', !active);
+            });
             renderCases();
         }
 
@@ -4160,21 +4168,12 @@ Zeus x27|Charged Up|8.50|#8847ff
         function renderCases() {
             const grid = document.getElementById('cases-grid');
             if(!grid) return;
-            const sortSel = document.getElementById('cases-sort');
-            const sortMode = sortSel ? sortSel.value : 'default';
             const groups = [
                 { key: 'budget', title: '💙 BUDGET CASEKY', min: 0, max: 4.99 },
                 { key: 'standard', title: '💜 STANDARD CASEKY', min: 5, max: 24.99 },
                 { key: 'premium', title: '❤️ PREMIUM CASEKY', min: 25, max: 99.99 },
                 { key: 'legendary', title: '💛 LEGENDARY CASEKY', min: 100, max: Infinity }
             ];
-
-            const sortCases = (arr) => {
-                if(sortMode === 'price-asc') return arr.sort((a,b)=>a.price-b.price);
-                if(sortMode === 'price-desc') return arr.sort((a,b)=>b.price-a.price);
-                if(sortMode === 'name') return arr.sort((a,b)=>a.name.localeCompare(b.name));
-                return arr;
-            };
 
             const renderCard = (c, idx) => {
                 let glowClass = '';
@@ -4184,7 +4183,6 @@ Zeus x27|Charged Up|8.50|#8847ff
                 else if(c.color === 'pink') glowClass = 'glow-pink';
                 else if(c.color === 'yellow-400') glowClass = 'glow-gold';
 
-                const affordable = balanceBase >= c.price;
                 return `
 <div onclick="openCaseView('${c.id}')" class="bg-gradient-to-b from-[#171b25] to-[#12161f] px-5 pt-5 pb-6 min-h-[272px] rounded-[24px] border border-white/10 hover:border-yellow-300/55 cursor-pointer transition-all duration-300 group text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative overflow-hidden item-float dopamine-glow shine-sweep hover:scale-[1.03]" style="animation-delay: ${idx * 60}ms;">
     <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_50%_12%,rgba(250,204,21,0.16),transparent_52%)]"></div>
@@ -4209,8 +4207,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                         return true;
                     });
                 }
-                if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
-                items = sortCases(items.slice());
+                items = items.slice();
                 if(items.length === 0) return '';
                 return `
                     <section>
@@ -4727,6 +4724,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             const dropsContainer = document.getElementById('live-drops');
             if(!dropsContainer) return;
             dropsContainer.style.animation = 'none';
+            const tickerWrap = dropsContainer.parentElement;
             const skinList = Object.values(skinsDB);
             const cheapPool = skinList.filter(s => s.price <= 15);
             const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
@@ -4747,17 +4745,6 @@ Zeus x27|Charged Up|8.50|#8847ff
             let offsetX = 0;
             let paused = false;
 
-            const steamProfiles = [
-                { name: 'Alpha', avatar: toCachedImage('https://avatars.steamstatic.com/3474acf231388ba5b11d5eba255a07596726a9e4_full.jpg') },
-                { name: 'Beta', avatar: toCachedImage('https://avatars.steamstatic.com/1a53bfabad2d39907942792a942ccfdb5f3df269_full.jpg') },
-                { name: 'Gamer', avatar: toCachedImage('https://cdn.casehug.com/bots/bot-gadget.gif') },
-                { name: 'Pro', avatar: toCachedImage('https://cdn.casehug.com/bots/bot-jarvis.gif') },
-                { name: 'Lucky', avatar: toCachedImage('https://cdn.casehug.com/bots/bot-poke_1.png') },
-                { name: 'Hunter', avatar: toCachedImage('https://avatars.steamstatic.com/5a3b1d7d7d2f3a2b4e_full.jpg') },
-                { name: 'Trader', avatar: toCachedImage('https://avatars.steamstatic.com/6b8f3c2d2d2a3b1c4f_full.jpg') },
-                { name: 'Baller', avatar: toCachedImage('https://avatars.steamstatic.com/8c7d9f4a4a4b5c6d7e_full.jpg') }
-            ];
-
             function addRandomDrop() {
                 if(skinList.length === 0) return;
                 let attempts = 0;
@@ -4768,13 +4755,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
                 lastSkinId = randomSkin.id;
 
-                const profile = steamProfiles[Math.floor(Math.random() * steamProfiles.length)];
                 const matchingCases = casesDB.filter((c) => (c.contents || []).some((x) => x.skin?.id === randomSkin.id));
                 const sourceCase = matchingCases.length ? matchingCases[Math.floor(Math.random() * matchingCases.length)] : null;
                 const item = document.createElement('div');
                 item.className = 'live-drop-item';
-                item.style.borderColor = randomSkin.color || 'rgba(250,204,21,0.7)';
-                item.style.background = `linear-gradient(135deg, ${randomSkin.color || '#facc15'}33 0%, rgba(11,13,17,0.55) 100%)`;
+                item.style.setProperty('--drop-rarity-color', randomSkin.color || '#4b69ff');
+                item.title = `${randomSkin.name} • ${sourceCase?.name || 'Upgrade'}`;
 
                 const img = document.createElement('img');
                 img.loading = 'eager';
@@ -4788,22 +4774,17 @@ Zeus x27|Charged Up|8.50|#8847ff
                 nameDiv.className = 'live-drop-item-name';
                 nameDiv.textContent = randomSkin.name;
 
-                const userDiv = document.createElement('div');
-                userDiv.className = 'live-drop-item-user';
-                userDiv.textContent = `${profile.name}#${Math.floor(Math.random()*9999)}`;
-
                 const tooltip = document.createElement('div');
                 tooltip.className = 'live-drop-tooltip';
-                tooltip.innerHTML = `<div class="text-[11px] text-yellow-300 font-black uppercase tracking-wide">↗ ${sourceCase?.name ? 'Otevřít bednu' : 'Do upgraderu'}</div>`;
+                tooltip.innerHTML = `<div class="text-[11px] text-yellow-300 font-black uppercase tracking-wide">→ ${sourceCase?.name ? 'Otevřít bednu' : 'Do upgraderu'}</div>`;
 
                 item.appendChild(img);
                 item.appendChild(nameDiv);
-                item.appendChild(userDiv);
                 item.appendChild(tooltip);
 
-                item.addEventListener('mouseenter', () => { paused = true; tooltip.classList.add('visible'); item.style.zIndex = '100'; img.src = sourceCase?.img || UPGRADER_ICON; });
+                item.addEventListener('mouseenter', () => { tooltip.classList.add('visible'); item.style.zIndex = '100'; });
                 item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); else { switchPage('upgrade'); showToast('Skin není v bedně, otevřen upgrade.'); } });
-                item.addEventListener('mouseleave', () => { paused = false; tooltip.classList.remove('visible'); item.style.zIndex = '1'; img.src = randomSkin.img; });
+                item.addEventListener('mouseleave', () => { tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
 
                 dropsContainer.appendChild(item);
                 if(dropsContainer.children.length > 140) dropsContainer.removeChild(dropsContainer.lastChild);
@@ -4841,6 +4822,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                     dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
                 }
                 requestAnimationFrame(animate);
+            }
+
+            if (tickerWrap) {
+                tickerWrap.addEventListener('mouseenter', () => { paused = true; });
+                tickerWrap.addEventListener('mouseleave', () => { paused = false; });
             }
             requestAnimationFrame(animate);
         }
