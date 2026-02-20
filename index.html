@@ -169,6 +169,8 @@
         .upgrade-shake { animation: shake 0.5s ease-in-out infinite; border-color: #a855f7 !important; }
         .upgrade-pointer { position: absolute; left: 50%; top: 50%; width: 2px; height: 82px; background: linear-gradient(to top, rgba(236,72,153,0.2), #f8fafc 35%, #facc15); transform-origin: 50% 100%; transform: translate(-50%, -100%) rotate(0deg); border-radius: 9999px; box-shadow: 0 0 10px rgba(250,204,21,0.55); transition: transform 1.9s cubic-bezier(0.15, 0.8, 0.2, 1); z-index: 20; }
         .upgrade-pointer::after { content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; border-radius: 9999px; background: #facc15; box-shadow: 0 0 10px rgba(250,204,21,0.8); }
+        .cb-opt { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; padding: .5rem; border-radius: .5rem; font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+        .cb-opt.active { background: rgba(250,204,21,0.18); border-color: rgba(250,204,21,0.5); color: #fde047; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
 
         /* Spinner položky - vylepšené animace */
@@ -457,14 +459,68 @@
             <section id="page-case-battle" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <div class="flex items-center justify-between"><h2 class="text-3xl font-black uppercase">Case Battle Online</h2><div class="text-xs text-gray-400">Založ room • čekej hráče • nebo spusť s botem</div></div>
                 <div id="cb-create-panel" class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
-                    <div class="grid md:grid-cols-5 gap-2 items-center">
-                        <select id="cb-mode" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="1v1v1v1">1v1v1v1</option></select>
-                        <select id="cb-rounds" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"><option value="1">1 round</option><option value="3">3 rounds</option><option value="5">5 rounds</option></select>
-                        <select id="cb-case" class="bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-sm"></select>
-                        <label class="text-xs text-gray-300 flex items-center gap-2 px-2"><input id="cb-fill-bots" type="checkbox" class="accent-yellow-400"> Auto bot fill</label>
-                        <button onclick="createCaseBattleRoom()" class="bg-yellow-400 text-black font-black rounded-lg px-3 py-2 text-sm">Vytvořit case battle</button>
+                    <div class="grid md:grid-cols-4 gap-3">
+                        <div class="bg-black/30 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] uppercase text-gray-400 font-black mb-2">Team Battle Mode</div>
+                            <div class="grid grid-cols-2 gap-2" id="cb-team-format-options">
+                                <button class="cb-opt active" data-group="teamFormat" data-value="1v1">1v1</button>
+                                <button class="cb-opt" data-group="teamFormat" data-value="2v2">2v2</button>
+                            </div>
+                        </div>
+                        <div class="bg-black/30 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] uppercase text-gray-400 font-black mb-2">Number of Players</div>
+                            <div class="grid grid-cols-3 gap-2" id="cb-player-count-options">
+                                <button class="cb-opt active" data-group="mode" data-value="1v1">2</button>
+                                <button class="cb-opt" data-group="mode" data-value="1v1v1">3</button>
+                                <button class="cb-opt" data-group="mode" data-value="1v1v1v1">4</button>
+                            </div>
+                        </div>
+                        <div class="bg-black/30 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] uppercase text-gray-400 font-black mb-2">Case Battle Mode</div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="cb-opt active" data-group="gameMode" data-value="classic">Classic</button>
+                                <button class="cb-opt" data-group="gameMode" data-value="underdog">Underdog</button>
+                                <button class="cb-opt" data-group="gameMode" data-value="share">Share</button>
+                            </div>
+                        </div>
+                        <div class="bg-black/30 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] uppercase text-gray-400 font-black mb-2">Privacy</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button class="cb-opt active" data-group="privacy" data-value="public">Public</button>
+                                <button class="cb-opt" data-group="privacy" data-value="private">Private</button>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="bg-black/20 border border-yellow-400/20 rounded-xl p-3">
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <div class="text-xs text-yellow-300 font-black uppercase">Battle Scenario</div>
+                            <div class="text-xs text-gray-300">Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black">0</span> • Ready <span id="cb-builder-total" class="text-yellow-300 font-black">0.00 EUR</span></div>
+                        </div>
+                        <div id="cb-builder-queue" class="flex flex-wrap gap-2 min-h-[52px]"></div>
+                        <div class="flex items-center justify-between mt-3">
+                            <button onclick="openCaseBattleCasePicker()" class="border border-dashed border-yellow-300/50 text-yellow-300 font-black rounded-lg px-3 py-2 text-xs uppercase">+ Add Case</button>
+                            <label class="text-xs text-gray-300 flex items-center gap-2 px-2"><input id="cb-fill-bots" type="checkbox" class="accent-yellow-400"> Auto bot fill</label>
+                            <button onclick="createCaseBattleRoom()" class="bg-yellow-400 text-black font-black rounded-lg px-4 py-2 text-sm">Create Battle</button>
+                        </div>
+                    </div>
+
                     <div id="cb-open-rooms" class="grid md:grid-cols-2 gap-2"></div>
+                </div>
+
+                <div id="cb-case-picker" class="hidden fixed inset-0 z-[140] bg-black/80 backdrop-blur-sm p-4">
+                    <div class="max-w-6xl mx-auto bg-[#12161f] border border-yellow-400/30 rounded-2xl p-4 h-full flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-lg font-black text-yellow-300 uppercase">Add Cases to Battle</div>
+                            <button onclick="closeCaseBattleCasePicker()" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg text-xs font-black">Close</button>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 overflow-y-auto" id="cb-case-picker-grid"></div>
+                        <div class="mt-3 flex items-center justify-between text-xs text-gray-300">
+                            <div>Rounds: <span id="cb-picker-rounds" class="text-yellow-300 font-black">0</span></div>
+                            <div>Total: <span id="cb-picker-total" class="text-yellow-300 font-black">0.00 EUR</span></div>
+                            <button onclick="applyCaseBattleCasePicker()" class="bg-yellow-400 text-black font-black px-4 py-2 rounded-lg">Ready</button>
+                        </div>
+                    </div>
                 </div>
                 <div id="cb-room-panel" class="hidden bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between gap-2">
@@ -4398,6 +4454,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbAnimationSession = 0;
         let cbLastAnimatedSignature = '';
         const CB_BOT_AVATAR = 'Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png';
+        const cbBuilder = { mode: '1v1', teamFormat: '1v1', gameMode: 'classic', privacy: 'public', selectedCases: new Map() };
 
         function cbSetPanels(inRoom) {
             document.getElementById('cb-create-panel')?.classList.toggle('hidden', inRoom);
@@ -4409,19 +4466,39 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function initCaseBattle() {
-            const sel = document.getElementById('cb-case');
-            if (!sel) return;
-            if (!sel.dataset.ready) {
-                sel.innerHTML = casesDB.slice(0, 120).map((c) => `<option value="${c.id}">${c.name} (${formatMoney(c.price)})</option>`).join('');
-                sel.dataset.ready = '1';
+            const panel = document.getElementById('cb-create-panel');
+            if (!panel) return;
+            if (!panel.dataset.ready) {
+                panel.querySelectorAll('.cb-opt').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const group = btn.dataset.group;
+                        const value = btn.dataset.value;
+                        panel.querySelectorAll(`.cb-opt[data-group="${group}"]`).forEach((x) => x.classList.remove('active'));
+                        btn.classList.add('active');
+                        cbBuilder[group] = value;
+                        if (group === 'teamFormat' && value === '2v2') {
+                            cbBuilder.mode = '2v2';
+                            panel.querySelectorAll('.cb-opt[data-group="mode"]').forEach((x) => x.classList.remove('active'));
+                            const modeBtn = panel.querySelector('.cb-opt[data-group="mode"][data-value="1v1v1v1"]');
+                            if (modeBtn) modeBtn.classList.add('active');
+                        } else if (group === 'mode') {
+                            cbBuilder.teamFormat = value === '1v1v1v1' ? '2v2' : '1v1';
+                        }
+                        updateCaseBattleBuilderUI();
+                    });
+                });
+                panel.dataset.ready = '1';
             }
+            updateCaseBattleBuilderUI();
             cbSetPanels(Boolean(cbActiveRoomId));
             loadCaseBattleRooms();
             if (cbPollTimer) clearInterval(cbPollTimer);
-            cbPollTimer = setInterval(async () => {
+            if (window.cbLivePoll) clearInterval(window.cbLivePoll);
+            window.cbLivePoll = setInterval(async () => {
                 if (cbActiveRoomId) await refreshCaseBattleRoom();
                 else await loadCaseBattleRooms();
             }, 1000);
+            cbPollTimer = window.cbLivePoll;
         }
 
         function cbAddLog(text) {
@@ -4434,15 +4511,81 @@ Zeus x27|Charged Up|8.50|#8847ff
             log.scrollTop = log.scrollHeight;
         }
 
+        function getCaseQueueEntries() {
+            const entries = [];
+            cbBuilder.selectedCases.forEach((count, caseId) => {
+                const c = casesDB.find((x) => x.id === caseId);
+                if (!c || count <= 0) return;
+                entries.push({
+                    caseId: c.id,
+                    caseName: c.name,
+                    casePrice: Number(c.price || 0),
+                    caseImg: c.img || '',
+                    count: Number(count || 0),
+                    contents: (c.contents || []).map((it) => ({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) }))
+                });
+            });
+            return entries;
+        }
+
+        function updateCaseBattleBuilderUI() {
+            const queue = getCaseQueueEntries();
+            const rounds = queue.reduce((a, q) => a + Number(q.count || 0), 0);
+            const total = queue.reduce((a, q) => a + (Number(q.casePrice || 0) * Number(q.count || 0)), 0);
+            const queueEl = document.getElementById('cb-builder-queue');
+            if (queueEl) {
+                queueEl.innerHTML = queue.length ? queue.map((q) => `<div class="flex items-center gap-2 bg-black/30 border border-white/10 rounded-lg px-2 py-1"><img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-8 h-8 object-contain"><div class="text-[10px] text-gray-200 font-bold">${q.caseName} × ${q.count}</div></div>`).join('') : '<div class="text-xs text-gray-500">No cases selected yet.</div>';
+            }
+            const r1 = document.getElementById('cb-builder-rounds'); if (r1) r1.textContent = String(rounds);
+            const t1 = document.getElementById('cb-builder-total'); if (t1) t1.textContent = formatMoney(total);
+            const r2 = document.getElementById('cb-picker-rounds'); if (r2) r2.textContent = String(rounds);
+            const t2 = document.getElementById('cb-picker-total'); if (t2) t2.textContent = formatMoney(total);
+        }
+
+        function openCaseBattleCasePicker() {
+            const modal = document.getElementById('cb-case-picker');
+            const grid = document.getElementById('cb-case-picker-grid');
+            if (!modal || !grid) return;
+            grid.innerHTML = casesDB.slice(0, 140).map((c) => {
+                const count = Number(cbBuilder.selectedCases.get(c.id) || 0);
+                return `<div class="bg-black/30 border border-white/10 rounded-xl p-2"><img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-16 w-full object-contain"><div class="text-[10px] text-gray-200 font-black truncate mt-1">${c.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(c.price)}</div><div class="mt-2 flex items-center justify-between"><button onclick="changeCaseBattleCaseQty('${c.id}', -1)" class="bg-white/10 w-7 h-7 rounded">-</button><span id="cb-case-qty-${c.id}" class="text-xs font-black">${count}</span><button onclick="changeCaseBattleCaseQty('${c.id}', 1)" class="bg-yellow-400 text-black w-7 h-7 rounded">+</button></div></div>`;
+            }).join('');
+            updateCaseBattleBuilderUI();
+            modal.classList.remove('hidden');
+        }
+
+        function closeCaseBattleCasePicker() {
+            document.getElementById('cb-case-picker')?.classList.add('hidden');
+        }
+
+        function applyCaseBattleCasePicker() {
+            closeCaseBattleCasePicker();
+            updateCaseBattleBuilderUI();
+        }
+
+        function changeCaseBattleCaseQty(caseId, delta) {
+            const cur = Number(cbBuilder.selectedCases.get(caseId) || 0);
+            const next = Math.max(0, Math.min(20, cur + Number(delta || 0)));
+            if (next <= 0) cbBuilder.selectedCases.delete(caseId);
+            else cbBuilder.selectedCases.set(caseId, next);
+            const qty = document.getElementById(`cb-case-qty-${caseId}`);
+            if (qty) qty.textContent = String(next);
+            updateCaseBattleBuilderUI();
+        }
+
         function selectedCasePayload() {
-            const caseId = document.getElementById('cb-case')?.value;
-            const c = casesDB.find((x) => x.id === caseId) || casesDB[0];
-            if (!c) return null;
+            const caseQueue = getCaseQueueEntries();
+            if (!caseQueue.length) return null;
+            const totalRounds = caseQueue.reduce((a, q) => a + Number(q.count || 0), 0);
+            const totalPrice = caseQueue.reduce((a, q) => a + Number(q.casePrice || 0) * Number(q.count || 0), 0);
+            const mergedContents = caseQueue.flatMap((q) => q.contents || []).slice(0, 200);
             return {
-                caseId: c.id,
-                caseName: c.name,
-                casePrice: Number(c.price || 0),
-                contents: (c.contents || []).map((it) => ({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) }))
+                caseId: caseQueue[0].caseId,
+                caseName: caseQueue.length === 1 ? caseQueue[0].caseName : `Custom Queue (${caseQueue.length})`,
+                casePrice: totalRounds > 0 ? (totalPrice / totalRounds) : 0,
+                rounds: totalRounds,
+                contents: mergedContents,
+                caseQueue
             };
         }
 
@@ -4477,13 +4620,13 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
-            const mode = document.getElementById('cb-mode')?.value || '1v1';
-            const rounds = Number(document.getElementById('cb-rounds')?.value || 1);
+            const mode = cbBuilder.mode || '1v1';
+            const rounds = Number(selectedCasePayload()?.rounds || 1);
             const fillWithBots = !!document.getElementById('cb-fill-bots')?.checked;
             const payload = selectedCasePayload();
-            if (!payload) return;
+            if (!payload) return showToast('Nejdřív přidej bedny do battle.', true);
             try {
-                const data = await apiRequest('/api/case-battle/create', 'POST', { mode, rounds, fillWithBots, ...payload });
+                const data = await apiRequest('/api/case-battle/create', 'POST', { mode, rounds, fillWithBots, teamFormat: cbBuilder.teamFormat, gameMode: cbBuilder.gameMode, privacy: cbBuilder.privacy, ...payload });
                 cbActiveRoomId = data.room?.id || null;
                 cbSetPanels(true);
                 cbAddLog(`Room vytvořena: ${cbActiveRoomId}`);
@@ -4500,6 +4643,16 @@ Zeus x27|Charged Up|8.50|#8847ff
                 cbAddLog('Připojeno do roomky.');
                 renderCaseBattleRoom(data.room);
             } catch (err) { showToast(err.message, true); }
+        }
+
+        async function fillCaseBattleBotSlot() {
+            if (!cbActiveRoomId) return;
+            try {
+                const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST');
+                renderCaseBattleRoom(data.room);
+            } catch (err) {
+                showToast(err.message, true);
+            }
         }
 
         async function leaveCaseBattleRoom() {
@@ -4533,6 +4686,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!cbActiveRoomId) return;
             try {
                 const data = await apiRequest(`/api/case-battle/room/${cbActiveRoomId}`);
+                if (cbAnimationLock && data?.room?.status === 'done') return;
                 renderCaseBattleRoom(data.room);
             } catch (_err) {
                 cbActiveRoomId = null;
@@ -4689,11 +4843,29 @@ Zeus x27|Charged Up|8.50|#8847ff
                 queueEl.innerHTML = Array.from({ length: rounds }).map((_, idx) => `<div class="w-11 h-11 rounded-lg border border-yellow-300/30 bg-black/30 p-1 shrink-0" title="Round ${idx + 1}: ${caseName}"><img src="${caseImg}" onerror="handleImgError(this)" class="w-full h-full object-contain"></div>`).join('');
             }
 
-            stage.innerHTML = (room.players || []).map((pl, idx) => {
+            const players = room.players || [];
+            const half = Math.ceil(players.length / 2);
+            const team1 = players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const team2 = players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            if (t1) t1.textContent = formatMoney(team1);
+            if (t2) t2.textContent = formatMoney(team2);
+
+            const signature = cbRoomSignature(room);
+            const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
+
+            const playersForView = [...(room.players || [])];
+            while (playersForView.length < Number(room.capacity || playersForView.length || 0)) playersForView.push(null);
+
+            stage.innerHTML = playersForView.map((pl, idx) => {
+                if (!pl) {
+                    return `<div class="bg-[#12161f] p-4 flex flex-col border border-white/10 items-center justify-center min-h-[290px]"><div class="text-sm text-gray-400 font-black uppercase">Waiting for player</div><div class="mt-3 w-10 h-10 rounded-full border border-yellow-300/30 border-dashed"></div><button onclick="fillCaseBattleBotSlot()" class="mt-4 bg-yellow-400/20 border border-yellow-300/40 text-yellow-300 text-xs font-black uppercase px-3 py-2 rounded-lg">Play with random bot</button></div>`;
+                }
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
                 const sideBlue = idx % 2 === 0;
                 const sideClasses = sideBlue ? 'from-blue-900/20 border-blue-500/20' : 'from-orange-900/20 border-orange-500/20';
-                const history = (pl.drops || []).map((d, rIdx) => cbRenderHistoryCard(d, rIdx)).join('');
+                const history = shouldAnimate ? '' : (pl.drops || []).map((d, rIdx) => cbRenderHistoryCard(d, rIdx)).join('');
                 return `<div id="cb-player-${idx}" class="bg-[#12161f] p-4 flex flex-col border border-white/10">
                     <div class="flex items-center gap-3 w-full mb-4">
                         <img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-full border-2 ${sideBlue ? 'border-blue-400/80' : 'border-orange-400/80'} object-cover bg-black/30">
@@ -4707,7 +4879,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                         </div>
                         <div id="cb-spin-name-${idx}" class="absolute bottom-2 left-2 right-2 text-xs text-gray-200 font-bold truncate bg-black/40 rounded px-2 py-1">Čeká se na drop...</div>
                     </div>
-                    <div class="flex items-center justify-between mb-2"><div class="text-[10px] text-gray-400 uppercase font-bold">Skóre</div><div id="cb-score-${idx}" class="text-sm font-black text-gray-300">${formatMoney(pl.score || 0)}</div></div>
+                    <div class="flex items-center justify-between mb-2"><div class="text-[10px] text-gray-400 uppercase font-bold">Skóre</div><div id="cb-score-${idx}" class="text-sm font-black text-gray-300">${formatMoney(shouldAnimate ? 0 : (pl.score || 0))}</div></div>
                     <div id="cb-history-${idx}" class="w-full grid grid-cols-2 lg:grid-cols-3 gap-2">${history || '<div class="text-[10px] text-gray-500 col-span-full">Zatím nic</div>'}</div>
                 </div>`;
             }).join('');
@@ -4720,9 +4892,6 @@ Zeus x27|Charged Up|8.50|#8847ff
             const t2 = document.getElementById('cb-team2-score');
             if (t1) t1.textContent = formatMoney(team1);
             if (t2) t2.textContent = formatMoney(team2);
-
-            const signature = cbRoomSignature(room);
-            const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
 
             if (shouldAnimate) {
                 cbLastAnimatedSignature = signature;
