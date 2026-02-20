@@ -27,6 +27,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
 const STEAM_API_KEY = (process.env.STEAM_API_KEY || '').trim();
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
 
 mongoose
   .connect(MONGO_URI)
@@ -1056,6 +1057,31 @@ app.post('/api/chat/messages', ensureDbReady, ensureAuth, async (req, res) => {
   }
 
   return res.json({ ok: true });
+});
+
+app.post('/api/chat/ai-reply', ensureDbReady, ensureAuth, async (req, res) => {
+  const text = (req.body.text || '').toString().trim().slice(0, 200);
+  if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
+  if (!GEMINI_API_KEY) return res.json({ ok: true, reply: null });
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${text}` }] }],
+        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
+      })
+    });
+    if (!response.ok) {
+      return res.json({ ok: true, reply: null });
+    }
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+    return res.json({ ok: true, reply });
+  } catch (_err) {
+    return res.json({ ok: true, reply: null });
+  }
 });
 
 app.get('/api/trades/inbox', ensureDbReady, ensureAuth, async (req, res) => {

@@ -756,6 +756,28 @@
             "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers",
             "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Kukri Knife"
         ];
+        const KNIFE_ALLOWED_FINISHES = {
+            "Bayonet": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Bowie Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Butterfly Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Classic Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Falchion Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Flip Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Gut Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Huntsman Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Karambit": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Kukri Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "M9 Bayonet": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Navaja Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Nomad Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Paracord Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Shadow Daggers": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Skeleton Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Stiletto Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Survival Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Talon Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Ursus Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"]
+        };
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
         // Duplicitní položky odstraněny, názvy a ceny ověřeny dle https://csgostash.com/ a https://steamcommunity.com/market/
@@ -2134,7 +2156,7 @@ Zeus x27|Tosai|5.50|#8847ff
 Zeus x27|Charged Up|8.50|#8847ff
 `;
         const skinsDB = {};
-        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves", "Broken Fang Gloves", "Hydra Gloves"];
+        const GLOVE_TYPES = ["Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps", "Moto Gloves", "Broken Fang Gloves", "Hydra Gloves", "Bloodhound Gloves"];
         const REMOVED_SKIN_KEYS = new Set([
             "scar_20|murky",
             "desert_eagle|ice_cap",
@@ -2173,13 +2195,72 @@ Zeus x27|Charged Up|8.50|#8847ff
             "m4a4|hellish",
             "m4a4|dark_blossom",
             "m4a4|etch_lord",
-            "m4a4|global_offensive"
+            "m4a4|global_offensive",
+            "navaja_knife|bright_water",
+            "navaja_knife|freehand",
+            "navaja_knife|black_laminate",
+            "navaja_knife|autotronic",
+            "navaja_knife|boreal_forest",
+            "nomad_knife|rust_coat",
+            "nomad_knife|ultraviolet",
+            "nomad_knife|damascus_steel",
+            "nomad_knife|bright_water",
+            "nomad_knife|black_laminate",
+            "nomad_knife|freehand",
+            "paracord_knife|rust_coat",
+            "paracord_knife|ultraviolet",
+            "paracord_knife|damascus_steel",
+            "paracord_knife|bright_water",
+            "paracord_knife|black_laminate",
+            "paracord_knife|freehand",
+            "paracord_knife|tiger_tooth",
+            "paracord_knife|autotronic",
+            "paracord_knife|boreal_forest",
+            "survival_knife|rust_coat",
+            "survival_knife|ultraviolet",
+            "survival_knife|damascus_steel",
+            "survival_knife|bright_water",
+            "survival_knife|black_laminate",
+            "survival_knife|freehand",
+            "survival_knife|autotronic",
+            "survival_knife|tiger_tooth",
+            "survival_knife|boreal_forest",
+            "classic_knife|rust_coat",
+            "classic_knife|ultraviolet",
+            "classic_knife|damascus_steel",
+            "classic_knife|bright_water",
+            "classic_knife|black_laminate",
+            "classic_knife|freehand",
+            "classic_knife|crimson_web",
+            "ursus_knife|bright_water",
+            "ursus_knife|freehand",
+            "ursus_knife|black_laminate",
+            "kukri_knife|rust_coat",
+            "kukri_knife|ultraviolet",
+            "kukri_knife|damascus_steel",
+            "kukri_knife|bright_water",
+            "kukri_knife|freehand",
+            "kukri_knife|case_hardened"
         ]);
         
         function normalizeSkinKey(weapon, skinName) {
             const w = (weapon || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
             const n = (skinName || '').toLowerCase().replace(/[()'’]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
             return `${w}|${n}`;
+        }
+
+        function normalizeKnifeFinishName(weapon, skinName) {
+            if (!KNIFE_TYPES.includes(weapon)) return skinName;
+            const normalized = normalizeName(skinName);
+            if (normalized.startsWith('doppler phase')) return 'Doppler';
+            if (normalized.startsWith('gamma doppler phase')) return 'Gamma Doppler';
+            return skinName;
+        }
+
+        function knifeNightSlug(weapon, skinName) {
+            if (!KNIFE_TYPES.includes(weapon) || normalizeName(skinName) !== 'night') return skinName;
+            const stripeNightKnives = new Set(['Classic Knife', 'Kukri Knife', 'Navaja Knife', 'Nomad Knife', 'Paracord Knife', 'Skeleton Knife', 'Stiletto Knife', 'Survival Knife', 'Talon Knife', 'Ursus Knife']);
+            return stripeNightKnives.has(weapon) ? 'Night_Stripe' : 'Night';
         }
 
         function buildSupabaseAlts(_weapon, _skinName) {
@@ -2216,8 +2297,13 @@ Zeus x27|Charged Up|8.50|#8847ff
             const c = parts[parts.length - 1].trim();
             const p = parts[parts.length - 2].trim();
             const n = parts.slice(1, parts.length - 2).join("|").trim();
-            const parsedKey = normalizeSkinKey(w, n);
+            const normalizedFinish = normalizeKnifeFinishName(w, n);
+            const parsedKey = normalizeSkinKey(w, normalizedFinish);
             if (REMOVED_SKIN_KEYS.has(parsedKey)) return;
+            if (KNIFE_TYPES.includes(w)) {
+                const allowed = KNIFE_ALLOWED_FINISHES[w] || [];
+                if (!allowed.includes(normalizedFinish)) return;
+            }
             let folder = "skins";
             if(GLOVE_TYPES.includes(w)) folder = "gloves";
             else if(KNIFE_TYPES.includes(w)) folder = "knives";
@@ -2234,9 +2320,8 @@ Zeus x27|Charged Up|8.50|#8847ff
             };
 
             let urlWeapon = w.replace(/ /g, "_");
-            const normalizedKnifeNight = KNIFE_TYPES.includes(w) && normalizeName(n) === 'night';
-            let urlName = (normalizedKnifeNight ? 'Night_Stripe' : n).replace(/ /g, "_").replace(/'/g, "");
-            const overrideKey = `${w}|${n}`;
+            let urlName = knifeNightSlug(w, normalizedFinish).replace(/ /g, "_").replace(/'/g, "");
+            const overrideKey = `${w}|${normalizedFinish}`;
             const primaryRemote = imgOverrides[overrideKey] || `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
             // Alternate patterns (some gloves/rare items have different naming on CDN)
             const altRemote1 = `https://www.csgodatabase.com/images/${folder}/webp/${urlName}.webp`;
@@ -2247,8 +2332,8 @@ Zeus x27|Charged Up|8.50|#8847ff
             skinsDB[idx + 1] = {
                 id: idx + 1,
                 weapon: w,
-                skinName: n,
-                name: `${w} | ${n}`,
+                skinName: normalizedFinish,
+                name: `${w} | ${normalizedFinish}`,
                 price: adjustLowTierSkinPrice(w, n, parseFloat(p), c),
                 color: c,
                 img: primaryImg,
@@ -2262,19 +2347,23 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function findSkin(w, n) {
+            const normalizedInputFinish = normalizeKnifeFinishName(w, n);
             const exact = Object.values(skinsDB).find(s => s.weapon === w && s.skinName === n);
-            if(exact) return exact;
+            if (exact) return exact;
+            const normalizedExact = Object.values(skinsDB).find(s => s.weapon === w && s.skinName === normalizedInputFinish);
+            if (normalizedExact) return normalizedExact;
             const nw = normalizeName(w);
             const nn = normalizeName(n);
-            return Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn) || Object.values(skinsDB)[0];
+            const nnNormalizedFinish = normalizeName(normalizedInputFinish);
+            return Object.values(skinsDB).find((s) => normalizeName(s.weapon) === nw && (normalizeName(s.skinName) === nn || normalizeName(s.skinName) === nnNormalizedFinish)) || Object.values(skinsDB)[0];
         }
 
         function addOrUpdateSkin(weapon, skinName, price, color = "#ebca44") {
             const existing = Object.values(skinsDB).find((s) => s.weapon === weapon && s.skinName === skinName);
             const folder = GLOVE_TYPES.includes(weapon) ? "gloves" : (KNIFE_TYPES.includes(weapon) ? "knives" : "skins");
             const weaponSlug = weapon.replace(/ /g, "_");
-            const normalizedKnifeNight = KNIFE_TYPES.includes(weapon) && normalizeName(skinName) === 'night';
-            const skinSlug = (normalizedKnifeNight ? 'Night_Stripe' : skinName).replace(/ /g, "_");
+            const normalizedFinish = normalizeKnifeFinishName(weapon, skinName);
+            const skinSlug = knifeNightSlug(weapon, normalizedFinish).replace(/ /g, "_");
             const img = toCachedImage(`https://www.csgodatabase.com/images/${folder}/webp/${weaponSlug}_${skinSlug}.webp`);
             const payload = {
                 weapon,
@@ -2321,22 +2410,15 @@ Zeus x27|Charged Up|8.50|#8847ff
                 "Case Hardened": 1.25, "Crimson Web": 1.28, "Slaughter": 1.55, "Fade": 2.05, "Tiger Tooth": 1.72,
                 "Marble Fade": 2.18, "Damascus Steel": 1.1, "Ultraviolet": 1.06, "Rust Coat": 0.85, "Lore": 1.65,
                 "Autotronic": 1.78, "Black Laminate": 1.24, "Freehand": 1.2, "Bright Water": 1.15,
-                "Doppler Phase 1": 2.3, "Doppler Phase 2": 2.35, "Doppler Phase 3": 2.38, "Doppler Phase 4": 2.45,
-                "Doppler Ruby": 4.2, "Doppler Sapphire": 4.35, "Doppler Black Pearl": 3.7,
-                "Gamma Doppler": 2.4, "Gamma Doppler": 2.45, "Gamma Doppler": 2.5, "Gamma Doppler": 2.58,
+                "Doppler": 2.35, "Doppler Ruby": 4.2, "Doppler Sapphire": 4.35, "Doppler Black Pearl": 3.7,
+                "Gamma Doppler": 2.5,
                 "Gamma Doppler Emerald": 5.1
             };
-            const coreFinishes = [
-                "Safari Mesh","Scorched","Forest DDPAT","Urban Masked","Boreal Forest","Night","Blue Steel","Stained",
-                "Case Hardened","Crimson Web","Slaughter","Fade","Tiger Tooth","Marble Fade","Damascus Steel","Ultraviolet",
-                "Rust Coat","Lore","Autotronic","Black Laminate","Freehand","Bright Water","Doppler Phase 1","Doppler Phase 2",
-                "Doppler Phase 3","Doppler Phase 4","Doppler Ruby","Doppler Sapphire","Doppler Black Pearl","Gamma Doppler",
-                "Gamma Doppler","Gamma Doppler","Gamma Doppler","Gamma Doppler Emerald"
-            ];
             KNIFE_TYPES.forEach((knife) => {
                 const base = knifeBasePrice[knife] || 320;
-                coreFinishes.forEach((finish) => {
-                    const price = base * (finishMult[finish] || 1);
+                const allowedFinishes = KNIFE_ALLOWED_FINISHES[knife] || [];
+                allowedFinishes.forEach((finish) => {
+                    const price = finish === 'Vanilla' ? base : (base * (finishMult[finish] || 1));
                     addOrUpdateSkin(knife, finish, price, '#ebca44');
                 });
             });
@@ -3822,7 +3904,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 } catch (err) {
                     console.warn('State save failed:', err.message);
                 }
-            }, 300);
+            }, 1000);
         }
 
         function requireAuthAction() {
@@ -4285,6 +4367,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbPollTimer = null;
         let cbActiveRoomId = null;
         let cbAnimationLock = false;
+        let cbAnimationSession = 0;
         let cbLastAnimatedSignature = '';
         const CB_BOT_AVATAR = 'Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png';
 
@@ -4397,6 +4480,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST');
             } catch (_e) {}
             cbActiveRoomId = null;
+            cbAnimationSession += 1;
             cbAnimationLock = false;
             cbLastAnimatedSignature = '';
             cbSetPanels(false);
@@ -4436,10 +4520,15 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function animateCaseBattleRounds(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
+            const sessionId = ++cbAnimationSession;
             const rounds = Math.max(1, Number(room?.rounds || 1));
             const rolls = Object.values(skinsDB || {});
 
             for (let round = 0; round < rounds; round += 1) {
+                if (sessionId !== cbAnimationSession) {
+                    cbAnimationLock = false;
+                    return;
+                }
                 cbAddLog(`Round ${round + 1}/${rounds}...`);
                 const started = Date.now();
                 while (Date.now() - started < 2200) {
@@ -4455,6 +4544,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     });
                     if (Date.now() - started > 400) SoundEngine.playTick();
                     await cbSleep(165);
+                    if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
                 }
 
                 (room.players || []).forEach((pl, idx) => {
@@ -4479,6 +4569,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     if (totalEl) totalEl.textContent = formatMoney(pl.score || 0);
                 });
                 await cbSleep(760);
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
             }
             cbAnimationLock = false;
         }
@@ -4852,32 +4943,27 @@ Zeus x27|Charged Up|8.50|#8847ff
                 rowMeta.push({ track, row: track.parentElement, winningSkin });
             }
 
-            let tickWatch = null;
-            let lastTickStep = -1;
+            let tickTimer = null;
+            let tickDelay = 42;
+            const stopTickLoop = () => { if (tickTimer) { clearTimeout(tickTimer); tickTimer = null; } };
 
             const spinGuard = setTimeout(() => {
                 isSpinning = false;
                 if (btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
                 if (countSel) countSel.disabled = false;
-                if (tickWatch) clearInterval(tickWatch);
+                stopTickLoop();
             }, 12000);
 
             setTimeout(() => {
                 try {
                     rowMeta.forEach((m) => { m.track.dataset.lastX = '0'; });
-                    tickWatch = setInterval(() => {
-                        const t0 = rowMeta[0]?.track;
-                        if (!t0) return;
-                        const tr = getComputedStyle(t0).transform;
-                        const match = tr && tr !== 'none' ? tr.match(/matrix\(([^)]+)\)/) : null;
-                        let tx = 0;
-                        if (match) {
-                            const parts = match[1].split(',').map((x) => Number(x.trim()));
-                            tx = Number(parts[4] || 0);
-                        }
-                        const step = Math.floor(Math.abs(tx) / itemWidth);
-                        if (step !== lastTickStep) { lastTickStep = step; SoundEngine.playTick(); }
-                    }, 28);
+                    const playSpinTicks = () => {
+                        if (!isSpinning) return;
+                        SoundEngine.playTick();
+                        tickDelay = Math.min(220, tickDelay + 8);
+                        tickTimer = setTimeout(playSpinTicks, tickDelay);
+                    };
+                    playSpinTicks();
                     rowMeta.forEach((m) => {
                         const containerWidth = m.row.clientWidth;
                         const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
@@ -4886,7 +4972,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     });
 
                     setTimeout(() => {
-                        if (tickWatch) clearInterval(tickWatch);
+                        stopTickLoop();
                         let totalWin = 0;
                         rowMeta.forEach(m => {
                             addToInventory(m.winningSkin);
@@ -4904,7 +4990,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     console.error('spinCase failed', err);
                     isSpinning = false;
                     clearTimeout(spinGuard);
-                    if (tickWatch) clearInterval(tickWatch);
+                    stopTickLoop();
                     if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
                     if(countSel) countSel.disabled = false;
                     showToast('Točení selhalo, zkus to znovu.', true);
@@ -5229,20 +5315,10 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         // --- Live chat (uživatel + AI odpovědi, fallback bez API) ---
         async function maybeGeminiReply(userMessage) {
-            const apiKey = localStorage.getItem('geminiApiKey') || '';
-            if(!apiKey) return null;
+            if (!userMessage) return null;
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${userMessage}` }] }],
-                        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
-                    })
-                });
-                if(!res.ok) return null;
-                const data = await res.json();
-                return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+                const data = await apiRequest('/api/chat/ai-reply', 'POST', { text: userMessage });
+                return data?.reply || null;
             } catch {
                 return null;
             }
@@ -5341,11 +5417,19 @@ Zeus x27|Charged Up|8.50|#8847ff
                     offsetX -= speed * dt;
                     let first = dropsContainer.firstElementChild;
                     let firstWidth = getItemWidth(first);
-                    while(first && firstWidth > 0 && -offsetX >= firstWidth) {
+                    let moveCount = 0;
+                    const rotate = [];
+                    while(first && firstWidth > 0 && -offsetX >= firstWidth && moveCount < 5) {
                         offsetX += firstWidth;
-                        dropsContainer.appendChild(first);
-                        first = dropsContainer.firstElementChild;
+                        rotate.push(first);
+                        first = first.nextElementSibling;
                         firstWidth = getItemWidth(first);
+                        moveCount += 1;
+                    }
+                    if (rotate.length) {
+                        const frag = document.createDocumentFragment();
+                        rotate.forEach((el) => frag.appendChild(el));
+                        dropsContainer.appendChild(frag);
                     }
                     dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
                 }
