@@ -27,6 +27,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/otodrop';
 const STEAM_API_KEY = (process.env.STEAM_API_KEY || '').trim();
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
 
 mongoose
   .connect(MONGO_URI)
@@ -102,11 +103,15 @@ const battleRoomSchema = new mongoose.Schema(
   {
     roomId: { type: String, unique: true, index: true },
     mode: { type: String, default: '1v1' },
+    gameMode: { type: String, default: 'classic' },
+    teamFormat: { type: String, default: '1v1' },
+    privacy: { type: String, default: 'public' },
     rounds: { type: Number, default: 1 },
     caseId: { type: String, default: '' },
     caseName: { type: String, default: 'Case' },
     casePrice: { type: Number, default: 0 },
     contents: { type: Array, default: [] },
+    caseQueue: { type: Array, default: [] },
     capacity: { type: Number, default: 2 },
     status: { type: String, enum: ['waiting', 'done'], default: 'waiting' },
     creatorId: { type: String, required: true },
@@ -882,6 +887,26 @@ function weightedRoll(contents) {
   return { name: last.name || 'Skin', price: Number(last.price || 0), color: last.color || '#4b69ff', img: last.img || '' };
 }
 
+
+function expandCaseQueue(caseQueue, fallbackRounds = 1) {
+  const queue = Array.isArray(caseQueue) ? caseQueue : [];
+  const expanded = [];
+  queue.forEach((entry) => {
+    const count = Math.max(0, Math.min(30, Number(entry?.count || 0)));
+    for (let i = 0; i < count; i += 1) {
+      expanded.push({
+        caseId: String(entry?.caseId || ''),
+        caseName: String(entry?.caseName || entry?.name || 'Case'),
+        casePrice: Math.max(0, Number(entry?.casePrice || entry?.price || 0)),
+        caseImg: String(entry?.caseImg || entry?.img || ''),
+        contents: Array.isArray(entry?.contents) ? entry.contents : []
+      });
+    }
+  });
+  if (expanded.length) return expanded;
+  return Array.from({ length: Math.max(1, Number(fallbackRounds || 1)) }).map(() => ({ caseId: '', caseName: 'Case', casePrice: 0, caseImg: '', contents: [] }));
+}
+
 async function pruneBattleRooms(now = new Date()) {
   await BattleRoom.deleteMany({ $or: [{ expiresAt: { $lte: now } }, { updatedAt: { $lt: new Date(now.getTime() - BATTLE_ROOM_TTL_MS) } }] });
 }
@@ -898,23 +923,33 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
   const existing = await BattleRoom.findOne({ status: 'waiting', creatorId: String(req.user._id) });
   if (existing) return res.status(400).json({ ok: false, message: 'Už máš otevřený battle. Nejprve ho dokonči nebo opusť.' });
 
-  const mode = String(req.body?.mode || '1v1');
-  const rounds = Math.max(1, Math.min(7, Number(req.body?.rounds || 1)));
+  const mode = String(req.body?.mode || req.body?.teamFormat || '1v1');
+  const gameMode = String(req.body?.gameMode || 'classic');
+  const teamFormat = String(req.body?.teamFormat || mode || '1v1');
+  const privacy = String(req.body?.privacy || 'public');
+  const requestedRounds = Math.max(1, Math.min(60, Number(req.body?.rounds || 1)));
   const caseId = String(req.body?.caseId || '');
   const caseName = String(req.body?.caseName || 'Case');
   const casePrice = Math.max(0, Number(req.body?.casePrice || 0));
   const contents = Array.isArray(req.body?.contents) ? req.body.contents.slice(0, 80) : [];
+  const caseQueue = Array.isArray(req.body?.caseQueue) ? req.body.caseQueue.slice(0, 60) : [];
+  const expandedQueue = expandCaseQueue(caseQueue, requestedRounds);
+  const rounds = expandedQueue.length || requestedRounds;
   const fillWithBots = Boolean(req.body?.fillWithBots);
 
   const roomId = crypto.randomUUID();
   const room = await BattleRoom.create({
     roomId,
     mode,
+    gameMode,
+    teamFormat,
+    privacy,
     rounds,
     caseId,
     caseName,
     casePrice,
     contents,
+    caseQueue: caseQueue,
     capacity: battleCapacity(mode),
     status: 'waiting',
     creatorId: String(req.user._id),
@@ -938,6 +973,22 @@ app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res
     room.players.push({ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] });
   }
 
+  room.updatedAt = new Date();
+  room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
+  await room.save();
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId } });
+});
+
+
+app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
+  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží.' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Boty může přidávat jen zakladatel.' });
+  if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
+
+  const idx = (room.players || []).filter((p) => p.bot).length + 1;
+  room.players.push({ userId: `bot-${Date.now()}-${idx}`, nickname: `Bot ${idx}`, avatar: '', bot: true, score: 0, drops: [] });
   room.updatedAt = new Date();
   room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
   await room.save();
@@ -977,7 +1028,8 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
 
   if (room.players.length < 2) return res.status(400).json({ ok: false, message: 'Potřebuješ minimálně 2 hráče nebo zapnout boty.' });
 
-  const fee = Number(room.casePrice || 0) * Number(room.rounds || 1);
+  const expandedQueue = expandCaseQueue(room.caseQueue, room.rounds);
+  const fee = expandedQueue.reduce((sum, q) => sum + Math.max(0, Number(q.casePrice || room.casePrice || 0)), 0);
   if (fee > 0) {
     for (const pl of room.players.filter((p) => !p.bot)) {
       const u = await User.findById(pl.userId);
@@ -996,8 +1048,10 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
   const potItems = [];
   room.logs = [];
   for (let r = 1; r <= room.rounds; r += 1) {
+    const roundCase = expandedQueue[r - 1] || {};
+    const roundContents = Array.isArray(roundCase.contents) && roundCase.contents.length ? roundCase.contents : room.contents;
     for (const pl of room.players) {
-      const drop = weightedRoll(room.contents);
+      const drop = weightedRoll(roundContents);
       pl.drops.push({ round: r, ...drop });
       pl.score = Math.round((Number(pl.score || 0) + Number(drop.price || 0)) * 100) / 100;
       potItems.push({ uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: drop.name, price: Number(drop.price || 0), color: drop.color || '#4b69ff', img: drop.img || '' });
@@ -1056,6 +1110,31 @@ app.post('/api/chat/messages', ensureDbReady, ensureAuth, async (req, res) => {
   }
 
   return res.json({ ok: true });
+});
+
+app.post('/api/chat/ai-reply', ensureDbReady, ensureAuth, async (req, res) => {
+  const text = (req.body.text || '').toString().trim().slice(0, 200);
+  if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
+  if (!GEMINI_API_KEY) return res.json({ ok: true, reply: null });
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${text}` }] }],
+        generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
+      })
+    });
+    if (!response.ok) {
+      return res.json({ ok: true, reply: null });
+    }
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+    return res.json({ ok: true, reply });
+  } catch (_err) {
+    return res.json({ ok: true, reply: null });
+  }
 });
 
 app.get('/api/trades/inbox', ensureDbReady, ensureAuth, async (req, res) => {
