@@ -3054,6 +3054,139 @@ Zeus x27|Charged Up|8.50|#8847ff
                     c.contents = normalizeRounded(items).sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
+            const CASEHUG_CASE_CONFIG = {
+                "5_dagura": { price: 20.0, featured: [["Shadow Daggers", "Tiger Tooth"]] },
+                "10_boombox": { price: 10.0, featured: [["Bowie Knife", "Gamma Doppler Phase 2"]] },
+                "20_juice": { price: 150.0, featured: [["Desert Eagle", "Fennec Fox"]] },
+                "50_race": { price: 1250.0, featured: [["M9 Bayonet", "Gamma Doppler Emerald"]] },
+                "afk": { price: 0.1, featured: [["Shadow Daggers", "Lore"], ["P90", "Emerald Dragon"]] },
+                "ak_47_3": { price: 6.0, featured: [["AK-47", "Fuel Injector"]] },
+                "alien": { price: 1.25, featured: [["AK-47", "Vulcan"]] },
+                "antidote": { price: 8.5, featured: [["Nomad Knife", "Stained"]] },
+                "arabesque": { price: 60.0, featured: [["AK-47", "Gold Arabesque"]] },
+                "arcana": { price: 120.0, featured: [["Butterfly Knife", "Gamma Doppler Emerald"]] },
+                "awp": { price: 10.0, featured: [["AWP", "Asiimov"], ["AWP", "Dragon Lore"], ["AWP", "Gungnir"]] },
+                "bang_bang": { price: 30.0, featured: [["M9 Bayonet", "Tiger Tooth"]] },
+                "bank_heist": { price: 11.0, featured: [["AK-47", "The Empress"], ["AK-47", "Leet Museo"]] },
+                "berkay": { price: 28.0, featured: [["Hand Wraps", "Leather"]] },
+                "bike": { price: 140.0, featured: [["Moto Gloves", "Blood Pressure"], ["Moto Gloves", "Slingshot"]] },
+                "blaze": { price: 25.0, featured: [["Desert Eagle", "Blaze"]] },
+                "bunny_hop": { price: 12.75, featured: [["Bowie Knife", "Gamma Doppler Phase 1"]] },
+                "buzzer_blade": { price: 42.0, featured: [["M9 Bayonet", "Gamma Doppler Phase 2"]] },
+                "call_me": { price: 50.0, featured: [["Karambit", "Autotronic"]] },
+                "candy_shop": { price: 45.0, featured: [["Skeleton Knife", "Marble Fade"]] },
+                "chinatown": { price: 97.5, featured: [["Specialist Gloves", "Crimson Kimono"]] },
+                "circus": { price: 80.0, featured: [["M9 Bayonet", "Marble Fade"]] },
+                "demolition": { price: 11.0, featured: [["AWP", "The Prince"]] },
+                "double_cheese": { price: 0.7, featured: [["AK-47", "Bloodsport"]] },
+                "duck_luck": { price: 1.0, featured: [["Shadow Daggers", "Lore"]] },
+                "el_bobrito": { price: 45.0, featured: [["M9 Bayonet", "Crimson Web"]] },
+                "electronic": { price: 33.0, featured: [["M9 Bayonet", "Autotronic"]] },
+                "farm_awp": { price: 15.0, featured: [["AWP", "Lightning Strike"]] },
+                "farm_gamma": { price: 25.0, featured: [["M9 Bayonet", "Gamma Doppler Phase 2"]] },
+                "farm_gloves": { price: 15.0, featured: [["Broken Fang Gloves", "Jade"]] },
+                "farm_knife": { price: 12.0, featured: [["Stiletto Knife", "Ultraviolet"]] },
+                "ferro": { price: 30.0, featured: [["Butterfly Knife", "Tiger Tooth"]] },
+                "foxie": { price: 25.0, featured: [["Desert Eagle", "Fennec Fox"]] },
+                "frosty": { price: 0.8, featured: [["AK-47", "Ice Coaled"]] },
+                "galaxy": { price: 45.0, featured: [["Karambit", "Fade"]] },
+                "gambit": { price: 18.0, featured: [["Stiletto Knife", "Tiger Tooth"]] },
+                "game_on": { price: 4.5, featured: [["Glock-18", "Gamma Doppler Phase 2"]] },
+                "golderra": { price: 26.0, featured: [["Sport Gloves", "Amphibious"]] },
+                "guard": { price: 12.0, featured: [["Glock-18", "Gold Toof"]] },
+                "horus": { price: 50.0, featured: [["M4A4", "Eye of Horus"]] },
+                "howl_4": { price: 300.0, featured: [["M4A4", "Howl"]] },
+                "isamu_v2": { price: 45.0, featured: [["M4A4", "Howl"]] },
+                "lab": { price: 150.0, featured: [["Specialist Gloves", "Emerald Web"]] },
+                "lord": { price: 125.0, featured: [["Butterfly Knife", "Lore"]] },
+                "nitro_v1": { price: 15.0, featured: [["Karambit", "Tiger Tooth"]] },
+                "nitro_v2": { price: 18.0, featured: [["Glock-18", "Gamma Doppler Phase 2"]] },
+                "nitro_v3_2": { price: 65.0, featured: [["M4A4", "Howl"]] },
+                "painkiller": { price: 15.0, featured: [["USP-S", "Kill Confirmed"]] },
+                "printstream": { price: 25.0, featured: [["Desert Eagle", "Printstream"], ["M4A1-S", "Printstream"], ["USP-S", "Printstream"]] },
+                "quantum": { price: 358.0, featured: [["AWP", "Gungnir"]] },
+                "risky": { price: 40.0, featured: [["Karambit", "Doppler Phase 2"]] },
+                "royal": { price: 150.0, featured: [["AWP", "Dragon Lore"]] },
+                "shadow_daggers": { price: 62.5, featured: [["Shadow Daggers", "Marble Fade"], ["Shadow Daggers", "Lore"]] },
+                "snake": { price: 85.0, featured: [["Butterfly Knife", "Gamma Doppler Emerald"]] },
+                "spajkk": { price: 12.0, featured: [["M4A1-S", "Blue Phosphor"]] },
+                "taxi": { price: 12.0, featured: [["AK-47", "Fuel Injector"]] },
+                "tiger": { price: 3.8, featured: [["M9 Bayonet", "Tiger Tooth"]] },
+                "titan": { price: 14.5, featured: [["AWP", "Medusa"]] },
+                "toxic": { price: 2.6, featured: [["AWP", "Containment Breach"]] },
+                "turbo_win": { price: 45.0, featured: [["Karambit", "Crimson Web"]] },
+                "vac_attack": { price: 85.0, featured: [["Karambit", "Fade"]] },
+                "warzone": { price: 75.0, featured: [["M9 Bayonet", "Autotronic"]] },
+                "wild_west": { price: 2.0, featured: [["Karambit", "Lore"]] },
+                "workshop": { price: 2.75, featured: [["M9 Bayonet", "Lore"]] },
+                "zurys_2": { price: 12.0, featured: [["Huntsman Knife", "Doppler Phase 2"]] }
+            };
+
+            const casehugTopChance = (id) => {
+                const m = String(id || '').match(/^(\d+)_/);
+                if (!m) return 3;
+                return Math.max(1, Math.min(50, Number(m[1] || 3)));
+            };
+
+            const generateCasehugContents = (cfg, caseId, caseName) => {
+                const p = Number(cfg?.price || 1);
+                const all = Object.values(skinsDB || {});
+                const featured = (cfg?.featured || []).map(([w, n]) => findSkin(w, n)).filter(Boolean);
+                const keyword = normalizeName(caseName).split(' ').filter(Boolean);
+                const thematic = all.filter((s) => {
+                    const wn = normalizeName(`${s.weapon} ${s.skinName}`);
+                    return keyword.some((k) => k.length > 2 && wn.includes(k));
+                });
+                const cheap = all.filter((s) => Number(s.price || 0) <= Math.max(0.2, p * 0.55));
+                const mid = all.filter((s) => Number(s.price || 0) > p * 0.5 && Number(s.price || 0) <= p * 1.35);
+                const picked = [];
+                const used = new Set();
+                const push = (s) => { if (s && !used.has(s.id)) { used.add(s.id); picked.push(s); } };
+                featured.forEach(push);
+                thematic.slice(0, 8).forEach(push);
+                cheap.slice(0, 12).forEach(push);
+                mid.slice(0, 8).forEach(push);
+                while (picked.length < Math.max(5, Math.min(24, Math.round(8 + Math.log10(p + 1) * 7)))) {
+                    const next = all.find((s) => !used.has(s.id) && Number(s.price || 0) <= p * 1.2) || all.find((s) => !used.has(s.id));
+                    if (!next) break;
+                    push(next);
+                }
+
+                const topChanceTotal = casehugTopChance(caseId);
+                const featuredChance = featured.length ? topChanceTotal / featured.length : 0;
+                const rest = picked.filter((s) => !featured.find((f) => f.id === s.id));
+                const restPool = Math.max(1, 100 - topChanceTotal);
+                const weights = rest.map((s) => 1 / Math.max(0.01, Number(s.price || 0.01)));
+                const sumW = weights.reduce((a, b) => a + b, 0) || 1;
+
+                const out = [];
+                rest.forEach((s, i) => out.push({ skin: s, chance: (weights[i] / sumW) * restPool }));
+                featured.forEach((s) => out.push({ skin: s, chance: featuredChance }));
+                out.forEach((it) => { it.chance = Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10); });
+                const diff = Math.round((100 - out.reduce((a, b) => a + Number(b.chance || 0), 0)) * 10) / 10;
+                if (out.length) out[out.length - 1].chance = Math.max(0.1, Math.round((Number(out[out.length - 1].chance || 0) + diff) * 10) / 10);
+                return out.sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
+            };
+
+            const injectCasehugCatalog = () => {
+                Object.entries(CASEHUG_CASE_CONFIG).forEach(([rawId, cfg]) => {
+                    const id = rawId.toLowerCase();
+                    const name = rawId.replace(/_/g, ' ').toUpperCase();
+                    const imageName = `${rawId}.png`;
+                    const existing = casesDB.find((c) => c.id === id);
+                    const payload = {
+                        id,
+                        name,
+                        price: Number(cfg.price || 1),
+                        color: Number(cfg.price || 0) >= 50 ? 'red' : (Number(cfg.price || 0) >= 10 ? 'purple' : 'blue'),
+                        img: `https://cdn.casehug.com/cases/${imageName}`,
+                        contents: generateCasehugContents(cfg, id, name)
+                    };
+                    if (existing) Object.assign(existing, payload);
+                    else casesDB.push(payload);
+                });
+            };
+
             const applyCaseCatalogRefresh = () => {
                 const renameMap = {
                     'trash-or-knife': '1% Knife Rush',
@@ -3234,6 +3367,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             };
 
             applyCaseCatalogRefresh();
+            injectCasehugCatalog();
             mixKnivesIntoCases();
             diversifyCaseContents();
             applyHouseEdge();
