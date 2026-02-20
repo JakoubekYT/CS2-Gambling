@@ -167,6 +167,8 @@
 
         /* Upgrade efekty */
         .upgrade-shake { animation: shake 0.5s ease-in-out infinite; border-color: #a855f7 !important; }
+        .upgrade-pointer { position: absolute; left: 50%; top: 50%; width: 2px; height: 82px; background: linear-gradient(to top, rgba(236,72,153,0.2), #f8fafc 35%, #facc15); transform-origin: 50% 100%; transform: translate(-50%, -100%) rotate(0deg); border-radius: 9999px; box-shadow: 0 0 10px rgba(250,204,21,0.55); transition: transform 1.9s cubic-bezier(0.15, 0.8, 0.2, 1); z-index: 20; }
+        .upgrade-pointer::after { content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; border-radius: 9999px; background: #facc15; box-shadow: 0 0 10px rgba(250,204,21,0.8); }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-1deg); } 75% { transform: translateX(5px) rotate(1deg); } }
 
         /* Spinner položky - vylepšené animace */
@@ -314,7 +316,7 @@
                     <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
                 </div>
                 <div class="bg-[#14171c]/90 border border-yellow-400/30 rounded-2xl p-4 mb-4 flex flex-wrap items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-                    <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-right" class="w-5 h-5"></i> Upgrade</button>
+                    <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Upgrade</button>
                     <button onclick="openFreeCase()" class="bg-green-500/30 hover:bg-green-500/45 border border-green-300/40 text-green-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="gift" class="w-5 h-5"></i> Free Cases</button>
                     <button onclick="switchPage('case-battle')" class="bg-red-500/30 hover:bg-red-500/45 border border-red-300/40 text-red-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="swords" class="w-5 h-5"></i> Case Battle</button>
                 </div>
@@ -425,6 +427,7 @@
                                     <circle cx="96" cy="96" r="86" stroke="#1f2937" stroke-width="12" fill="transparent" />
                                     <circle id="upgrade-circle" cx="96" cy="96" r="86" stroke="#a855f7" stroke-width="12" fill="transparent" stroke-dasharray="540" stroke-dashoffset="540" class="transition-all duration-1000 ease-out drop-shadow-lg" />
                                 </svg>
+                                <div id="upgrade-pointer" class="upgrade-pointer"></div>
                                 <div class="absolute inset-0 flex items-center justify-center flex-col">
                                     <span id="upgrade-chance" class="text-5xl font-black text-white italic drop-shadow-lg">0%</span>
                                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Šance</span>
@@ -757,26 +760,26 @@
             "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Kukri Knife"
         ];
         const KNIFE_ALLOWED_FINISHES = {
-            "Bayonet": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Bowie Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Butterfly Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Classic Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "Falchion Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Flip Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Gut Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Huntsman Knife": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Karambit": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Kukri Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "M9 Bayonet": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Navaja Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Nomad Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "Paracord Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "Shadow Daggers": ["Vanilla","Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Skeleton Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "Stiletto Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Survival Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
-            "Talon Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
-            "Ursus Knife": ["Vanilla","Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"]
+            "Bayonet": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Bowie Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Butterfly Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Classic Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Falchion Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Flip Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Gut Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Huntsman Knife": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Karambit": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Kukri Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "M9 Bayonet": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Navaja Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Nomad Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Paracord Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Shadow Daggers": ["Autotronic","Black Laminate","Blue Steel","Boreal Forest","Bright Water","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Freehand","Gamma Doppler","Lore","Marble Fade","Night","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Skeleton Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Stiletto Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Survival Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Fade","Forest DDPAT","Night Stripe","Safari Mesh","Scorched","Slaughter","Stained","Urban Masked"],
+            "Talon Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"],
+            "Ursus Knife": ["Blue Steel","Boreal Forest","Case Hardened","Crimson Web","Damascus Steel","Doppler","Fade","Forest DDPAT","Marble Fade","Night Stripe","Rust Coat","Safari Mesh","Scorched","Slaughter","Stained","Tiger Tooth","Ultraviolet","Urban Masked"]
         };
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
@@ -2418,7 +2421,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const base = knifeBasePrice[knife] || 320;
                 const allowedFinishes = KNIFE_ALLOWED_FINISHES[knife] || [];
                 allowedFinishes.forEach((finish) => {
-                    const price = finish === 'Vanilla' ? base : (base * (finishMult[finish] || 1));
+                    const price = base * (finishMult[finish] || 1);
                     addOrUpdateSkin(knife, finish, price, '#ebca44');
                 });
             });
@@ -4943,9 +4946,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 rowMeta.push({ track, row: track.parentElement, winningSkin });
             }
 
-            let tickTimer = null;
-            let tickDelay = 42;
-            const stopTickLoop = () => { if (tickTimer) { clearTimeout(tickTimer); tickTimer = null; } };
+            let tickAnimFrame = null;
+            const stopTickLoop = () => { if (tickAnimFrame) { cancelAnimationFrame(tickAnimFrame); tickAnimFrame = null; } };
 
             const spinGuard = setTimeout(() => {
                 isSpinning = false;
@@ -4957,13 +4959,23 @@ Zeus x27|Charged Up|8.50|#8847ff
             setTimeout(() => {
                 try {
                     rowMeta.forEach((m) => { m.track.dataset.lastX = '0'; });
-                    const playSpinTicks = () => {
-                        if (!isSpinning) return;
-                        SoundEngine.playTick();
-                        tickDelay = Math.min(220, tickDelay + 8);
-                        tickTimer = setTimeout(playSpinTicks, tickDelay);
+                    const containerWidth0 = rowMeta[0]?.row?.clientWidth || 0;
+                    const finalOffset0 = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth0 / 2);
+                    let lastTickStep = -1;
+                    const spinDuration = 6000;
+                    const spinStart = performance.now();
+                    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+                    const tickLoop = (ts) => {
+                        const p = Math.max(0, Math.min(1, (ts - spinStart) / spinDuration));
+                        const x = easeOutCubic(p) * finalOffset0;
+                        const step = Math.floor(Math.abs(x) / itemWidth);
+                        if (step !== lastTickStep) {
+                            lastTickStep = step;
+                            SoundEngine.playTick();
+                        }
+                        if (p < 1 && isSpinning) tickAnimFrame = requestAnimationFrame(tickLoop);
                     };
-                    playSpinTicks();
+                    tickAnimFrame = requestAnimationFrame(tickLoop);
                     rowMeta.forEach((m) => {
                         const containerWidth = m.row.clientWidth;
                         const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
@@ -5098,6 +5110,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                         <div class="text-[10px] font-black uppercase text-gray-400 truncate">${item.name}</div>
                         <div class="text-sm font-black text-white mt-1">${formatMoney(item.price)}</div>
                     </div>
+                    <button onclick="queueItemForUpgrade('${item.uid}')" class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 bg-purple-500/85 hover:bg-purple-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm" title="Upgradnout skin">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </button>
                     <button onclick="sellSkin('${item.uid}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
@@ -5114,6 +5129,20 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function sortInventory() {
             renderInventory();
+        }
+
+        function queueItemForUpgrade(uid) {
+            const item = userInventory.find((i) => i.uid === uid);
+            if (!item) return;
+            const emptyIdx = upgInputs.findIndex((x) => !x);
+            if (emptyIdx === -1) {
+                showToast('V upgraderu už máš 3 skiny.', true);
+                return;
+            }
+            upgInputs[emptyIdx] = item;
+            switchPage('upgrade');
+            renderUpgrader();
+            showToast('Skin přidán do upgraderu.');
         }
 
         function sellSkin(uid) {
@@ -5184,6 +5213,8 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             document.getElementById('upgrade-chance').textContent = chance.toFixed(1) + '%';
             document.getElementById('upgrade-circle').style.strokeDashoffset = 540 - (540 * (chance / 100));
+            const ptr = document.getElementById('upgrade-pointer');
+            if (ptr) ptr.style.transform = `translate(-50%, -100%) rotate(${Math.max(0, Math.min(360, chance * 3.6))}deg)`;
             lucide.createIcons();
         }
 
@@ -5260,14 +5291,20 @@ Zeus x27|Charged Up|8.50|#8847ff
             // Zvuk napětí
             const soundNode = SoundEngine.playUpgradeProcess();
 
+            const chance = Math.min((totalVal / upgTarget.price) * 100, 90);
+            const roll = Math.random() * 100;
+            const pointer = document.getElementById('upgrade-pointer');
+            if (pointer) {
+                const targetAngle = (roll / 100) * 360;
+                const spins = 4 * 360;
+                pointer.style.transform = `translate(-50%, -100%) rotate(${spins + targetAngle}deg)`;
+            }
+
             setTimeout(() => {
                 isSpinning = false;
                 document.getElementById('upgrade-panel').classList.remove('upgrade-shake');
                 document.getElementById('btn-upgrade-exec').textContent = "Vylepšit";
                 if(soundNode) { soundNode.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); }
-
-                let chance = Math.min((totalVal / upgTarget.price) * 100, 90);
-                const roll = Math.random() * 100;
                 
                 upgInputs.forEach(item => { if(item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
 
@@ -5488,7 +5525,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
 
             await loadMessages();
-            setInterval(loadMessages, 4000);
+            setInterval(loadMessages, 1000);
         }
 
         // --- FREE CASE SYSTEM ---
