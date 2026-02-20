@@ -474,14 +474,39 @@
                             <button onclick="leaveCaseBattleRoom()" class="bg-gray-700 text-white font-black rounded-lg px-3 py-2 text-sm">Odejít</button>
                         </div>
                     </div>
-                    <div id="cb-case-preview" class="cb-case-pill rounded-2xl p-3 flex items-center gap-3">
-                        <img id="cb-case-preview-img" src="" class="w-20 h-20 object-contain drop-shadow-[0_0_18px_rgba(250,204,21,0.5)]" onerror="handleImgError(this)">
-                        <div>
-                            <div id="cb-case-preview-name" class="font-black text-lg text-white uppercase">CASE BATTLE</div>
-                            <div id="cb-case-preview-meta" class="text-xs text-yellow-300">Round info</div>
+
+                    <div class="bg-[#12161f] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                        <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10 bg-[#161a24]">
+                            <div class="flex items-center gap-3 md:gap-4 min-w-0">
+                                <div class="bg-yellow-400/20 text-yellow-300 font-black rounded-lg px-3 py-2 border border-yellow-400/30 shrink-0">
+                                    <div class="text-[10px] uppercase">Battle Rounds</div>
+                                    <div class="text-lg leading-none" id="cb-round-counter">1 of 1</div>
+                                </div>
+                                <div id="cb-case-queue" class="flex gap-2 overflow-x-auto pb-1"></div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="text-[10px] uppercase text-gray-400 font-bold">Battle Value</div>
+                                <div class="text-yellow-400 font-black text-xl" id="cb-total-value">$0.00</div>
+                            </div>
                         </div>
+
+                        <div class="grid grid-cols-[1fr_auto_1fr] items-center bg-[#0d1017] border-b border-white/10">
+                            <div class="p-3 flex justify-between items-center border-r border-[#1a1e29]">
+                                <div class="text-blue-400 font-black flex items-center gap-2 uppercase text-xs"><i data-lucide="shield" class="w-4 h-4"></i>Counter-Terrorist</div>
+                                <div class="text-green-400 font-black" id="cb-team1-score">$0.00</div>
+                            </div>
+                            <div class="px-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#1a1e29] border border-white/10 grid place-items-center text-yellow-300 font-black text-xs">VS</div>
+                            </div>
+                            <div class="p-3 flex justify-between items-center border-l border-[#1a1e29]">
+                                <div class="text-orange-400 font-black flex items-center gap-2 uppercase text-xs"><i data-lucide="swords" class="w-4 h-4"></i>Terrorist</div>
+                                <div class="text-green-400 font-black" id="cb-team2-score">$0.00</div>
+                            </div>
+                        </div>
+
+                        <div id="cb-stage" class="grid grid-cols-1 md:grid-cols-2 gap-[2px] bg-[#1a1e29]"></div>
                     </div>
-                    <div id="cb-stage" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
                     <div id="cb-log" class="bg-black/30 border border-yellow-400/10 rounded-xl p-3 h-44 overflow-y-auto text-sm"></div>
                 </div>
             </section>
@@ -4520,75 +4545,29 @@ Zeus x27|Charged Up|8.50|#8847ff
             return `${room?.id || ''}:${room?.status || ''}:${(room?.players || []).map((p) => (p.drops || []).length).join(',')}:${room?.winnerId || ''}`;
         }
 
-        async function animateCaseBattleRounds(room) {
-            if (cbAnimationLock) return;
-            cbAnimationLock = true;
-            const sessionId = ++cbAnimationSession;
-            const rounds = Math.max(1, Number(room?.rounds || 1));
-            const rolls = Object.values(skinsDB || {});
-
-            for (let round = 0; round < rounds; round += 1) {
-                if (sessionId !== cbAnimationSession) {
-                    cbAnimationLock = false;
-                    return;
-                }
-                cbAddLog(`Round ${round + 1}/${rounds}...`);
-                const started = Date.now();
-                while (Date.now() - started < 2200) {
-                    (room.players || []).forEach((_, idx) => {
-                        const imgEl = document.getElementById(`cb-spin-img-${idx}`);
-                        const nameEl = document.getElementById(`cb-spin-name-${idx}`);
-                        const dotEl = document.getElementById(`cb-dot-${idx}-${round}`);
-                        if (dotEl) dotEl.classList.add('active');
-                        if (!imgEl || !nameEl) return;
-                        const r = rolls[Math.floor(Math.random() * rolls.length)] || { img: FALLBACK_IMG, name: 'Skin' };
-                        imgEl.src = r.img || FALLBACK_IMG;
-                        nameEl.textContent = r.name || 'Skin';
-                    });
-                    if (Date.now() - started > 400) SoundEngine.playTick();
-                    await cbSleep(165);
-                    if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
-                }
-
-                (room.players || []).forEach((pl, idx) => {
-                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
-                    const imgEl = document.getElementById(`cb-spin-img-${idx}`);
-                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
-                    const scoreEl = document.getElementById(`cb-score-${idx}`);
-                    const dotEl = document.getElementById(`cb-dot-${idx}-${round}`);
-                    if (imgEl) imgEl.src = drop?.img || FALLBACK_IMG;
-                    if (nameEl) nameEl.textContent = drop?.name || 'Čeká se na drop...';
-                    if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
-                    if (dotEl) {
-                        dotEl.classList.remove('active');
-                        dotEl.classList.add('hit');
-                    }
-                    const openEl = document.getElementById(`cb-opened-${idx}`);
-                    const totalEl = document.getElementById(`cb-total-${idx}`);
-                    if (openEl) {
-                        const opened = (pl.drops || []).slice(0, round + 1).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
-                        openEl.innerHTML = opened;
-                    }
-                    if (totalEl) totalEl.textContent = formatMoney(pl.score || 0);
-                });
-                await cbSleep(760);
-                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
-            }
-            cbAnimationLock = false;
+        function cbRenderHistoryCard(drop, roundIdx) {
+            if (!drop) return '';
+            const wear = ['FN', 'MW', 'FT', 'WW', 'BS'][(roundIdx || 0) % 5];
+            return `<div class="bg-[#1a1e29] border border-white/10 rounded p-2 text-center relative"><div class="absolute top-1 right-1 text-[8px] bg-black/60 px-1 rounded text-yellow-300">${wear}</div><img src="${drop?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain mb-1"><div class="text-[9px] truncate text-gray-300">${drop?.name || '-'}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(drop?.price || 0)}</div></div>`;
         }
-
 
         function applyCaseBattleLeaderStyles(room) {
             const players = room?.players || [];
             if (!players.length) return;
             const topScore = Math.max(...players.map((p) => Number(p.score || 0)));
             players.forEach((pl, idx) => {
+                const crown = document.getElementById(`cb-leader-crown-${idx}`);
+                const scoreEl = document.getElementById(`cb-score-${idx}`);
                 const card = document.getElementById(`cb-player-${idx}`);
-                if (!card) return;
                 const isLeader = Number(pl.score || 0) >= topScore && topScore > 0;
-                if (room.status !== 'done') {
-                    card.classList.toggle('winner', isLeader);
-                    card.classList.remove('loser');
+                if (crown) crown.classList.toggle('hidden', !isLeader);
+                if (scoreEl) {
+                    scoreEl.classList.toggle('text-green-400', isLeader);
+                    scoreEl.classList.toggle('text-gray-300', !isLeader);
+                }
+                if (card) {
+                    card.classList.toggle('ring-1', isLeader);
+                    card.classList.toggle('ring-yellow-300/40', isLeader);
                 }
             });
         }
@@ -4603,25 +4582,144 @@ Zeus x27|Charged Up|8.50|#8847ff
             });
         }
 
+        async function animateCaseBattleRounds(room) {
+            if (cbAnimationLock) return;
+            cbAnimationLock = true;
+            const sessionId = ++cbAnimationSession;
+            const rounds = Math.max(1, Number(room?.rounds || 1));
+            const allRolls = Object.values(skinsDB || {});
+            const winIndex = 50;
+            const itemWidth = 120;
+
+            for (let round = 0; round < rounds; round += 1) {
+                if (sessionId !== cbAnimationSession || !document.getElementById('page-case-battle') || document.getElementById('page-case-battle').classList.contains('hidden')) {
+                    cbAnimationLock = false;
+                    return;
+                }
+                const rc = document.getElementById('cb-round-counter');
+                if (rc) rc.textContent = `${round + 1} of ${rounds}`;
+                cbAddLog(`Round ${round + 1}/${rounds}...`);
+
+                (room.players || []).forEach((pl, idx) => {
+                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
+                    const track = document.getElementById(`cb-spin-track-${idx}`);
+                    if (!viewport || !track) return;
+                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || allRolls[0];
+                    const rollItems = Array.from({ length: 62 }).map(() => allRolls[Math.floor(Math.random() * allRolls.length)] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' });
+                    rollItems[winIndex] = drop;
+                    track.style.transition = 'none';
+                    track.style.transform = 'translateX(0px)';
+                    track.innerHTML = rollItems.map((it) => `<div class="w-[112px] h-full shrink-0 bg-black/25 border border-white/10 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it?.name || 'Skin'}</div></div>`).join('');
+                });
+
+                await cbSleep(40);
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
+
+                let tickAnim = null;
+                let lastTickStep = -1;
+                const started = performance.now();
+                const duration = 6000;
+                const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+                const tickLoop = (ts) => {
+                    const p = Math.max(0, Math.min(1, (ts - started) / duration));
+                    const step = Math.floor((easeOut(p) * (winIndex * itemWidth)) / itemWidth);
+                    if (step !== lastTickStep) {
+                        lastTickStep = step;
+                        SoundEngine.playTick();
+                    }
+                    if (p < 1 && sessionId === cbAnimationSession) tickAnim = requestAnimationFrame(tickLoop);
+                };
+                tickAnim = requestAnimationFrame(tickLoop);
+
+                (room.players || []).forEach((pl, idx) => {
+                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
+                    const track = document.getElementById(`cb-spin-track-${idx}`);
+                    if (!viewport || !track) return;
+                    const stopX = (winIndex * itemWidth) - ((viewport.clientWidth - itemWidth) / 2);
+                    track.style.transition = 'transform 6s cubic-bezier(0.12, 0.82, 0.18, 1)';
+                    track.style.transform = `translateX(-${Math.max(0, stopX)}px)`;
+                });
+
+                await cbSleep(6500);
+                if (tickAnim) cancelAnimationFrame(tickAnim);
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
+
+                (room.players || []).forEach((pl, idx) => {
+                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
+                    const hist = document.getElementById(`cb-history-${idx}`);
+                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                    const scoreEl = document.getElementById(`cb-score-${idx}`);
+                    if (nameEl) nameEl.textContent = drop?.name || 'Čeká se na drop...';
+                    if (hist && drop) {
+                        hist.insertAdjacentHTML('afterbegin', cbRenderHistoryCard(drop, round));
+                        while (hist.children.length > 12) hist.removeChild(hist.lastChild);
+                    }
+                    if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
+                });
+
+                applyCaseBattleLeaderStyles(room);
+                await cbSleep(1000);
+            }
+
+            SoundEngine.playWin();
+            cbAnimationLock = false;
+        }
+
         function renderCaseBattleRoom(room, animate = false) {
             const info = document.getElementById('cb-current-room');
             const stage = document.getElementById('cb-stage');
+            const totalValueEl = document.getElementById('cb-total-value');
+            const roundCounter = document.getElementById('cb-round-counter');
+            const queueEl = document.getElementById('cb-case-queue');
             if (!room || !info || !stage) return;
-            updateCaseBattlePreview(room);
-
-            info.textContent = room.status === 'waiting'
-                ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${room.caseName}`
-                : `Battle běží/hotovo • ${room.players.length} hráčů • ${room.caseName} • ${room.rounds || 1} rounds`;
 
             const rounds = Math.max(1, Number(room.rounds || 1));
+            const caseObj = getCaseByRoom(room);
+            const caseImg = caseObj?.img || FALLBACK_IMG;
+            const caseName = room?.caseName || caseObj?.name || 'Case';
+            const battleValue = Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || room.players?.length || 1));
+
+            info.textContent = room.status === 'waiting'
+                ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${caseName}`
+                : `Battle probíhá • ${room.players.length} hráčů • ${caseName}`;
+
+            if (totalValueEl) totalValueEl.textContent = formatMoney(battleValue);
+            if (roundCounter) roundCounter.textContent = `1 of ${rounds}`;
+            if (queueEl) {
+                queueEl.innerHTML = Array.from({ length: rounds }).map((_, idx) => `<div class="w-11 h-11 rounded-lg border border-yellow-300/30 bg-black/30 p-1 shrink-0" title="Round ${idx + 1}: ${caseName}"><img src="${caseImg}" onerror="handleImgError(this)" class="w-full h-full object-contain"></div>`).join('');
+            }
+
             stage.innerHTML = (room.players || []).map((pl, idx) => {
-                const lastDrop = pl.drops?.[pl.drops.length - 1];
-                const img = lastDrop?.img || FALLBACK_IMG;
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                const roundsDots = Array.from({ length: rounds }).map((_, rIdx) => `<span id="cb-dot-${idx}-${rIdx}" class="cb-round-dot"></span>`).join('');
-                const opened = (pl.drops || []).slice(0, rounds).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
-                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno: <span id="cb-total-${idx}">${formatMoney(pl.score || 0)}</span></div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>'}</div></div>`;
+                const sideBlue = idx % 2 === 0;
+                const sideClasses = sideBlue ? 'from-blue-900/20 border-blue-500/20' : 'from-orange-900/20 border-orange-500/20';
+                const history = (pl.drops || []).map((d, rIdx) => cbRenderHistoryCard(d, rIdx)).join('');
+                return `<div id="cb-player-${idx}" class="bg-[#12161f] p-4 flex flex-col border border-white/10">
+                    <div class="flex items-center gap-3 w-full mb-4">
+                        <img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-full border-2 ${sideBlue ? 'border-blue-400/80' : 'border-orange-400/80'} object-cover bg-black/30">
+                        <div class="font-black text-sm text-white truncate">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div>
+                        <i data-lucide="crown" class="w-5 h-5 text-yellow-400 ml-auto hidden" id="cb-leader-crown-${idx}"></i>
+                    </div>
+                    <div class="w-full h-44 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${sideClasses} to-transparent border rounded-xl relative overflow-hidden mb-3 shadow-[0_0_25px_rgba(59,130,246,0.08)]">
+                        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-yellow-300/70 z-20"></div>
+                        <div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden px-2 py-3">
+                            <div id="cb-spin-track-${idx}" class="h-full flex items-center gap-2"></div>
+                        </div>
+                        <div id="cb-spin-name-${idx}" class="absolute bottom-2 left-2 right-2 text-xs text-gray-200 font-bold truncate bg-black/40 rounded px-2 py-1">Čeká se na drop...</div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2"><div class="text-[10px] text-gray-400 uppercase font-bold">Skóre</div><div id="cb-score-${idx}" class="text-sm font-black text-gray-300">${formatMoney(pl.score || 0)}</div></div>
+                    <div id="cb-history-${idx}" class="w-full grid grid-cols-2 lg:grid-cols-3 gap-2">${history || '<div class="text-[10px] text-gray-500 col-span-full">Zatím nic</div>'}</div>
+                </div>`;
             }).join('');
+
+            const players = room.players || [];
+            const half = Math.ceil(players.length / 2);
+            const team1 = players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const team2 = players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            if (t1) t1.textContent = formatMoney(team1);
+            if (t2) t2.textContent = formatMoney(team2);
 
             const signature = cbRoomSignature(room);
             const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
@@ -4641,6 +4739,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 applyCaseBattleResultStyles(room);
             }
 
+            lucide.createIcons();
         }
 
         function socialLogin(provider) {
@@ -4700,7 +4799,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(id === 'admin') loadAdminUsers();
             if(id === 'profile') { loadFriends(); }
             if(id === 'case-battle') initCaseBattle();
-            if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; }
+            if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; cbAnimationSession += 1; cbAnimationLock = false; }
             if(id === 'giveaways') initGiveaways();
             activeCaseId = null; 
         }
