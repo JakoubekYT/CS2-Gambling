@@ -98,6 +98,14 @@
         .shine-sweep { position: relative; overflow: hidden; }
         .shine-sweep::after { content:''; position:absolute; top:-120%; left:-35%; width:38%; height:340%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 45%, transparent 100%); transform: rotate(18deg) translateX(-240%); transition: transform .7s cubic-bezier(.4,0,.2,1); }
         .shine-sweep:hover::after { transform: rotate(18deg) translateX(390%); }
+        @media (max-width: 768px) {
+            #page-cases .h-\[250px\] { height: auto; min-height: 190px; padding: 16px; border-radius: 20px; }
+            #page-cases h1 { font-size: 1.8rem !important; line-height: 1.1; }
+            #page-cases p { font-size: .86rem !important; }
+            #cases-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 10px !important; }
+            .spinner-item { min-width: 112px; }
+            #cb-stage { grid-template-columns: 1fr !important; }
+        }
         .pulse-soft { animation: pulseSoft 1.8s ease-in-out infinite; }
         @keyframes pulseSoft { 0%,100% { opacity:.72; } 50% { opacity:1; } }
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
@@ -212,13 +220,13 @@
         </div>
     </div>
 
-    <header class="h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
+    <header class="h-20 md:h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-3 md:px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
         <div class="flex items-center gap-8">
-            <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
-                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-20 h-20 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
+            <div class="flex items-center gap-2 md:gap-4 cursor-pointer group" onclick="switchPage('cases')">
+                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 md:w-20 md:h-20 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
                 <div class="flex flex-col leading-tight">
-                    <span class="text-5xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
-                    <span class="text-[11px] uppercase tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
+                    <span class="text-2xl md:text-5xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
+                    <span class="text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
                 </div>
             </div>
 
@@ -230,8 +238,8 @@
             </nav>
         </div>
 
-        <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 flex items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
+        <div class="flex items-center gap-2 md:gap-3">
+            <div class="hidden md:flex bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
                 <div class="text-right flex items-center gap-3">
                     <div>
                         <div id="balance" class="font-black text-yellow-400 text-xl leading-none">0.00</div>
@@ -250,7 +258,7 @@
                 </div>
             </div>
 
-            <button onclick="addFreeMoney()" id="free-money-btn" class="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
+            <button onclick="addFreeMoney()" id="free-money-btn" class="hidden md:block bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
                 💰 + PENÍZE ZDARMA
             </button>
             <button onclick="toggleTradeInbox()" id="trade-bell-btn" class="relative bg-black/40 hover:bg-black/60 text-yellow-300 px-3 py-3 rounded-xl border border-yellow-400/30"><i data-lucide="bell" class="w-4 h-4"></i><span id="trade-bell-count" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full min-w-4 h-4 px-1 text-center leading-4">0</span></button>
@@ -266,8 +274,25 @@
                     <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
                 </div>
             </div>
+            <button onclick="toggleMobileMenu()" class="md:hidden bg-black/40 hover:bg-black/60 text-yellow-300 px-3 py-2 rounded-xl border border-yellow-400/30"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
     </header>
+
+    <div id="mobile-menu" class="hidden md:hidden fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm">
+        <div class="absolute right-0 top-0 h-full w-80 max-w-[88vw] bg-[#131824] border-l border-yellow-400/30 p-4 space-y-3">
+            <div class="flex items-center justify-between"><div class="text-yellow-300 font-black uppercase text-sm">Menu</div><button onclick="toggleMobileMenu(false)" class="text-gray-300">✕</button></div>
+            <div class="bg-black/40 border border-yellow-300/20 rounded-xl p-3">
+                <div id="mobile-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
+                <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
+            </div>
+            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Bedny</button>
+            <button onclick="switchPage('inventory'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒 Inventář</button>
+            <button onclick="switchPage('upgrade'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️ Upgrade</button>
+            <button onclick="switchPage('case-battle'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case Battle</button>
+            <button onclick="switchPage('profile'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">👤 Profil</button>
+            <button onclick="addFreeMoney(); toggleMobileMenu(false);" class="w-full text-left bg-green-600/30 border border-green-400/40 rounded-xl px-3 py-2 font-black">💰 Peníze zdarma</button>
+        </div>
+    </div>
 
     <div id="trade-inbox-panel" class="hidden fixed top-28 right-6 z-[95] w-96 bg-[#131824]/95 border border-yellow-400/30 rounded-2xl p-3 shadow-2xl">
         <div class="flex items-center justify-between mb-2"><div class="font-black text-yellow-300 uppercase text-xs">Notifikace</div><button onclick="toggleTradeInbox(false)" class="text-gray-400">✕</button></div>
@@ -276,7 +301,7 @@
 
 
     <div class="flex flex-1 overflow-hidden">
-        <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
+        <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-3 md:p-8">
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
                 <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-[#181c26] via-[#121722] to-[#0b0d11] border border-yellow-400/20 shadow-[0_0_50px_rgba(250,204,21,0.08)] flex items-center px-12 mb-8">
                     <div class="absolute inset-0" style="background: radial-gradient(900px 260px at 12% 50%, rgba(250,204,21,0.12), transparent 60%), radial-gradient(700px 220px at 90% 50%, rgba(56,189,248,0.10), transparent 62%);"></div>
@@ -2584,15 +2609,35 @@ Zeus x27|Charged Up|8.50|#8847ff
             ];
 
             const allSkins = Object.values(skinsDB);
+            const seededIndex = (seed, len) => {
+                if (!len) return 0;
+                const str = String(seed || 'seed');
+                let h = 2166136261;
+                for (let i = 0; i < str.length; i += 1) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 16777619);
+                }
+                return Math.abs(h) % len;
+            };
             const pickRange = (minPrice, maxPrice, exclude = []) => {
                 const pool = allSkins.filter(s => s.price >= minPrice && s.price <= maxPrice && !exclude.find(e => e.id === s.id));
                 if(pool.length === 0) return null;
                 return pool[Math.floor(Math.random() * pool.length)];
             };
+            const pickRangeBySeed = (minPrice, maxPrice, exclude = [], seed = 'x') => {
+                const pool = allSkins.filter(s => s.price >= minPrice && s.price <= maxPrice && !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[seededIndex(seed, pool.length)];
+            };
             const pickAny = (exclude = []) => {
                 const pool = allSkins.filter(s => !exclude.find(e => e.id === s.id));
                 if(pool.length === 0) return null;
                 return pool[Math.floor(Math.random() * pool.length)];
+            };
+            const pickAnyBySeed = (exclude = [], seed = 'x') => {
+                const pool = allSkins.filter(s => !exclude.find(e => e.id === s.id));
+                if(pool.length === 0) return null;
+                return pool[seededIndex(seed, pool.length)];
             };
 
             const hash = (str) => str.split('').reduce((a, ch) => ((a * 31) + ch.charCodeAt(0)) % 9973, 7);
@@ -2628,30 +2673,30 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const picks = [];
                 const used = [];
 
-                const low1 = pickRange(0.01, Math.max(0.05, price * 0.20), used) || pickAny(used);
+                const low1 = pickRangeBySeed(0.01, Math.max(0.05, price * 0.20), used, `${ec.id}-low1`) || pickAnyBySeed(used, `${ec.id}-any1`);
                 if(low1) { picks.push(low1); used.push(low1); }
 
-                const low2 = pickRange(Math.max(0.02, price * 0.15), Math.max(0.15, price * 0.45), used) || pickAny(used);
+                const low2 = pickRangeBySeed(Math.max(0.02, price * 0.15), Math.max(0.15, price * 0.45), used, `${ec.id}-low2`) || pickAnyBySeed(used, `${ec.id}-any2`);
                 if(low2) { picks.push(low2); used.push(low2); }
 
-                const mid = pickRange(Math.max(0.05, price * 0.40), Math.max(0.3, price * 0.95), used) || pickAny(used);
+                const mid = pickRangeBySeed(Math.max(0.05, price * 0.40), Math.max(0.3, price * 0.95), used, `${ec.id}-mid`) || pickAnyBySeed(used, `${ec.id}-any3`);
                 if(mid) { picks.push(mid); used.push(mid); }
 
                 const hi = top2 && !used.find(x => x.id === top2.id)
                     ? top2
-                    : (pickRange(Math.max(0.2, price * 0.9), Math.max(1, price * 1.8), used) || pickAny(used));
+                    : (pickRangeBySeed(Math.max(0.2, price * 0.9), Math.max(1, price * 1.8), used, `${ec.id}-hi`) || pickAnyBySeed(used, `${ec.id}-any4`));
                 if(hi) { picks.push(hi); used.push(hi); }
 
-                const superHi = pickRange(Math.max(0.5, price * 1.3), Math.max(2, price * 3.0), used) || pickAny(used);
+                const superHi = pickRangeBySeed(Math.max(0.5, price * 1.3), Math.max(2, price * 3.0), used, `${ec.id}-super`) || pickAnyBySeed(used, `${ec.id}-any5`);
                 if(superHi) { picks.push(superHi); used.push(superHi); }
 
                 const jackpot = top1 && !used.find(x => x.id === top1.id)
                     ? top1
-                    : (pickRange(Math.max(1, price * 2.0), Math.max(5, price * 20), used) || pickAny(used));
+                    : (pickRangeBySeed(Math.max(1, price * 2.0), Math.max(5, price * 20), used, `${ec.id}-jack`) || pickAnyBySeed(used, `${ec.id}-any6`));
                 if(jackpot) { picks.push(jackpot); used.push(jackpot); }
 
                 while(picks.length < 6) {
-                    const extra = pickAny(used);
+                    const extra = pickAnyBySeed(used, `${ec.id}-extra-${picks.length}`);
                     if(!extra) break;
                     picks.push(extra);
                     used.push(extra);
@@ -2810,6 +2855,101 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['AK-47','Bloodsport',16],['M4A4','Neo-Noir',15],['M4A4','Hellfire',12],['AWP','Asiimov',11],['M4A1-S','Printstream',10],['AK-47','Head Shot',9],['Flip Knife','Crimson Web',8],['Karambit','Crimson Web',7],['Bayonet','Crimson Web',6],['M9 Bayonet','Crimson Web',6]
             ]);
 
+            // Full tailored pass: manually define all remaining CaseHug-inspired cases
+            setManualCaseContents('neon-flora', [
+                ['AK-47','Ice Coaled',24],['Glock-18','Neo-Noir',19],['USP-S','Cortex',15],['M4A4','In Living Color',13],['AWP','Neo-Noir',11],['AK-47','Vulcan',10],['M4A1-S','Printstream',8]
+            ]);
+            setManualCaseContents('organic', [
+                ['MP7','Asterion',28],['USP-S','Cortex',21],['AK-47','Slate',18],['M4A1-S','Night Terror',14],['P90','Traction',10],['M4A1-S','Player Two',9]
+            ]);
+            setManualCaseContents('candy-drop', [
+                ['MAC-10','Candy Apple',26],['Glock-18','Water Elemental',20],['USP-S','Cortex',16],['M4A1-S','Mecha Industries',14],['M4A4','Temukau',12],['AK-47','Neon Rider',8],['Desert Eagle','Printstream',4]
+            ]);
+            setManualCaseContents('double-cheese', [
+                ['P250','Sand Dune',30],['MAC-10','Palm',24],['PP-Bizon','Sand Dashed',18],['UMP-45','Scorched',12],['AK-47','Slate',9],['AK-47','Bloodsport',7]
+            ]);
+            setManualCaseContents('ritual', [
+                ['USP-S','Ticket to Hell',24],['M4A1-S','Night Terror',18],['AWP','PAW',16],['AK-47','Redline',13],['M4A4','Tooth Fairy',11],['Survival Knife','Case Hardened',8],['Karambit','Case Hardened',6],['M9 Bayonet','Case Hardened',4]
+            ]);
+            setManualCaseContents('hellfire', [
+                ['M4A4','Hellfire',28],['M4A4','Tooth Fairy',21],['AK-47','Head Shot',17],['USP-S','Cyrex',14],['AWP','Atheris',10],['M4A4','The Emperor',7],['M4A4','Howl',3]
+            ]);
+            setManualCaseContents('frosty', [
+                ['AK-47','Slate',26],['USP-S','Blueprint',22],['M4A1-S','Night Terror',18],['AWP','PAW',13],['AK-47','Ice Coaled',12],['AWP','Neo-Noir',6],['AK-47','Vulcan',3]
+            ]);
+            setManualCaseContents('sweet-tooth', [
+                ['Five-SeveN','Monkey Business',22],['MAC-10','Disco Tech',18],['P90','Shapewood',15],['AK-47','Neon Rider',14],['Desert Eagle','Printstream',11],['Karambit','Tiger Tooth',8],['M9 Bayonet','Tiger Tooth',7],['Butterfly Knife','Tiger Tooth',5]
+            ]);
+            setManualCaseContents('duck-luck', [
+                ['P250','Sand Dune',25],['PP-Bizon','Sand Dashed',20],['MP7','Armor Core',16],['MAC-10','Palm',13],['UMP-45','Scorched',10],['P90','Sand Spray',8],['Shadow Daggers','Lore',6],['AWP','Atheris',2]
+            ]);
+            setManualCaseContents('savanna', [
+                ['FAMAS','Afterimage',22],['AK-47','Point Disarray',19],['USP-S','Cyrex',16],['M4A1-S','Nightmare',14],['M4A1-S','Chantico\'s Fire',12],['Desert Eagle','Conspiracy',10],['M4A1-S','Icarus Fell',7]
+            ]);
+            setManualCaseContents('wild-west', [
+                ['R8 Revolver','Fade',25],['Desert Eagle','Conspiracy',19],['AK-47','Redline',16],['USP-S','Cortex',13],['M4A4','Griffin',11],['Karambit','Lore',8],['M9 Bayonet','Lore',5],['AWP','Wildfire',3]
+            ]);
+            setManualCaseContents('insector', [
+                ['P90','Traction',24],['UMP-45','Scaffold',18],['USP-S','Blueprint',16],['AK-47','Head Shot',13],['M4A4','Temukau',11],['Flip Knife','Autotronic',10],['Karambit','Autotronic',8]
+            ]);
+            setManualCaseContents('toxic', [
+                ['MP9','Capillary',23],['MAC-10','Neon Rider',18],['USP-S','Cortex',16],['M4A4','Desolate Space',14],['AK-47','Neon Rider',12],['AWP','Atheris',9],['AWP','Containment Breach',8]
+            ]);
+            setManualCaseContents('workshop', [
+                ['Glock-18','Catacombs',26],['USP-S','Ticket to Hell',20],['M4A4','Tooth Fairy',16],['AK-47','Slate',13],['AWP','PAW',11],['M9 Bayonet','Lore',9],['Karambit','Lore',5]
+            ]);
+            setManualCaseContents('game-on', [
+                ['Glock-18','Water Elemental',24],['Glock-18','Neo-Noir',18],['USP-S','Cortex',14],['M4A4','Temukau',13],['AK-47','Neon Rider',11],['Glock-18','Gamma Doppler Phase 2',10],['M9 Bayonet','Gamma Doppler Phase 2',6],['Karambit','Gamma Doppler Emerald',4]
+            ]);
+            setManualCaseContents('retro', [
+                ['P250','See Ya Later',21],['USP-S','Neo-Noir',17],['M4A4','Desolate Space',16],['AK-47','Redline',13],['M4A1-S','Player Two',11],['M9 Bayonet','Lore',10],['Karambit','Lore',7],['AWP','Asiimov',5]
+            ]);
+            setManualCaseContents('gambit', [
+                ['AK-47','Slate',22],['M4A4','Tooth Fairy',18],['USP-S','Blueprint',14],['AWP','Atheris',13],['Stiletto Knife','Ultraviolet',11],['Stiletto Knife','Tiger Tooth',10],['Karambit','Tiger Tooth',7],['Butterfly Knife','Tiger Tooth',5]
+            ]);
+            setManualCaseContents('savage', [
+                ['AK-47','Head Shot',18],['M4A4','The Emperor',15],['Desert Eagle','Blaze',13],['AWP','Wildfire',11],['AK-47','Bloodsport',10],['Karambit','Tiger Tooth',9],['M9 Bayonet','Tiger Tooth',8],['AK-47','Gold Arabesque',6],['AWP','Dragon Lore',4],['Sport Gloves','Vice',2]
+            ]);
+            setManualCaseContents('golderra', [
+                ['USP-S','The Traitor',18],['Desert Eagle','Blaze',14],['AK-47','The Empress',13],['M4A1-S','Icarus Fell',12],['M9 Bayonet','Lore',10],['Karambit','Lore',9],['Sport Gloves','Amphibious',8],['Sport Gloves','Slingshot',7],['Sport Gloves','Vice',5],['AWP','Gungnir',4]
+            ]);
+            setManualCaseContents('ferro', [
+                ['AK-47','Bloodsport',17],['M4A4','Temukau',14],['M4A1-S','Blue Phosphor',12],['Desert Eagle','Blaze',11],['AWP','Wildfire',10],['Butterfly Knife','Tiger Tooth',9],['Karambit','Tiger Tooth',8],['M9 Bayonet','Tiger Tooth',7],['Sport Gloves','Omega',6],['AWP','Dragon Lore',6]
+            ]);
+            setManualCaseContents('plant-b', [
+                ['UMP-45','Primal Saber',18],['MAC-10','Neon Rider',16],['P90','Asiimov',14],['M4A4','Hellfire',13],['AK-47','Head Shot',11],['M4A1-S','Hot Rod',9],['AWP','Asiimov',8],['AK-47','Bloodsport',6],['M4A4','Howl',3],['AWP','Dragon Lore',2]
+            ]);
+            setManualCaseContents('buzzer-blade', [
+                ['USP-S','Blueprint',16],['AK-47','Head Shot',14],['M4A4','In Living Color',12],['M4A1-S','Icarus Fell',11],['M9 Bayonet','Autotronic',10],['Karambit','Doppler Phase 3',9],['M9 Bayonet','Gamma Doppler Phase 2',8],['Karambit','Gamma Doppler Emerald',7],['Butterfly Knife','Gamma Doppler Emerald',7],['AWP','Gungnir',6]
+            ]);
+            setManualCaseContents('kingdom', [
+                ['AK-47','The Empress',18],['M4A4','The Emperor',15],['USP-S','The Traitor',13],['M4A1-S','Printstream',11],['AWP','Asiimov',10],['M9 Bayonet','Lore',9],['Karambit','Lore',8],['Butterfly Knife','Gamma Doppler Phase 4',7],['Butterfly Knife','Gamma Doppler Emerald',6],['AWP','Dragon Lore',3]
+            ]);
+            setManualCaseContents('sushi-master', [
+                ['Five-SeveN','Monkey Business',20],['M4A4','Temukau',16],['USP-S','Neo-Noir',14],['AK-47','Neon Rider',13],['Desert Eagle','Printstream',11],['Karambit','Autotronic',9],['M9 Bayonet','Autotronic',7],['Karambit','Fade',6],['M9 Bayonet','Marble Fade',4]
+            ]);
+            setManualCaseContents('warzone', [
+                ['AK-47','Bloodsport',16],['M4A4','The Emperor',13],['AWP','Wildfire',11],['M4A1-S','Printstream',10],['M9 Bayonet','Autotronic',10],['Karambit','Autotronic',9],['Butterfly Knife','Autotronic',8],['Sport Gloves','Slingshot',7],['AWP','Dragon Lore',6],['AWP','Gungnir',10]
+            ]);
+            setManualCaseContents('circus', [
+                ['Glock-18','Water Elemental',18],['USP-S','Neo-Noir',15],['AK-47','Neon Rider',13],['M4A4','In Living Color',11],['Desert Eagle','Printstream',9],['M9 Bayonet','Tiger Tooth',8],['Karambit','Tiger Tooth',7],['M9 Bayonet','Marble Fade',7],['Butterfly Knife','Marble Fade',6],['AWP','Dragon Lore',6]
+            ]);
+            setManualCaseContents('chinatown', [
+                ['AK-47','Case Hardened',15],['M4A1-S','Blue Phosphor',13],['USP-S','Printstream',11],['Desert Eagle','Blaze',10],['M9 Bayonet','Doppler Phase 2',9],['Karambit','Doppler Phase 4',8],['Specialist Gloves','Crimson Kimono',8],['Sport Gloves','Vice',7],['AWP','Gungnir',6],['AWP','Dragon Lore',13]
+            ]);
+            setManualCaseContents('quantum', [
+                ['M4A1-S','Printstream',20],['AK-47','Gold Arabesque',16],['M4A4','Howl',13],['Karambit','Fade',11],['Butterfly Knife','Fade',9],['M9 Bayonet','Gamma Doppler Phase 4',8],['Sport Gloves','Vice',7],['Sport Gloves','Pandora\'s Box',6],['AWP','Dragon Lore',5],['AWP','Gungnir',5]
+            ]);
+            setManualCaseContents('tiger', [
+                ['P250','Sand Dune',22],['USP-S','Ticket to Hell',18],['AK-47','Slate',14],['M4A4','Tooth Fairy',12],['M9 Bayonet','Tiger Tooth',10],['Karambit','Tiger Tooth',9],['Butterfly Knife','Tiger Tooth',8],['AWP','Asiimov',7]
+            ]);
+            setManualCaseContents('demolition', [
+                ['Glock-18','Water Elemental',20],['AK-47','Redline',16],['M4A4','Desolate Space',14],['M4A1-S','Player Two',12],['AWP','Asiimov',10],['AWP','Wildfire',9],['AWP','The Prince',8],['AWP','Dragon Lore',6],['AWP','Gungnir',5]
+            ]);
+            setManualCaseContents('howl-case', [
+                ['M4A4','Hellfire',18],['M4A4','The Emperor',15],['AK-47','Bloodsport',13],['M4A1-S','Printstream',11],['AWP','Wildfire',9],['M9 Bayonet','Lore',7],['Karambit','Lore',6],['Sport Gloves','Vice',6],['AK-47','Wild Lotus',5],['M4A4','Howl',10]
+            ]);
+
 
             const rebalanceUltraCheapCases = () => {
                 const fallbackLow = allSkins
@@ -2827,9 +2967,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                             used.push(current);
                             return { ...entry };
                         }
-                        const replacement = pickRange(0.01, allowedMax, used)
-                            || fallbackLow[Math.floor(Math.random() * Math.max(1, fallbackLow.length))]
-                            || pickAny(used)
+                        const replacement = pickRangeBySeed(0.01, allowedMax, used, `${c.id}-cheap-${used.length}`)
+                            || fallbackLow[seededIndex(`${c.id}-fallback-${used.length}`, Math.max(1, fallbackLow.length))]
+                            || pickAnyBySeed(used, `${c.id}-cheap-any-${used.length}`)
                             || current;
                         used.push(replacement);
                         return { ...entry, skin: replacement };
@@ -2859,7 +2999,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                             Math.max(0.01, c.price * 1.05),
                             Math.max(c.price * 3.0, c.price + 0.2),
                             c.contents.map((x) => x.skin)
-                        ) || pickAny(c.contents.map((x) => x.skin));
+                        ) || pickAnyBySeed(c.contents.map((x) => x.skin), `${c.id}-winner-fallback`);
                         if (winnerCandidate) c.contents[c.contents.length - 1] = { ...c.contents[c.contents.length - 1], skin: winnerCandidate };
                     }
 
@@ -2868,7 +3008,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                             0.01,
                             Math.max(0.02, c.price * 0.9),
                             c.contents.map((x) => x.skin)
-                        ) || pickAny(c.contents.map((x) => x.skin));
+                        ) || pickAnyBySeed(c.contents.map((x) => x.skin), `${c.id}-loser-fallback`);
                         if (loserCandidate) c.contents[0] = { ...c.contents[0], skin: loserCandidate };
                     }
 
@@ -3192,9 +3332,9 @@ Zeus x27|Charged Up|8.50|#8847ff
             const mixKnivesIntoCases = () => {
                 const knifePool = Object.values(skinsDB).filter((s) => KNIFE_TYPES.includes(s.weapon)).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
                 if (!knifePool.length) return;
-                const pickKnife = (min, max) => knifePool.find((k) => Number(k.price || 0) >= min && Number(k.price || 0) <= max)
+                const pickKnife = (min, max, seed = 'knife') => knifePool.find((k) => Number(k.price || 0) >= min && Number(k.price || 0) <= max)
                     || knifePool.find((k) => Number(k.price || 0) >= min)
-                    || knifePool[Math.floor(Math.random() * knifePool.length)];
+                    || knifePool[seededIndex(seed, knifePool.length)];
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
@@ -3203,14 +3343,14 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                     c.contents = c.contents.map((it) => {
                         if (Number(it.chance || 0) <= 1) {
-                            const jackpotKnife = pickKnife(c.price * 1.2, c.price * 40);
+                            const jackpotKnife = pickKnife(c.price * 1.2, c.price * 40, `${c.id}-jackpot`);
                             return jackpotKnife ? { ...it, skin: jackpotKnife } : it;
                         }
                         return it;
                     });
 
                     if (!hasKnife && /(knife|tiger|arcana|legend|top|vac|quantum|dragon)/.test(lowerName)) {
-                        const knife = pickKnife(c.price * 0.9, c.price * 6);
+                        const knife = pickKnife(c.price * 0.9, c.price * 6, `${c.id}-mix`);
                         if (knife) {
                             const targetIdx = c.contents.reduce((best, cur, idx, arr) => Number(cur.chance || 0) < Number(arr[best].chance || 999) ? idx : best, 0);
                             c.contents[targetIdx] = { ...c.contents[targetIdx], skin: knife, chance: Math.min(5, Number(c.contents[targetIdx].chance || 1)) };
@@ -3220,7 +3360,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 if (!casesDB.find((c) => c.id === 'all-knives')) {
                     const knifeCaseItems = [
-                        pickKnife(80, 250), pickKnife(200, 450), pickKnife(400, 800), pickKnife(700, 1300), pickKnife(1200, 999999)
+                        pickKnife(80, 250, 'all-k-1'), pickKnife(200, 450, 'all-k-2'), pickKnife(400, 800, 'all-k-3'), pickKnife(700, 1300, 'all-k-4'), pickKnife(1200, 999999, 'all-k-5')
                     ].filter(Boolean);
                     if (knifeCaseItems.length >= 3) {
                         casesDB.push({
@@ -3256,6 +3396,12 @@ Zeus x27|Charged Up|8.50|#8847ff
         };
 
         // --- ZÁKLADY UI ---
+        function toggleMobileMenu(force) {
+            const panel = document.getElementById('mobile-menu');
+            if (!panel) return;
+            if (typeof force === 'boolean') panel.classList.toggle('hidden', !force);
+            else panel.classList.toggle('hidden');
+        }
         function currentCurrency() {
             return document.getElementById('currency-select')?.value || 'EUR';
         }
@@ -3276,6 +3422,8 @@ Zeus x27|Charged Up|8.50|#8847ff
             const decimals = cur === 'CZK' ? 0 : 2;
             const formatted = converted.toLocaleString(cur === 'CZK' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
             document.getElementById('balance').textContent = `${formatted} ${cur}`;
+            const mobileBalance = document.getElementById('mobile-balance');
+            if (mobileBalance) mobileBalance.textContent = `${formatted} ${cur}`;
             const lbl = document.getElementById('balance-currency-label');
             if(lbl) lbl.textContent = `Zůstatek (${cur})`;
             const authBtn = document.getElementById('auth-open-btn');
@@ -4073,7 +4221,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             for (let round = 0; round < rounds; round += 1) {
                 cbAddLog(`Round ${round + 1}/${rounds}...`);
                 const started = Date.now();
-                while (Date.now() - started < 1300) {
+                while (Date.now() - started < 2200) {
                     (room.players || []).forEach((_, idx) => {
                         const imgEl = document.getElementById(`cb-spin-img-${idx}`);
                         const nameEl = document.getElementById(`cb-spin-name-${idx}`);
@@ -4084,8 +4232,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                         imgEl.src = r.img || FALLBACK_IMG;
                         nameEl.textContent = r.name || 'Skin';
                     });
-                    SoundEngine.playTick();
-                    await cbSleep(95);
+                    if (Date.now() - started > 400) SoundEngine.playTick();
+                    await cbSleep(165);
                 }
 
                 (room.players || []).forEach((pl, idx) => {
@@ -4109,7 +4257,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     }
                     if (totalEl) totalEl.textContent = formatMoney(pl.score || 0);
                 });
-                await cbSleep(420);
+                await cbSleep(760);
             }
             cbAnimationLock = false;
         }
@@ -4157,7 +4305,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
                 const roundsDots = Array.from({ length: rounds }).map((_, rIdx) => `<span id="cb-dot-${idx}-${rIdx}" class="cb-round-dot"></span>`).join('');
                 const opened = (pl.drops || []).slice(0, rounds).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
-                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno: <span id="cb-total-${idx}">${formatMoney(pl.score || 0)}</span></div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>'}</div></div>`;
+                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno: <span id="cb-total-${idx}">${formatMoney(pl.score || 0)}</span></div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>'}</div></div>`;
             }).join('');
 
             const signature = cbRoomSignature(room);
