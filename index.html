@@ -2716,6 +2716,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             });
 
             // Manual tailored loadouts for newly added cases (no generic generator output)
+            const manualCaseIds = new Set();
             const setManualCaseContents = (caseId, rows) => {
                 const c = casesDB.find((x) => x.id === caseId);
                 if (!c || !Array.isArray(rows) || !rows.length) return;
@@ -2729,6 +2730,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const diff = Math.round((100 - rounded.reduce((a, b) => a + b.chance, 0)) * 100) / 100;
                 rounded[rounded.length - 1].chance = Math.max(0.01, Math.round((rounded[rounded.length - 1].chance + diff) * 100) / 100);
                 c.contents = rounded;
+                manualCaseIds.add(caseId);
             };
 
             setManualCaseContents('rarity-milspec', [
@@ -3224,6 +3226,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 };
 
                 casesDB.forEach((c) => {
+                    if (manualCaseIds.has(c.id)) return;
                     const p = Number(c.price || 0);
                     const seedBase = seeded(c.id);
                     const target = p <= 1 ? 20 : p <= 5 ? 18 : p <= 20 ? 16 : p <= 100 ? 14 : 12;
@@ -3338,6 +3341,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
+                    if (manualCaseIds.has(c.id)) return;
                     const lowerName = `${c.id} ${c.name}`.toLowerCase();
                     const hasKnife = c.contents.some((it) => KNIFE_TYPES.includes(it?.skin?.weapon));
 
