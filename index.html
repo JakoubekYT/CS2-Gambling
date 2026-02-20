@@ -4843,6 +4843,15 @@ Zeus x27|Charged Up|8.50|#8847ff
                 queueEl.innerHTML = Array.from({ length: rounds }).map((_, idx) => `<div class="w-11 h-11 rounded-lg border border-yellow-300/30 bg-black/30 p-1 shrink-0" title="Round ${idx + 1}: ${caseName}"><img src="${caseImg}" onerror="handleImgError(this)" class="w-full h-full object-contain"></div>`).join('');
             }
 
+            const players = room.players || [];
+            const half = Math.ceil(players.length / 2);
+            const team1 = players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const team2 = players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            if (t1) t1.textContent = formatMoney(team1);
+            if (t2) t2.textContent = formatMoney(team2);
+
             const signature = cbRoomSignature(room);
             const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
 
