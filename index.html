@@ -4922,22 +4922,12 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             const rounds = Math.max(1, Number(room.rounds || 1));
             const caseObj = getCaseByRoom(room);
-            const caseImg = caseObj?.img || FALLBACK_IMG;
             const caseName = room?.caseName || caseObj?.name || 'Case';
             const battleValue = Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || room.players?.length || 1));
 
             info.textContent = room.status === 'waiting'
                 ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${caseName}`
                 : `Battle probíhá • ${room.players.length} hráčů • ${caseName}`;
-
-            const rounds = Math.max(1, Number(room.rounds || 1));
-            stage.innerHTML = (room.players || []).map((pl, idx) => {
-                const lastDrop = pl.drops?.[pl.drops.length - 1];
-                const img = lastDrop?.img || FALLBACK_IMG;
-                const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                const opened = (pl.drops || []).slice(0, rounds).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
-                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(animate ? 0 : (pl.score || 0))}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div id="cb-spin-viewport-${idx}" class="h-28 bg-black/40 rounded-lg border border-white/10 overflow-hidden relative"><div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-yellow-300/70 z-20"></div><div id="cb-spin-track-${idx}" class="h-full flex items-center gap-2 px-2"></div></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno:</div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${animate ? '' : (opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>')}</div></div>`;
-            }).join('');
 
             const signature = cbRoomSignature(room);
             const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
