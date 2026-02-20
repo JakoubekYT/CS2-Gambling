@@ -170,6 +170,28 @@
             transform: translateY(-8px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.8);
         }
+
+        .cb-builder-opt {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.04);
+            border-radius: 0.65rem;
+            color: #d1d5db;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 0.45rem 0.55rem;
+            text-transform: uppercase;
+            transition: all 0.15s ease;
+        }
+        .cb-builder-opt:hover {
+            border-color: rgba(250,204,21,0.55);
+            color: #fde68a;
+        }
+        .cb-builder-opt.active {
+            border-color: rgba(250,204,21,0.9);
+            background: rgba(250,204,21,0.16);
+            color: #fef08a;
+            box-shadow: 0 0 0 1px rgba(250,204,21,0.2) inset;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col" onclick="initAudio()">
@@ -436,7 +458,24 @@
                         <label class="text-xs text-gray-300 flex items-center gap-2 px-2"><input id="cb-fill-bots" type="checkbox" class="accent-yellow-400"> Auto bot fill</label>
                         <button onclick="createCaseBattleRoom()" class="bg-yellow-400 text-black font-black rounded-lg px-3 py-2 text-sm">Vytvořit case battle</button>
                     </div>
+                    <div class="flex justify-end"><button onclick="openCaseBattleBuilder()" class="bg-yellow-400/20 border border-yellow-300/40 text-yellow-300 font-black rounded-lg px-3 py-2 text-xs uppercase">Pokročilé vytvoření</button></div>
                     <div id="cb-open-rooms" class="grid md:grid-cols-2 gap-2"></div>
+                </div>
+
+                <div id="cb-builder-modal" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm p-4">
+                    <div class="max-w-6xl mx-auto bg-[#12161f] border border-yellow-400/30 rounded-2xl p-4 h-full flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-lg font-black uppercase text-yellow-300">Create Case Battle</div>
+                            <button onclick="closeCaseBattleBuilder()" class="bg-white/10 hover:bg-white/20 rounded-lg px-3 py-1 text-xs font-black">Close</button>
+                        </div>
+                        <div class="grid md:grid-cols-4 gap-3 mb-3">
+                            <div class="bg-black/30 border border-white/10 rounded-xl p-3"><div class="text-[10px] text-gray-400 font-black mb-2 uppercase">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">1v1</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="2v2">2v2</button></div></div>
+                            <div class="bg-black/30 border border-white/10 rounded-xl p-3"><div class="text-[10px] text-gray-400 font-black mb-2 uppercase">Battle Type</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="type" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="type" data-cb-val="underdog">Underdog</button><button class="cb-builder-opt" data-cb-group="type" data-cb-val="share">Share</button></div></div>
+                            <div class="bg-black/30 border border-white/10 rounded-xl p-3"><div class="text-[10px] text-gray-400 font-black mb-2 uppercase">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
+                            <div class="bg-black/30 border border-white/10 rounded-xl p-3"><div class="text-[10px] text-gray-400 font-black mb-2 uppercase">Ready</div><div class="text-xs text-gray-300">Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black">0</span></div><div class="text-xs text-gray-300">Total: <span id="cb-builder-total" class="text-yellow-300 font-black">0.00 EUR</span></div><button onclick="applyCaseBattleBuilder()" class="mt-2 bg-yellow-400 text-black rounded-lg w-full py-2 font-black text-xs uppercase">Apply</button></div>
+                        </div>
+                        <div id="cb-builder-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 overflow-y-auto"></div>
+                    </div>
                 </div>
                 <div id="cb-room-panel" class="hidden bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between gap-2">
@@ -3914,7 +3953,9 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbPollTimer = null;
         let cbActiveRoomId = null;
         let cbAnimationLock = false;
+        let cbAnimationSession = 0;
         let cbLastAnimatedSignature = '';
+        const cbBuilderState = { mode:'1v1', type:'classic', privacy:'public', selected:new Map() };
         const CB_BOT_AVATAR = 'Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png';
 
         function cbSetPanels(inRoom) {
@@ -3952,7 +3993,86 @@ Zeus x27|Charged Up|8.50|#8847ff
             log.scrollTop = log.scrollHeight;
         }
 
+        function openCaseBattleBuilder() {
+            const modal = document.getElementById('cb-builder-modal');
+            const grid = document.getElementById('cb-builder-grid');
+            if (!modal || !grid) return;
+            grid.innerHTML = casesDB.slice(0, 140).map((c) => {
+                const count = Number(cbBuilderState.selected.get(c.id) || 0);
+                return `<div class="bg-black/30 border border-white/10 rounded-xl p-2"><img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain"><div class="text-[10px] text-gray-200 font-black truncate">${c.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(c.price)}</div><div class="mt-2 flex items-center justify-between"><button onclick="changeCBBuilderCase('${c.id}',-1)" class="bg-white/10 w-7 h-7 rounded">-</button><span id="cb-builder-count-${c.id}" class="text-xs font-black">${count}</span><button onclick="changeCBBuilderCase('${c.id}',1)" class="bg-yellow-400 text-black w-7 h-7 rounded">+</button></div></div>`;
+            }).join('');
+            modal.classList.remove('hidden');
+            modal.querySelectorAll('.cb-builder-opt').forEach((btn) => {
+                btn.onclick = () => {
+                    const g = btn.dataset.cbGroup;
+                    modal.querySelectorAll(`.cb-builder-opt[data-cb-group="${g}"]`).forEach((x) => x.classList.remove('active'));
+                    btn.classList.add('active');
+                    cbBuilderState[g] = btn.dataset.cbVal;
+                };
+            });
+            updateCBBuilderSummary();
+        }
+
+        function closeCaseBattleBuilder() {
+            document.getElementById('cb-builder-modal')?.classList.add('hidden');
+        }
+
+        function changeCBBuilderCase(caseId, delta) {
+            const cur = Number(cbBuilderState.selected.get(caseId) || 0);
+            const next = Math.max(0, Math.min(20, cur + Number(delta || 0)));
+            if (next <= 0) cbBuilderState.selected.delete(caseId);
+            else cbBuilderState.selected.set(caseId, next);
+            const el = document.getElementById(`cb-builder-count-${caseId}`);
+            if (el) el.textContent = String(next);
+            updateCBBuilderSummary();
+        }
+
+        function updateCBBuilderSummary() {
+            let rounds = 0;
+            let total = 0;
+            cbBuilderState.selected.forEach((cnt, id) => {
+                const c = casesDB.find((x) => x.id === id);
+                if (!c) return;
+                rounds += cnt;
+                total += Number(c.price || 0) * cnt;
+            });
+            const r = document.getElementById('cb-builder-rounds');
+            const t = document.getElementById('cb-builder-total');
+            if (r) r.textContent = String(rounds);
+            if (t) t.textContent = formatMoney(total);
+        }
+
+        function applyCaseBattleBuilder() {
+            closeCaseBattleBuilder();
+            showToast('Battle scénář připraven.');
+        }
+
         function selectedCasePayload() {
+            if (cbBuilderState.selected.size > 0) {
+                const queue = [];
+                cbBuilderState.selected.forEach((count, id) => {
+                    const c = casesDB.find((x) => x.id === id);
+                    if (!c) return;
+                    queue.push({ c, count });
+                });
+                const rounds = queue.reduce((a, q) => a + q.count, 0);
+                if (!rounds) return null;
+                const total = queue.reduce((a, q) => a + Number(q.c.price || 0) * q.count, 0);
+                const weightedContents = queue.flatMap(({ c, count }) => (c.contents || []).map((it) => ({
+                    name: it.skin?.name || 'Skin',
+                    price: Number(it.skin?.price || 0),
+                    color: it.skin?.color || '#4b69ff',
+                    img: it.skin?.img || '',
+                    chance: Number(it.chance || 0) * count
+                })));
+                return {
+                    caseId: queue[0].c.id,
+                    caseName: `Custom Queue (${queue.length})`,
+                    casePrice: total / rounds,
+                    rounds,
+                    contents: weightedContents
+                };
+            }
             const caseId = document.getElementById('cb-case')?.value;
             const c = casesDB.find((x) => x.id === caseId) || casesDB[0];
             if (!c) return null;
@@ -3960,6 +4080,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 caseId: c.id,
                 caseName: c.name,
                 casePrice: Number(c.price || 0),
+                rounds: Number(document.getElementById('cb-rounds')?.value || 1),
                 contents: (c.contents || []).map((it) => ({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) }))
             };
         }
@@ -3996,7 +4117,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
             const mode = document.getElementById('cb-mode')?.value || '1v1';
-            const rounds = Number(document.getElementById('cb-rounds')?.value || 1);
+            const rounds = Number(selectedCasePayload()?.rounds || document.getElementById('cb-rounds')?.value || 1);
             const fillWithBots = !!document.getElementById('cb-fill-bots')?.checked;
             const payload = selectedCasePayload();
             if (!payload) return;
@@ -4026,6 +4147,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST');
             } catch (_e) {}
             cbActiveRoomId = null;
+            cbAnimationSession += 1;
             cbAnimationLock = false;
             cbLastAnimatedSignature = '';
             cbSetPanels(false);
@@ -4050,6 +4172,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!cbActiveRoomId) return;
             try {
                 const data = await apiRequest(`/api/case-battle/room/${cbActiveRoomId}`);
+                if (cbAnimationLock && data?.room?.status === 'done') return;
                 renderCaseBattleRoom(data.room);
             } catch (_err) {
                 cbActiveRoomId = null;
@@ -4065,53 +4188,76 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function animateCaseBattleRounds(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
+            const sessionId = ++cbAnimationSession;
             const rounds = Math.max(1, Number(room?.rounds || 1));
-            const rolls = Object.values(skinsDB || {});
+            const allRolls = Object.values(skinsDB || {});
+            const winIndex = 50;
+            const itemWidth = 120;
 
             for (let round = 0; round < rounds; round += 1) {
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
                 cbAddLog(`Round ${round + 1}/${rounds}...`);
-                const started = Date.now();
-                while (Date.now() - started < 1300) {
-                    (room.players || []).forEach((_, idx) => {
-                        const imgEl = document.getElementById(`cb-spin-img-${idx}`);
-                        const nameEl = document.getElementById(`cb-spin-name-${idx}`);
-                        const dotEl = document.getElementById(`cb-dot-${idx}-${round}`);
-                        if (dotEl) dotEl.classList.add('active');
-                        if (!imgEl || !nameEl) return;
-                        const r = rolls[Math.floor(Math.random() * rolls.length)] || { img: FALLBACK_IMG, name: 'Skin' };
-                        imgEl.src = r.img || FALLBACK_IMG;
-                        nameEl.textContent = r.name || 'Skin';
-                    });
-                    SoundEngine.playTick();
-                    await cbSleep(95);
-                }
+
+                (room.players || []).forEach((pl, idx) => {
+                    const track = document.getElementById(`cb-spin-track-${idx}`);
+                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
+                    if (!track || !viewport) return;
+                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || allRolls[0];
+                    const tape = Array.from({ length: 62 }).map(() => allRolls[Math.floor(Math.random() * allRolls.length)] || { img: FALLBACK_IMG, name: 'Skin' });
+                    tape[winIndex] = drop;
+                    track.style.transition = 'none';
+                    track.style.transform = 'translateX(0px)';
+                    track.innerHTML = tape.map((it) => `<div class="w-[112px] h-full shrink-0 bg-black/25 border border-white/10 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it?.name || 'Skin'}</div></div>`).join('');
+                });
+
+                await cbSleep(40);
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
+
+                let tickAF = null;
+                let lastStep = -1;
+                const started = performance.now();
+                const dur = 6000;
+                const ease = (t) => 1 - Math.pow(1 - t, 3);
+                const tickLoop = (ts) => {
+                    const p = Math.max(0, Math.min(1, (ts - started) / dur));
+                    const step = Math.floor((ease(p) * (winIndex * itemWidth)) / itemWidth);
+                    if (step !== lastStep) {
+                        lastStep = step;
+                        SoundEngine.playTick();
+                    }
+                    if (p < 1 && sessionId === cbAnimationSession) tickAF = requestAnimationFrame(tickLoop);
+                };
+                tickAF = requestAnimationFrame(tickLoop);
+
+                (room.players || []).forEach((pl, idx) => {
+                    const track = document.getElementById(`cb-spin-track-${idx}`);
+                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
+                    if (!track || !viewport) return;
+                    const stopX = (winIndex * itemWidth) - ((viewport.clientWidth - itemWidth) / 2);
+                    track.style.transition = 'transform 6s cubic-bezier(0.12, 0.82, 0.18, 1)';
+                    track.style.transform = `translateX(-${Math.max(0, stopX)}px)`;
+                });
+
+                await cbSleep(6500);
+                if (tickAF) cancelAnimationFrame(tickAF);
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
 
                 (room.players || []).forEach((pl, idx) => {
                     const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
-                    const imgEl = document.getElementById(`cb-spin-img-${idx}`);
                     const nameEl = document.getElementById(`cb-spin-name-${idx}`);
                     const scoreEl = document.getElementById(`cb-score-${idx}`);
-                    const dotEl = document.getElementById(`cb-dot-${idx}-${round}`);
-                    if (imgEl) imgEl.src = drop?.img || FALLBACK_IMG;
+                    const openEl = document.getElementById(`cb-opened-${idx}`);
                     if (nameEl) nameEl.textContent = drop?.name || 'Čeká se na drop...';
                     if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
-                    if (dotEl) {
-                        dotEl.classList.remove('active');
-                        dotEl.classList.add('hit');
-                    }
-                    const openEl = document.getElementById(`cb-opened-${idx}`);
-                    const totalEl = document.getElementById(`cb-total-${idx}`);
                     if (openEl) {
                         const opened = (pl.drops || []).slice(0, round + 1).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
                         openEl.innerHTML = opened;
                     }
-                    if (totalEl) totalEl.textContent = formatMoney(pl.score || 0);
                 });
-                await cbSleep(420);
+                await cbSleep(900);
             }
             cbAnimationLock = false;
         }
-
 
         function applyCaseBattleLeaderStyles(room) {
             const players = room?.players || [];
@@ -4153,9 +4299,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const lastDrop = pl.drops?.[pl.drops.length - 1];
                 const img = lastDrop?.img || FALLBACK_IMG;
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                const roundsDots = Array.from({ length: rounds }).map((_, rIdx) => `<span id="cb-dot-${idx}-${rIdx}" class="cb-round-dot"></span>`).join('');
                 const opened = (pl.drops || []).slice(0, rounds).map((d, dIdx) => `<div class="bg-black/35 border border-white/10 rounded-md p-1.5"><img src="${d?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-full object-contain"><div class="text-[9px] truncate text-gray-300">R${dIdx + 1}: ${d?.name || '-'}<\/div></div>`).join('');
-                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative ${animate ? 'animate-pulse' : ''}"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(pl.score || 0)}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div class="h-28 flex items-center justify-center bg-black/40 rounded-lg border border-white/10"><img id="cb-spin-img-${idx}" src="${img}" onerror="handleImgError(this)" class="h-24 object-contain"></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 flex gap-1.5">${roundsDots}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno: <span id="cb-total-${idx}">${formatMoney(pl.score || 0)}</span></div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>'}</div></div>`;
+                return `<div id="cb-player-${idx}" class="cb-player-card rounded-xl p-3 relative"><div class="absolute top-2 right-2 text-[10px] text-yellow-300 font-black" id="cb-score-${idx}">${formatMoney(animate ? 0 : (pl.score || 0))}</div><div class="flex items-center gap-2 mb-2"><img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-full object-cover border border-yellow-300/40 bg-black/50"><div class="font-black text-sm text-white">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div></div><div id="cb-spin-viewport-${idx}" class="h-28 bg-black/40 rounded-lg border border-white/10 overflow-hidden relative"><div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-yellow-300/70 z-20"></div><div id="cb-spin-track-${idx}" class="h-full flex items-center gap-2 px-2"></div></div><div id="cb-spin-name-${idx}" class="text-[11px] mt-2 truncate text-gray-100">${lastDrop?.name || 'Čeká se na drop...'}</div><div class="mt-2 text-[10px] text-yellow-300 font-bold">Otevřeno:</div><div id="cb-opened-${idx}" class="mt-1 grid grid-cols-5 gap-1">${animate ? '' : (opened || '<div class="text-[10px] text-gray-500">Zatím nic<\/div>')}</div></div>`;
             }).join('');
 
             const signature = cbRoomSignature(room);
@@ -4235,7 +4380,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if(id === 'admin') loadAdminUsers();
             if(id === 'profile') { loadFriends(); }
             if(id === 'case-battle') initCaseBattle();
-            if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; }
+            if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; cbAnimationSession += 1; cbAnimationLock = false; }
             if(id === 'giveaways') initGiveaways();
             activeCaseId = null; 
         }
