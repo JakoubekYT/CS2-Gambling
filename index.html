@@ -4029,6 +4029,22 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCases();
         }
 
+        function setCasesCategoryFilter(category) {
+            casesCategoryFilter = category;
+            ['all','featured','regular','premium','high-risk'].forEach((key) => {
+                const el = document.getElementById(`tab-${key}`);
+                if (!el) return;
+                const active = key === category;
+                el.classList.toggle('bg-yellow-400/20', active);
+                el.classList.toggle('text-yellow-200', active);
+                el.classList.toggle('border-yellow-300/40', active);
+                el.classList.toggle('bg-white/5', !active);
+                el.classList.toggle('text-gray-300', !active);
+                el.classList.toggle('border-white/20', !active);
+            });
+            renderCases();
+        }
+
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
