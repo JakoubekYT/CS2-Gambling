@@ -88,6 +88,14 @@
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
+
+        .dopamine-glow { box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06), 0 0 24px rgba(138,43,226,0.22); }
+        .dopamine-glow:hover { box-shadow: 0 14px 38px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.14), 0 0 34px rgba(255,215,0,0.28), 0 0 48px rgba(138,43,226,0.26); }
+        .shine-sweep { position: relative; overflow: hidden; }
+        .shine-sweep::after { content:''; position:absolute; top:-120%; left:-35%; width:38%; height:340%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 45%, transparent 100%); transform: rotate(18deg) translateX(-240%); transition: transform .7s cubic-bezier(.4,0,.2,1); }
+        .shine-sweep:hover::after { transform: rotate(18deg) translateX(390%); }
+        .pulse-soft { animation: pulseSoft 1.8s ease-in-out infinite; }
+        @keyframes pulseSoft { 0%,100% { opacity:.72; } 50% { opacity:1; } }
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
 
         /* Vylepšené item animace */
@@ -265,10 +273,10 @@
 
     <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
-            
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
-                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/25 via-pink-500/10 to-[#0b0d11] border border-yellow-400/30 shadow-[0_0_80px_rgba(250,204,21,0.16)] flex items-center px-12 mb-8">
-                    <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
+                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-[#181c26] via-[#121722] to-[#0b0d11] border border-yellow-400/20 shadow-[0_0_50px_rgba(250,204,21,0.08)] flex items-center px-12 mb-8">
+                    <div class="absolute inset-0" style="background: radial-gradient(900px 260px at 12% 50%, rgba(250,204,21,0.12), transparent 60%), radial-gradient(700px 220px at 90% 50%, rgba(56,189,248,0.10), transparent 62%);"></div>
+                    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"></div>
                     <div class="relative z-10 max-w-2xl space-y-4">
                         <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
                         <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
@@ -280,7 +288,45 @@
                     <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Upgrade</button>
                     <button onclick="openFreeCase()" class="bg-green-500/30 hover:bg-green-500/45 border border-green-300/40 text-green-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="gift" class="w-5 h-5"></i> Free Cases</button>
                     <button onclick="switchPage('case-battle')" class="bg-red-500/30 hover:bg-red-500/45 border border-red-300/40 text-red-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="swords" class="w-5 h-5"></i> Case Battle</button>
-                </div><div class="space-y-8" id="cases-grid"></div>
+                </div>
+                <div class="rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-[#201a0b] via-[#1b1525] to-[#0f1624] p-5 shadow-[0_0_35px_rgba(255,215,0,0.15)] shine-sweep">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-[0.25em] text-yellow-300 font-black">Promo Event</div>
+                            <div class="text-2xl font-black italic">+25% DEPOSIT BONUS <span class="text-yellow-300">DOPAMINE25</span></div>
+                            <div class="text-xs text-gray-300">Použij promo kód a získej extra balance do case openingu.</div>
+                        </div>
+                        <button class="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black uppercase text-sm shadow-[0_0_24px_rgba(255,215,0,0.45)] transition-all hover:scale-105">Claim Bonus</button>
+                    </div>
+                </div>
+
+                <div class="bg-[#121722]/90 border border-white/10 rounded-2xl p-3 flex flex-wrap items-center gap-2" id="cases-category-tabs">
+                    <button id="tab-all" onclick="setCasesCategoryFilter('all')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-yellow-300/40 bg-yellow-400/20 text-yellow-200">All</button>
+                    <button id="tab-featured" onclick="setCasesCategoryFilter('featured')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Featured <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/30 text-pink-200 pulse-soft">Hot</span></button>
+                    <button id="tab-regular" onclick="setCasesCategoryFilter('regular')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Regular</button>
+                    <button id="tab-premium" onclick="setCasesCategoryFilter('premium')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Premium</button>
+                    <button id="tab-high-risk" onclick="setCasesCategoryFilter('high-risk')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">High Risk</button>
+                </div>
+
+                <div class="space-y-8" id="cases-grid"></div>
+
+                <section class="grid xl:grid-cols-3 gap-5">
+                    <div class="xl:col-span-2 bg-[#121722] border border-purple-400/25 rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-black uppercase tracking-widest text-purple-300">Live Case Battles</h3><button onclick="switchPage('case-battle')" class="bg-gradient-to-r from-purple-600 to-pink-500 px-3 py-1.5 rounded-lg text-xs font-black uppercase">Join Battle</button></div>
+                        <div class="space-y-2 text-xs">
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">3x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/NEON_FLORA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$124</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=A" class="w-7 h-7 rounded-full border-2 border-green-400/70"><div class="w-7 h-7 rounded-full border-2 border-dashed border-yellow-300/70 flex items-center justify-center text-yellow-300 pulse-soft">+</div></div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">5x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$389</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=B" class="w-7 h-7 rounded-full border-2 border-cyan-400/70"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=C" class="w-7 h-7 rounded-full border-2 border-pink-400/70"></div></div>
+                        </div>
+                    </div>
+                    <div class="bg-[#121722] border border-yellow-400/25 rounded-2xl p-4">
+                        <h3 class="text-sm font-black uppercase tracking-widest text-yellow-300 mb-3">Top Wins</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-yellow-300">#1</div><div class="font-bold">PlayerX</div><div class="ml-auto text-yellow-300 font-black">$2 944</div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-gray-300">#2</div><div class="font-bold">Dopamine</div><div class="ml-auto text-yellow-300 font-black">$1 806</div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-amber-600">#3</div><div class="font-bold">KnifeKing</div><div class="ml-auto text-yellow-300 font-black">$1 320</div></div>
+                        </div>
+                    </div>
+                </section>
             </section>
 
 
@@ -2239,7 +2285,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 "Skeleton Knife": 640, "Stiletto Knife": 460, "Survival Knife": 300, "Talon Knife": 780, "Ursus Knife": 390
             };
             const finishMult = {
-                "Vanilla": 1.0, "Safari Mesh": 0.72, "Scorched": 0.76, "Forest DDPAT": 0.78, "Urban Masked": 0.8,
+                "Safari Mesh": 0.72, "Scorched": 0.76, "Forest DDPAT": 0.78, "Urban Masked": 0.8,
                 "Boreal Forest": 0.82, "Night": 0.9, "Night Stripe": 0.9, "Blue Steel": 1.02, "Stained": 0.94,
                 "Case Hardened": 1.25, "Crimson Web": 1.28, "Slaughter": 1.55, "Fade": 2.05, "Tiger Tooth": 1.72,
                 "Marble Fade": 2.18, "Damascus Steel": 1.1, "Ultraviolet": 1.06, "Rust Coat": 0.85, "Lore": 1.65,
@@ -2250,7 +2296,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 "Gamma Doppler Emerald": 5.1
             };
             const coreFinishes = [
-                "Vanilla","Safari Mesh","Scorched","Forest DDPAT","Urban Masked","Boreal Forest","Night","Blue Steel","Stained",
+                "Safari Mesh","Scorched","Forest DDPAT","Urban Masked","Boreal Forest","Night","Blue Steel","Stained",
                 "Case Hardened","Crimson Web","Slaughter","Fade","Tiger Tooth","Marble Fade","Damascus Steel","Ultraviolet",
                 "Rust Coat","Lore","Autotronic","Black Laminate","Freehand","Bright Water","Doppler Phase 1","Doppler Phase 2",
                 "Doppler Phase 3","Doppler Phase 4","Doppler Ruby","Doppler Sapphire","Doppler Black Pearl","Gamma Doppler Phase 1",
@@ -3023,6 +3069,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let isSpinning = false;
         let spinAnimationId = null;
         let casesAffordableOnly = false;
+        let casesCategoryFilter = 'all';
         let userProfile = {
             nickname: '',
             displayName: '',
@@ -3974,6 +4021,22 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCases();
         }
 
+        function setCasesCategoryFilter(category) {
+            casesCategoryFilter = category;
+            ['all','featured','regular','premium','high-risk'].forEach((key) => {
+                const el = document.getElementById(`tab-${key}`);
+                if (!el) return;
+                const active = key === category;
+                el.classList.toggle('bg-yellow-400/20', active);
+                el.classList.toggle('text-yellow-200', active);
+                el.classList.toggle('border-yellow-300/40', active);
+                el.classList.toggle('bg-white/5', !active);
+                el.classList.toggle('text-gray-300', !active);
+                el.classList.toggle('border-white/20', !active);
+            });
+            renderCases();
+        }
+
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
@@ -4123,17 +4186,29 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 const affordable = balanceBase >= c.price;
                 return `
-<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/25 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
-    <div class="absolute inset-0 bg-yellow-400/5 group-hover:opacity-100 opacity-0 transition-opacity"></div>
-    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
-    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
-    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
+<div onclick="openCaseView('${c.id}')" class="bg-gradient-to-b from-[#171b25] to-[#12161f] px-5 pt-5 pb-6 min-h-[272px] rounded-[24px] border border-white/10 hover:border-yellow-300/55 cursor-pointer transition-all duration-300 group text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative overflow-hidden item-float dopamine-glow shine-sweep hover:scale-[1.03]" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_50%_12%,rgba(250,204,21,0.16),transparent_52%)]"></div>
+    <div class="absolute left-4 right-4 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+    ${(c.price > 120 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-yellow-400/25 border border-yellow-300/45 text-yellow-200 font-black pulse-soft">Premium</div>' : (c.price > 50 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-pink-500/25 border border-pink-300/45 text-pink-200 font-black pulse-soft">Hot</div>' : ''))}
+    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-40 object-contain group-hover:scale-[1.08] transition-transform duration-300 relative z-10 drop-shadow-[0_14px_26px_rgba(0,0,0,0.55)] mb-4">
+    <div class="font-black text-[14px] uppercase text-gray-100 relative z-10 leading-tight tracking-wide">${c.name}</div>
+    <div class="inline-flex mt-2 px-3 py-1 rounded-full bg-yellow-400/12 border border-yellow-300/30 text-yellow-300 font-black text-[17px] relative z-10">${formatMoney(c.price)}</div>
 </div>
 `;
             };
 
             grid.innerHTML = groups.map(g => {
                 let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                if (casesCategoryFilter !== 'all') {
+                    items = items.filter((c) => {
+                        const p = Number(c.price || 0);
+                        if (casesCategoryFilter === 'featured') return p >= 45 || /legend|arcana|knife|dragon|quantum/i.test(c.name);
+                        if (casesCategoryFilter === 'regular') return p < 20;
+                        if (casesCategoryFilter === 'premium') return p >= 20 && p < 120;
+                        if (casesCategoryFilter === 'high-risk') return p >= 120 || /1%|risk|ultra|legendary/i.test(c.name);
+                        return true;
+                    });
+                }
                 if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
                 items = sortCases(items.slice());
                 if(items.length === 0) return '';
