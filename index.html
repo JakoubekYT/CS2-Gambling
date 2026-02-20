@@ -2323,15 +2323,15 @@ Zeus x27|Charged Up|8.50|#8847ff
                 "Autotronic": 1.78, "Black Laminate": 1.24, "Freehand": 1.2, "Bright Water": 1.15,
                 "Doppler Phase 1": 2.3, "Doppler Phase 2": 2.35, "Doppler Phase 3": 2.38, "Doppler Phase 4": 2.45,
                 "Doppler Ruby": 4.2, "Doppler Sapphire": 4.35, "Doppler Black Pearl": 3.7,
-                "Gamma Doppler Phase 1": 2.4, "Gamma Doppler Phase 2": 2.45, "Gamma Doppler Phase 3": 2.5, "Gamma Doppler Phase 4": 2.58,
+                "Gamma Doppler": 2.4, "Gamma Doppler": 2.45, "Gamma Doppler": 2.5, "Gamma Doppler": 2.58,
                 "Gamma Doppler Emerald": 5.1
             };
             const coreFinishes = [
                 "Safari Mesh","Scorched","Forest DDPAT","Urban Masked","Boreal Forest","Night","Blue Steel","Stained",
                 "Case Hardened","Crimson Web","Slaughter","Fade","Tiger Tooth","Marble Fade","Damascus Steel","Ultraviolet",
                 "Rust Coat","Lore","Autotronic","Black Laminate","Freehand","Bright Water","Doppler Phase 1","Doppler Phase 2",
-                "Doppler Phase 3","Doppler Phase 4","Doppler Ruby","Doppler Sapphire","Doppler Black Pearl","Gamma Doppler Phase 1",
-                "Gamma Doppler Phase 2","Gamma Doppler Phase 3","Gamma Doppler Phase 4","Gamma Doppler Emerald"
+                "Doppler Phase 3","Doppler Phase 4","Doppler Ruby","Doppler Sapphire","Doppler Black Pearl","Gamma Doppler",
+                "Gamma Doppler","Gamma Doppler","Gamma Doppler","Gamma Doppler Emerald"
             ];
             KNIFE_TYPES.forEach((knife) => {
                 const base = knifeBasePrice[knife] || 320;
@@ -2521,7 +2521,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
             const extraCases = [
-                { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Ice Coaled'],['Glock-18','Neo-Noir']] },
+                { id:'neon-flora', name:'NEON FLORA', price:0.25, color:'blue', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['AK-47','Nightwish'],['AK-47','Neon Rider']] },
                 { id:'organic', name:'ORGANIC', price:0.30, color:'blue', img:'https://cdn.casehug.com/cases/ORGANIC.png?width=640&quality=85', top:[['M4A1-S','Player Two'],['USP-S','Cortex']] },
                 { id:'candy-drop', name:'CANDY DROP', price:0.40, color:'purple', img:'https://cdn.casehug.com/cases/candy_drop_1.png?width=640&quality=85', top:[['M4A1-S','Mecha Industries'],['MAC-10','Disco Tech']] },
                 { id:'double-cheese', name:'DOUBLE CHEESE', price:0.70, color:'blue', img:'https://cdn.casehug.com/cases/DOUBLE_CHEESE.png?width=640&quality=85', top:[['AK-47','Bloodsport'],['AK-47','Slate']] },
@@ -2536,26 +2536,26 @@ Zeus x27|Charged Up|8.50|#8847ff
                 { id:'insector', name:'INSECTOR', price:2.50, color:'blue', img:'https://cdn.casehug.com/cases/INSECTOR.png?width=640&quality=85', top:[['Flip Knife','Autotronic'],['M4A4','Temukau']] },
                 { id:'toxic', name:'TOXIC', price:2.60, color:'purple', img:'https://cdn.casehug.com/cases/TOXIC.png?width=640&quality=85', top:[['AWP','Containment Breach'],['AWP','Atheris']] },
                 { id:'workshop', name:'WORKSHOP', price:2.75, color:'blue', img:'https://cdn.casehug.com/cases/WORKSHOP.png?width=640&quality=85', top:[['M9 Bayonet','Lore'],['M4A4','In Living Color']] },
-                { id:'game-on', name:'GAME ON', price:4.50, color:'purple', img:'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', top:[['Glock-18','Gamma Doppler Phase 2'],['Glock-18','Water Elemental']] },
+                { id:'game-on', name:'GAME ON', price:4.50, color:'purple', img:'https://cdn.casehug.com/cases/GAME_ON.png?width=640&quality=85', top:[['Glock-18','Gamma Doppler'],['Glock-18','Water Elemental']] },
                 { id:'bank-heist', name:'BANK HEIST', price:11.00, color:'red', img:'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85', top:[['AK-47','The Empress'],['AK-47','Leet Museo']] },
                 { id:'retro', name:'RETRO', price:11.50, color:'purple', img:'https://cdn.casehug.com/cases/RETRO.png?width=640&quality=85', top:[['M9 Bayonet','Lore'],['Karambit','Lore']] },
-                { id:'bunny-hop', name:'BUNNY HOP', price:12.75, color:'purple', img:'https://cdn.casehug.com/cases/BUNNY_HOP.png?width=640&quality=85', top:[['Bowie Knife','Gamma Doppler Phase 2'],['Bowie Knife','Ultraviolet']] },
+                { id:'bunny-hop', name:'BUNNY HOP', price:12.75, color:'purple', img:'https://cdn.casehug.com/cases/BUNNY_HOP.png?width=640&quality=85', top:[['Bowie Knife','Gamma Doppler'],['Bowie Knife','Ultraviolet']] },
                 { id:'titan', name:'TITAN', price:14.50, color:'red', img:'https://cdn.casehug.com/cases/TITAN.png?width=640&quality=85', top:[['AWP','Medusa'],['AWP','Asiimov']] },
                 { id:'gambit', name:'GAMBIT', price:18.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GAMBIT.png?width=640&quality=85', top:[['Stiletto Knife','Tiger Tooth'],['Karambit','Tiger Tooth']] },
                 { id:'savage', name:'SAVAGE', price:25.00, color:'red', img:'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85', top:[['Karambit','Tiger Tooth'],['M9 Bayonet','Tiger Tooth']] },
                 { id:'golderra', name:'GOLDERRA', price:26.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/GOLDERRA.png?width=640&quality=85', top:[['Sport Gloves','Amphibious'],['Sport Gloves','Slingshot']] },
                 { id:'ferro', name:'FERRO', price:30.00, color:'red', img:'https://cdn.casehug.com/cases/FERRO.png?width=640&quality=85', top:[['Butterfly Knife','Tiger Tooth'],['Desert Eagle','Blaze']] },
                 { id:'plant-b', name:'PLANT B', price:36.00, color:'red', img:'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['AK-47','Bloodsport']] },
-                { id:'buzzer-blade', name:'BUZZER BLADE', price:42.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/BUZZER_BLADE.png?width=640&quality=85', top:[['M9 Bayonet','Gamma Doppler Phase 2'],['M9 Bayonet','Autotronic']] },
+                { id:'buzzer-blade', name:'BUZZER BLADE', price:42.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/BUZZER_BLADE.png?width=640&quality=85', top:[['M9 Bayonet','Gamma Doppler'],['M9 Bayonet','Autotronic']] },
                 { id:'candy-shop', name:'CANDY SHOP', price:45.00, color:'red', img:'https://cdn.casehug.com/cases/CANDY_SHOP.png?width=640&quality=85', top:[['Skeleton Knife','Marble Fade'],['AK-47','Neon Rider']] },
-                { id:'kingdom', name:'KINGDOM', price:46.50, color:'red', img:'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85', top:[['Butterfly Knife','Gamma Doppler Phase 4'],['Butterfly Knife','Gamma Doppler Emerald']] },
+                { id:'kingdom', name:'KINGDOM', price:46.50, color:'red', img:'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85', top:[['Butterfly Knife','Gamma Doppler'],['Butterfly Knife','Gamma Doppler Emerald']] },
                 { id:'sushi-master', name:'SUSHI MASTER', price:50.00, color:'red', img:'https://cdn.casehug.com/content/case/regular/01/SUSHI_MASTER_1758194472.png?width=640&quality=85', top:[['M4A4','Howl'],['AK-47','Wild Lotus']] },
                 { id:'warzone', name:'WARZONE', price:75.00, color:'red', img:'https://cdn.casehug.com/cases/WARZONE.png?width=640&quality=85', top:[['M9 Bayonet','Autotronic'],['Karambit','Autotronic']] },
                 { id:'circus', name:'CIRCUS', price:80.00, color:'red', img:'https://cdn.casehug.com/cases/CIRCUS.png?width=640&quality=85', top:[['M9 Bayonet','Marble Fade'],['Karambit','Marble Fade']] },
                 { id:'vac-attack', name:'VAC ATTACK', price:85.00, color:'red', img:'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85', top:[['AWP','Dragon Lore'],['Sport Gloves',"Pandora's Box"]] },
                 { id:'chinatown', name:'CHINATOWN', price:97.50, color:'red', img:'https://cdn.casehug.com/cases/CHINATOWN.png?width=640&quality=85', top:[['Specialist Gloves','Crimson Kimono'],['Sport Gloves','Vice']] },
                 { id:'el-dorado', name:'EL DORADO', price:100.00, color:'yellow-400', img:'https://cdn.casehug.com/content/case/regular/01/EL_DORADO_1758194472.png?width=640&quality=85', top:[['AK-47','Gold Arabesque'],['Desert Eagle','Blaze']] },
-                { id:'arcana', name:'ARCANA', price:120.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85', top:[['Butterfly Knife','Gamma Doppler Phase 4'],['Butterfly Knife','Gamma Doppler Emerald']] },
+                { id:'arcana', name:'ARCANA', price:120.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85', top:[['Butterfly Knife','Gamma Doppler'],['Butterfly Knife','Gamma Doppler Emerald']] },
                 { id:'babushka', name:'BABUSHKA', price:152.50, color:'red', img:'https://cdn.casehug.com/cases/BABUSHKA.png?width=640&quality=85', top:[['M9 Bayonet','Gamma Doppler Black Pearl'],['M9 Bayonet','Gamma Doppler Emerald']] },
                 { id:'quantum', name:'QUANTUM', price:358.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/QUANTUM.png?width=640&quality=85', top:[['AWP','Gungnir'],['Karambit','Fade']] },
                 { id:'tiger', name:'TIGER', price:3.80, color:'purple', img:'https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85', top:[['M9 Bayonet','Tiger Tooth'],['Karambit','Tiger Tooth']] },
@@ -2583,7 +2583,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 { id:'flip-knives-x', name:'FLIP KNIVES', price:200.00, color:'yellow-400', img:'https://cdn.casehug.com/cases/FLIP_KNIVES_2.png?width=640&quality=85', top:[['Flip Knife','Gamma Doppler Emerald'],['Flip Knife','Lore']] },
 
                 { id:'gummy-love', name:'GUMMY LOVE', price:0.80, color:'pink', img:'https://cdn.casehug.com/cases/GUMMY_LOVE_2.png?width=640&quality=85', top:[['AWP','Wildfire'],['USP-S','Cortex']] },
-                { id:'happy-cake', name:'HAPPY CAKE', price:2.50, color:'purple', img:'https://cdn.casehug.com/cases/HAPPY_CAKE_2.png?width=640&quality=85', top:[['Shadow Daggers','Gamma Doppler Phase 2'],['Shadow Daggers','Lore']] },
+                { id:'happy-cake', name:'HAPPY CAKE', price:2.50, color:'purple', img:'https://cdn.casehug.com/cases/HAPPY_CAKE_2.png?width=640&quality=85', top:[['Shadow Daggers','Gamma Doppler'],['Shadow Daggers','Lore']] },
                 { id:'juice-20', name:'20 JUICE', price:150.00, color:'blue', img:'https://cdn.casehug.com/cases/20_JUICE.png?width=640&quality=85', top:[['Desert Eagle','Fennec Fox'],['M4A1-S','Bright Water']] },
                 { id:'lucky-teddy', name:'LUCKY TEDDY', price:3.00, color:'purple', img:'https://cdn.casehug.com/cases/LUCKY_TEDDY_NEW.png?width=640&quality=85', top:[['P90','Death by Kitty'],['M4A4','龍王 (Dragon King)']] },
 
@@ -2594,7 +2594,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 { id:'printstream-only', name:'PRINTSTREAM', price:25.00, color:'red', img:'https://cdn.casehug.com/cases/PRINTSTREAM.png?width=640&quality=85', top:[['M4A1-S','Printstream'],['USP-S','Printstream']] },
                 { id:'stattrak-case', name:'STATTRAK', price:8.00, color:'purple', img:'https://cdn.casehug.com/cases/STATTRAK_2.png?width=640&quality=85', top:[['AK-47','Bloodsport'],['M4A1-S','Printstream']] },
 
-                { id:'ten-boombox', name:'10 BOOMBOX', price:10.00, color:'red', img:'https://cdn.casehug.com/cases/10_boombox.png?width=640&quality=85', top:[['Bowie Knife','Gamma Doppler Phase 2'],['AK-47','Fuel Injector']] },
+                { id:'ten-boombox', name:'10 BOOMBOX', price:10.00, color:'red', img:'https://cdn.casehug.com/cases/10_boombox.png?width=640&quality=85', top:[['Bowie Knife','Gamma Doppler'],['AK-47','Fuel Injector']] },
                 { id:'fifty-race', name:'50 RACE', price:1250.00, color:'red', img:'https://cdn.casehug.com/cases/50_RACE.png?width=640&quality=85', top:[['M9 Bayonet','Gamma Doppler Emerald'],['M9 Bayonet','Gamma Doppler Black Pearl']] }
             ];
 
@@ -2726,9 +2726,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if (!parsed.length) return;
                 const total = parsed.reduce((a, b) => a + b.chance, 0);
                 const scaled = parsed.map((x) => ({ ...x, chance: (x.chance / total) * 100 }));
-                const rounded = scaled.map((x) => ({ ...x, chance: Math.round(x.chance * 100) / 100 }));
-                const diff = Math.round((100 - rounded.reduce((a, b) => a + b.chance, 0)) * 100) / 100;
-                rounded[rounded.length - 1].chance = Math.max(0.01, Math.round((rounded[rounded.length - 1].chance + diff) * 100) / 100);
+                const rounded = scaled.map((x) => ({ ...x, chance: Math.round(x.chance * 100000) / 100000 }));
+                const diff = Math.round((100 - rounded.reduce((a, b) => a + b.chance, 0)) * 100000) / 100000;
+                rounded[rounded.length - 1].chance = Math.max(0.00001, Math.round((rounded[rounded.length - 1].chance + diff) * 100000) / 100000);
                 c.contents = rounded;
                 manualCaseIds.add(caseId);
             };
@@ -2775,7 +2775,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['Navaja Knife','Rust Coat',16],['Gut Knife','Safari Mesh',14],['Ursus Knife','Scorched',13],['Paracord Knife','Blue Steel',12],['Nomad Knife','Stained',10],['Flip Knife','Case Hardened',9],['M9 Bayonet','Tiger Tooth',8],['Karambit','Doppler Phase 2',7],['Butterfly Knife','Fade',6],['Karambit','Doppler Sapphire',5]
             ]);
             setManualCaseContents('flip-knives-x', [
-                ['Flip Knife','Rust Coat',20],['Flip Knife','Stained',16],['Flip Knife','Blue Steel',14],['Flip Knife','Case Hardened',12],['Flip Knife','Crimson Web',10],['Flip Knife','Tiger Tooth',9],['Flip Knife','Doppler Phase 4',7],['Flip Knife','Lore',6],['Flip Knife','Gamma Doppler Phase 4',4],['Flip Knife','Gamma Doppler Emerald',2]
+                ['Flip Knife','Rust Coat',20],['Flip Knife','Stained',16],['Flip Knife','Blue Steel',14],['Flip Knife','Case Hardened',12],['Flip Knife','Crimson Web',10],['Flip Knife','Tiger Tooth',9],['Flip Knife','Doppler Phase 4',7],['Flip Knife','Lore',6],['Flip Knife','Gamma Doppler',4],['Flip Knife','Gamma Doppler Emerald',2]
             ]);
 
             setManualCaseContents('candy-shop', [
@@ -2797,7 +2797,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['AK-47','Head Shot',17],['M4A4','Griffin',15],['USP-S','Cyrex',13],['AWP','Neo-Noir',11],['M4A4','Hellfire',10],['AK-47','Bloodsport',9],['M4A4','The Emperor',8],['M4A1-S','Printstream',7],['M4A4','Howl',6],['AWP','Dragon Lore',4]
             ]);
             setManualCaseContents('bunny-hop', [
-                ['SSG 08','Rapid Transit',20],['MP9','Mount Fuji',15],['P90','Traction',14],['MAC-10','Disco Tech',12],['Tec-9','Fuel Injector',10],['AK-47','Head Shot',8],['M4A4','Temukau',6],['AWP','Neo-Noir',5],['Bowie Knife','Ultraviolet',4],['Bowie Knife','Gamma Doppler Phase 2',6]
+                ['SSG 08','Rapid Transit',20],['MP9','Mount Fuji',15],['P90','Traction',14],['MAC-10','Disco Tech',12],['Tec-9','Fuel Injector',10],['AK-47','Head Shot',8],['M4A4','Temukau',6],['AWP','Neo-Noir',5],['Bowie Knife','Ultraviolet',4],['Bowie Knife','Gamma Doppler',6]
             ]);
             setManualCaseContents('bombsite-b', [
                 ['P90','Asiimov',16],['Tec-9','Fuel Injector',15],['MAC-10','Neon Rider',14],['P90','Death by Kitty',12],['UMP-45','Primal Saber',10],['Desert Eagle','Code Red',8],['M4A4','Hellfire',8],['AK-47','Head Shot',7],['AWP','Wildfire',6],['AK-47','Bloodsport',4]
@@ -2819,7 +2819,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['AWP','PAW',20],['AWP','Atheris',16],['AK-47','Slate',14],['M4A4','Tooth Fairy',12],['AWP','Neo-Noir',10],['AK-47','Redline',8],['M4A1-S','Nightmare',7],['AWP','Asiimov',6],['AWP','Wildfire',4],['AWP','Medusa',3]
             ]);
             setManualCaseContents('ten-boombox', [
-                ['P250','Sand Dune',41],['PP-Bizon','Sand Dashed',21],['MP7','Armor Core',13],['MAC-10','Palm',10],['Bowie Knife','Ultraviolet',5],['AK-47','Fuel Injector',4],['Desert Eagle','Blaze',3],['Bowie Knife','Gamma Doppler Phase 2',3]
+                ['P250','Sand Dune',41],['PP-Bizon','Sand Dashed',21],['MP7','Armor Core',13],['MAC-10','Palm',10],['Bowie Knife','Ultraviolet',5],['AK-47','Fuel Injector',4],['Desert Eagle','Blaze',3],['Bowie Knife','Gamma Doppler',3]
             ]);
             setManualCaseContents('fifty-race', [
                 ['M4A1-S','Printstream',32],['AK-47','Bloodsport',24],['M9 Bayonet','Doppler Phase 2',18],['Karambit','Fade',14],['M9 Bayonet','Gamma Doppler Emerald',12]
@@ -2833,7 +2833,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['AK-47','Ice Coaled',20],['M4A4','Temukau',16],['AWP','PAW',13],['USP-S','Cyrex',12],['Glock-18','Water Elemental',11],['AK-47','Neon Rider',9],['M4A1-S','Printstream',7],['AWP','Neo-Noir',6],['AK-47','Vulcan',4],['AWP','Dragon Lore',2]
             ]);
             setManualCaseContents('lab', [
-                ['Flip Knife','Damascus Steel',17],['Flip Knife','Case Hardened',15],['Butterfly Knife','Blue Steel',12],['Karambit','Damascus Steel',11],['M9 Bayonet','Tiger Tooth',10],['Flip Knife','Tiger Tooth',9],['Flip Knife','Lore',8],['Karambit','Doppler Phase 2',7],['Flip Knife','Gamma Doppler Phase 4',6],['Specialist Gloves','Emerald Web',5]
+                ['Flip Knife','Damascus Steel',17],['Flip Knife','Case Hardened',15],['Butterfly Knife','Blue Steel',12],['Karambit','Damascus Steel',11],['M9 Bayonet','Tiger Tooth',10],['Flip Knife','Tiger Tooth',9],['Flip Knife','Lore',8],['Karambit','Doppler Phase 2',7],['Flip Knife','Gamma Doppler',6],['Specialist Gloves','Emerald Web',5]
             ]);
             setManualCaseContents('el-dorado', [
                 ['AK-47','Gold Arabesque',22],['Desert Eagle','Blaze',18],['M4A1-S','Icarus Fell',13],['AK-47','The Empress',12],['USP-S','The Traitor',10],['M4A4','The Emperor',9],['AWP','Wildfire',7],['M9 Bayonet','Lore',5],['Karambit','Lore',3],['Sport Gloves','Omega',1]
@@ -2851,7 +2851,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['Moto Gloves','Blood Pressure',18],['Moto Gloves','Finish Line',14],['Driver Gloves','Rezan the Red',13],['Specialist Gloves','Crimson Web',12],['Hand Wraps','Slaughter',10],['Specialist Gloves','Foundation',9],['Driver Gloves','Crimson Weave',8],['Sport Gloves','Scarlet Shamagh',7],['Sport Gloves','Slingshot',5],['Sport Gloves','Vice',4]
             ]);
             setManualCaseContents('wpn-deagle', [
-                ['Desert Eagle','Mecha Industries',20],['Desert Eagle','Conspiracy',18],['Desert Eagle','Code Red',15],['Desert Eagle','Ocean Drive',12],['Desert Eagle','Kumicho Dragon',10],['Desert Eagle','Printstream',9],['Desert Eagle','Golden Koi',7],['Desert Eagle','Blaze',5],['Desert Eagle','Emerald Jörmungandr',3],['AK-47','Gold Arabesque',1]
+                ['Desert Eagle','Mecha Industries',20],['Desert Eagle','Conspiracy',18],['Desert Eagle','Code Red',15],['Desert Eagle','Ocean Drive',12],['Desert Eagle','Kumicho Dragon',10],['Desert Eagle','Printstream',9],['Desert Eagle','Golden Koi',7],['Desert Eagle','Blaze',5],['Desert Eagle','Emerald Jörmungandr',3],['Desert Eagle','Fennec Fox',1]
             ]);
             setManualCaseContents('rarity-covert', [
                 ['AK-47','Bloodsport',16],['M4A4','Neo-Noir',15],['M4A4','Hellfire',12],['AWP','Asiimov',11],['M4A1-S','Printstream',10],['AK-47','Head Shot',9],['Flip Knife','Crimson Web',8],['Karambit','Crimson Web',7],['Bayonet','Crimson Web',6],['M9 Bayonet','Crimson Web',6]
@@ -2859,7 +2859,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             // Full tailored pass: manually define all remaining CaseHug-inspired cases
             setManualCaseContents('neon-flora', [
-                ['AK-47','Ice Coaled',24],['Glock-18','Neo-Noir',19],['USP-S','Cortex',15],['M4A4','In Living Color',13],['AWP','Neo-Noir',11],['AK-47','Vulcan',10],['M4A1-S','Printstream',8]
+                ['Glock-18','Off World',32],['USP-S','Blueprint',25],['MP7','Armor Core',18],['M4A4','Desolate Space',14],['AK-47','Neon Rider',10],['AK-47','Nightwish',0.00001],['AK-47','Vulcan',0.00001]
             ]);
             setManualCaseContents('organic', [
                 ['MP7','Asterion',28],['USP-S','Cortex',21],['AK-47','Slate',18],['M4A1-S','Night Terror',14],['P90','Traction',10],['M4A1-S','Player Two',9]
@@ -2901,7 +2901,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['Glock-18','Catacombs',26],['USP-S','Ticket to Hell',20],['M4A4','Tooth Fairy',16],['AK-47','Slate',13],['AWP','PAW',11],['M9 Bayonet','Lore',9],['Karambit','Lore',5]
             ]);
             setManualCaseContents('game-on', [
-                ['Glock-18','Water Elemental',24],['Glock-18','Neo-Noir',18],['USP-S','Cortex',14],['M4A4','Temukau',13],['AK-47','Neon Rider',11],['Glock-18','Gamma Doppler Phase 2',10],['M9 Bayonet','Gamma Doppler Phase 2',6],['Karambit','Gamma Doppler Emerald',4]
+                ['Glock-18','Water Elemental',24],['Glock-18','Neo-Noir',18],['USP-S','Cortex',14],['M4A4','Temukau',13],['AK-47','Neon Rider',11],['Glock-18','Gamma Doppler',10],['M9 Bayonet','Gamma Doppler',6],['Karambit','Gamma Doppler Emerald',4]
             ]);
             setManualCaseContents('retro', [
                 ['P250','See Ya Later',21],['USP-S','Neo-Noir',17],['M4A4','Desolate Space',16],['AK-47','Redline',13],['M4A1-S','Player Two',11],['M9 Bayonet','Lore',10],['Karambit','Lore',7],['AWP','Asiimov',5]
@@ -2922,10 +2922,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['UMP-45','Primal Saber',18],['MAC-10','Neon Rider',16],['P90','Asiimov',14],['M4A4','Hellfire',13],['AK-47','Head Shot',11],['M4A1-S','Hot Rod',9],['AWP','Asiimov',8],['AK-47','Bloodsport',6],['M4A4','Howl',3],['AWP','Dragon Lore',2]
             ]);
             setManualCaseContents('buzzer-blade', [
-                ['USP-S','Blueprint',16],['AK-47','Head Shot',14],['M4A4','In Living Color',12],['M4A1-S','Icarus Fell',11],['M9 Bayonet','Autotronic',10],['Karambit','Doppler Phase 3',9],['M9 Bayonet','Gamma Doppler Phase 2',8],['Karambit','Gamma Doppler Emerald',7],['Butterfly Knife','Gamma Doppler Emerald',7],['AWP','Gungnir',6]
+                ['USP-S','Blueprint',16],['AK-47','Head Shot',14],['M4A4','In Living Color',12],['M4A1-S','Icarus Fell',11],['M9 Bayonet','Autotronic',10],['Karambit','Doppler Phase 3',9],['M9 Bayonet','Gamma Doppler',8],['Karambit','Gamma Doppler Emerald',7],['Butterfly Knife','Gamma Doppler Emerald',7],['AWP','Gungnir',6]
             ]);
             setManualCaseContents('kingdom', [
-                ['AK-47','The Empress',18],['M4A4','The Emperor',15],['USP-S','The Traitor',13],['M4A1-S','Printstream',11],['AWP','Asiimov',10],['M9 Bayonet','Lore',9],['Karambit','Lore',8],['Butterfly Knife','Gamma Doppler Phase 4',7],['Butterfly Knife','Gamma Doppler Emerald',6],['AWP','Dragon Lore',3]
+                ['AK-47','The Empress',18],['M4A4','The Emperor',15],['USP-S','The Traitor',13],['M4A1-S','Printstream',11],['AWP','Asiimov',10],['M9 Bayonet','Lore',9],['Karambit','Lore',8],['Butterfly Knife','Gamma Doppler',7],['Butterfly Knife','Gamma Doppler Emerald',6],['AWP','Dragon Lore',3]
             ]);
             setManualCaseContents('sushi-master', [
                 ['Five-SeveN','Monkey Business',20],['M4A4','Temukau',16],['USP-S','Neo-Noir',14],['AK-47','Neon Rider',13],['Desert Eagle','Printstream',11],['Karambit','Autotronic',9],['M9 Bayonet','Autotronic',7],['Karambit','Fade',6],['M9 Bayonet','Marble Fade',4]
@@ -2940,7 +2940,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 ['AK-47','Case Hardened',15],['M4A1-S','Blue Phosphor',13],['USP-S','Printstream',11],['Desert Eagle','Blaze',10],['M9 Bayonet','Doppler Phase 2',9],['Karambit','Doppler Phase 4',8],['Specialist Gloves','Crimson Kimono',8],['Sport Gloves','Vice',7],['AWP','Gungnir',6],['AWP','Dragon Lore',13]
             ]);
             setManualCaseContents('quantum', [
-                ['M4A1-S','Printstream',20],['AK-47','Gold Arabesque',16],['M4A4','Howl',13],['Karambit','Fade',11],['Butterfly Knife','Fade',9],['M9 Bayonet','Gamma Doppler Phase 4',8],['Sport Gloves','Vice',7],['Sport Gloves','Pandora\'s Box',6],['AWP','Dragon Lore',5],['AWP','Gungnir',5]
+                ['M4A1-S','Printstream',20],['AK-47','Gold Arabesque',16],['M4A4','Howl',13],['Karambit','Fade',11],['Butterfly Knife','Fade',9],['M9 Bayonet','Gamma Doppler',8],['Sport Gloves','Vice',7],['Sport Gloves','Pandora\'s Box',6],['AWP','Dragon Lore',5],['AWP','Gungnir',5]
             ]);
             setManualCaseContents('tiger', [
                 ['P250','Sand Dune',22],['USP-S','Ticket to Hell',18],['AK-47','Slate',14],['M4A4','Tooth Fairy',12],['M9 Bayonet','Tiger Tooth',10],['Karambit','Tiger Tooth',9],['Butterfly Knife','Tiger Tooth',8],['AWP','Asiimov',7]
@@ -2962,11 +2962,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                     tops.forEach((skin, idx) => {
                         let row = c.contents.find((it) => it.skin?.id === skin.id);
                         if (!row) {
-                            row = { skin, chance: 0.1 };
+                            row = { skin, chance: 0.00001 };
                             c.contents.push(row);
                         }
                         // Keep jackpot odds very low but guaranteed present.
-                        row.chance = idx === 0 ? 0.1 : 0.2;
+                        row.chance = idx === 0 ? 0.00001 : 0.00002;
                     });
 
                     const sum = c.contents.reduce((a, b) => a + Number(b.chance || 0), 0);
@@ -2975,9 +2975,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                         .filter((it) => !tops.find((t) => t.id === it.skin?.id))
                         .sort((a, b) => Number(a.chance || 0) - Number(b.chance || 0))[0]
                         || c.contents[0];
-                    receiver.chance = Math.max(0.01, Math.round((Number(receiver.chance || 0) + diff) * 100) / 100);
+                    receiver.chance = Math.max(0.00001, Math.round((Number(receiver.chance || 0) + diff) * 100000) / 100000);
                     c.contents = c.contents
-                        .map((it) => ({ ...it, chance: Math.max(0.01, Number(it.chance || 0)) }))
+                        .map((it) => ({ ...it, chance: Math.max(0.00001, Number(it.chance || 0)) }))
                         .sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
                 });
             };
@@ -3019,6 +3019,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 // only do light sanitation so each case still has both losing and winning outcomes.
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
+                    if (manualCaseIds.has(c.id)) return;
                     c.contents = c.contents
                         .filter((it) => it?.skin && Number(it.skin.price || 0) > 0)
                         .sort((a, b) => Number(a.skin?.price || 0) - Number(b.skin?.price || 0));
@@ -3343,6 +3344,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 casesDB.forEach((c) => {
                     if (!c.contents?.length) return;
+                    if (manualCaseIds.has(c.id)) return;
                     c.contents = c.contents.map((it) => ({ ...it, chance: Math.max(0.1, Math.round(Number(it.chance || 0) * 10) / 10) }));
                     let guard = 0;
                     while (ev(c.contents) >= Number(c.price || 0) && guard < 1200) {
