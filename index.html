@@ -2970,7 +2970,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     });
 
                     const sum = c.contents.reduce((a, b) => a + Number(b.chance || 0), 0);
-                    const diff = Math.round((100 - sum) * 100) / 100;
+                    const diff = Math.round((100 - sum) * 100000) / 100000;
                     const receiver = c.contents
                         .filter((it) => !tops.find((t) => t.id === it.skin?.id))
                         .sort((a, b) => Number(a.chance || 0) - Number(b.chance || 0))[0]
@@ -3442,6 +3442,12 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
         function currentCurrency() {
             return document.getElementById('currency-select')?.value || 'EUR';
+        }
+        function formatChancePercent(v) {
+            const n = Number(v || 0);
+            if (!Number.isFinite(n)) return '0%';
+            if (n >= 1) return `${(Math.round(n * 100) / 100).toString()}%`;
+            return `${(Math.round(n * 100000) / 100000).toString()}%`;
         }
         function formatMoney(val) {
             const cur = currentCurrency();
@@ -4761,7 +4767,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     <div class="absolute top-1 right-1 text-[9px] bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded">${formatMoney(item.skin.price || 0)}</div>
                     <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
                     <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
-                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
+                    <div class="text-[10px] font-black text-white">${formatChancePercent(item.chance)}</div>
                 </div>
             `).join('');
 
@@ -5287,7 +5293,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     <div class="absolute top-1 right-1 text-[9px] bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded">${formatMoney(item.skin.price || 0)}</div>
                     <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
                     <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
-                    <div class="text-[10px] font-black text-white">${item.chance}%</div>
+                    <div class="text-[10px] font-black text-white">${formatChancePercent(item.chance)}</div>
                 </div>
             `).join('');
 
