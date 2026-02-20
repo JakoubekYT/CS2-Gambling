@@ -88,6 +88,14 @@
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
+
+        .dopamine-glow { box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06), 0 0 24px rgba(138,43,226,0.22); }
+        .dopamine-glow:hover { box-shadow: 0 14px 38px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.14), 0 0 34px rgba(255,215,0,0.28), 0 0 48px rgba(138,43,226,0.26); }
+        .shine-sweep { position: relative; overflow: hidden; }
+        .shine-sweep::after { content:''; position:absolute; top:-120%; left:-35%; width:38%; height:340%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 45%, transparent 100%); transform: rotate(18deg) translateX(-240%); transition: transform .7s cubic-bezier(.4,0,.2,1); }
+        .shine-sweep:hover::after { transform: rotate(18deg) translateX(390%); }
+        .pulse-soft { animation: pulseSoft 1.8s ease-in-out infinite; }
+        @keyframes pulseSoft { 0%,100% { opacity:.72; } 50% { opacity:1; } }
         .upgrade-glow { box-shadow: 0 0 40px rgba(168, 85, 247, 0.15); }
 
         /* Vylepšené item animace */
@@ -265,10 +273,10 @@
 
     <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-8">
-            
             <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
-                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-yellow-500/25 via-pink-500/10 to-[#0b0d11] border border-yellow-400/30 shadow-[0_0_80px_rgba(250,204,21,0.16)] flex items-center px-12 mb-8">
-                    <div class="absolute inset-0 opacity-0 hover:opacity-5 transition-opacity" style="background: radial-gradient(circle at 30% 50%, yellow, transparent);"></div>
+                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-[#181c26] via-[#121722] to-[#0b0d11] border border-yellow-400/20 shadow-[0_0_50px_rgba(250,204,21,0.08)] flex items-center px-12 mb-8">
+                    <div class="absolute inset-0" style="background: radial-gradient(900px 260px at 12% 50%, rgba(250,204,21,0.12), transparent 60%), radial-gradient(700px 220px at 90% 50%, rgba(56,189,248,0.10), transparent 62%);"></div>
+                    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"></div>
                     <div class="relative z-10 max-w-2xl space-y-4">
                         <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
                         <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
@@ -280,7 +288,45 @@
                     <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Upgrade</button>
                     <button onclick="openFreeCase()" class="bg-green-500/30 hover:bg-green-500/45 border border-green-300/40 text-green-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="gift" class="w-5 h-5"></i> Free Cases</button>
                     <button onclick="switchPage('case-battle')" class="bg-red-500/30 hover:bg-red-500/45 border border-red-300/40 text-red-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="swords" class="w-5 h-5"></i> Case Battle</button>
-                </div><div class="space-y-8" id="cases-grid"></div>
+                </div>
+                <div class="rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-[#201a0b] via-[#1b1525] to-[#0f1624] p-5 shadow-[0_0_35px_rgba(255,215,0,0.15)] shine-sweep">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-[0.25em] text-yellow-300 font-black">Promo Event</div>
+                            <div class="text-2xl font-black italic">+25% DEPOSIT BONUS <span class="text-yellow-300">DOPAMINE25</span></div>
+                            <div class="text-xs text-gray-300">Použij promo kód a získej extra balance do case openingu.</div>
+                        </div>
+                        <button class="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black uppercase text-sm shadow-[0_0_24px_rgba(255,215,0,0.45)] transition-all hover:scale-105">Claim Bonus</button>
+                    </div>
+                </div>
+
+                <div class="bg-[#121722]/90 border border-white/10 rounded-2xl p-3 flex flex-wrap items-center gap-2" id="cases-category-tabs">
+                    <button id="tab-all" onclick="setCasesCategoryFilter('all')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-yellow-300/40 bg-yellow-400/20 text-yellow-200">All</button>
+                    <button id="tab-featured" onclick="setCasesCategoryFilter('featured')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Featured <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/30 text-pink-200 pulse-soft">Hot</span></button>
+                    <button id="tab-regular" onclick="setCasesCategoryFilter('regular')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Regular</button>
+                    <button id="tab-premium" onclick="setCasesCategoryFilter('premium')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Premium</button>
+                    <button id="tab-high-risk" onclick="setCasesCategoryFilter('high-risk')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">High Risk</button>
+                </div>
+
+                <div class="space-y-8" id="cases-grid"></div>
+
+                <section class="grid xl:grid-cols-3 gap-5">
+                    <div class="xl:col-span-2 bg-[#121722] border border-purple-400/25 rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-black uppercase tracking-widest text-purple-300">Live Case Battles</h3><button onclick="switchPage('case-battle')" class="bg-gradient-to-r from-purple-600 to-pink-500 px-3 py-1.5 rounded-lg text-xs font-black uppercase">Join Battle</button></div>
+                        <div class="space-y-2 text-xs">
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">3x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/NEON_FLORA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$124</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=A" class="w-7 h-7 rounded-full border-2 border-green-400/70"><div class="w-7 h-7 rounded-full border-2 border-dashed border-yellow-300/70 flex items-center justify-center text-yellow-300 pulse-soft">+</div></div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">5x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$389</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=B" class="w-7 h-7 rounded-full border-2 border-cyan-400/70"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=C" class="w-7 h-7 rounded-full border-2 border-pink-400/70"></div></div>
+                        </div>
+                    </div>
+                    <div class="bg-[#121722] border border-yellow-400/25 rounded-2xl p-4">
+                        <h3 class="text-sm font-black uppercase tracking-widest text-yellow-300 mb-3">Top Wins</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-yellow-300">#1</div><div class="font-bold">PlayerX</div><div class="ml-auto text-yellow-300 font-black">$2 944</div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-gray-300">#2</div><div class="font-bold">Dopamine</div><div class="ml-auto text-yellow-300 font-black">$1 806</div></div>
+                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-amber-600">#3</div><div class="font-bold">KnifeKing</div><div class="ml-auto text-yellow-300 font-black">$1 320</div></div>
+                        </div>
+                    </div>
+                </section>
             </section>
 
 
@@ -679,7 +725,7 @@
         const KNIFE_TYPES = [
             "Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife",
             "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers",
-            "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife"
+            "Skeleton Knife", "Stiletto Knife", "Survival Knife", "Talon Knife", "Ursus Knife", "Kukri Knife"
         ];
 
         // 300+ REÁLNÝCH SKINŮ - KOMPLETNÍ DATABÁZE CS2
@@ -2193,6 +2239,80 @@ Zeus x27|Charged Up|8.50|#8847ff
             return Object.values(skinsDB).find(s => normalizeName(s.weapon) === nw && normalizeName(s.skinName) === nn) || Object.values(skinsDB)[0];
         }
 
+        function addOrUpdateSkin(weapon, skinName, price, color = "#ebca44") {
+            const existing = Object.values(skinsDB).find((s) => s.weapon === weapon && s.skinName === skinName);
+            const folder = GLOVE_TYPES.includes(weapon) ? "gloves" : (KNIFE_TYPES.includes(weapon) ? "knives" : "skins");
+            const weaponSlug = weapon.replace(/ /g, "_");
+            const skinSlug = skinName.replace(/ /g, "_");
+            const img = toCachedImage(`https://www.csgodatabase.com/images/${folder}/webp/${weaponSlug}_${skinSlug}.webp`);
+            const payload = {
+                weapon,
+                skinName,
+                name: `${weapon} | ${skinName}`,
+                price: Math.max(0.01, Math.round(Number(price || 0.01) * 100) / 100),
+                color,
+                img,
+                imgAlts: [],
+                rarityName: color === '#ebca44' ? 'gold' : (color === '#eb4b4b' ? 'red' : (color === '#d32ee6' ? 'pink' : 'blue'))
+            };
+            if (existing) {
+                Object.assign(existing, payload);
+                return existing;
+            }
+            const nextId = Math.max(0, ...Object.keys(skinsDB).map(Number)) + 1;
+            skinsDB[nextId] = { id: nextId, ...payload };
+            return skinsDB[nextId];
+        }
+
+        function addExtendedGlovesAndKnives() {
+            const gloveRows = [
+                ["Bloodhound Gloves","Bronzed",665],["Bloodhound Gloves","Charred",444],["Bloodhound Gloves","Guerrilla",562],["Bloodhound Gloves","Snakebite",565],
+                ["Broken Fang Gloves","Jade",596],["Broken Fang Gloves","Needle Point",354],["Broken Fang Gloves","Unhinged",408],["Broken Fang Gloves","Yellow-banded",287],
+                ["Driver Gloves","Black Tie",1151],["Driver Gloves","Convoy",500],["Driver Gloves","Crimson Weave",4281],["Driver Gloves","Diamondback",1370],["Driver Gloves","Imperial Plaid",2403],["Driver Gloves","King Snake",3520],["Driver Gloves","Lunar Weave",1600],["Driver Gloves","Overtake",344],["Driver Gloves","Queen Jaguar",496],["Driver Gloves","Racing Green",262],["Driver Gloves","Rezan the Red",836],["Driver Gloves","Snow Leopard",2419],
+                ["Hand Wraps","Arboreal",261],["Hand Wraps","Badlands",979],["Hand Wraps","CAUTION!",813],["Hand Wraps","Cobalt Skulls",1637],["Hand Wraps","Constrictor",278],["Hand Wraps","Desert Shamagh",776],["Hand Wraps","Duct Tape",352],["Hand Wraps","Giraffe",495],["Hand Wraps","Leather",1364],["Hand Wraps","Overprint",488],["Hand Wraps","Slaughter",1254],["Hand Wraps","Spruce DDPAT",834],
+                ["Hydra Gloves","Case Hardened",650],["Hydra Gloves","Emerald",233],["Hydra Gloves","Mangrove",232],["Hydra Gloves","Rattler",188],
+                ["Moto Gloves","3rd Commando Company",305],["Moto Gloves","Blood Pressure",550],["Moto Gloves","Boom!",3180],["Moto Gloves","Cool Mint",1981],["Moto Gloves","Eclipse",957],["Moto Gloves","Finish Line",665],["Moto Gloves","Polygon",645],["Moto Gloves","POW!",631],["Moto Gloves","Smoke Out",708],["Moto Gloves","Spearmint",6284],["Moto Gloves","Transport",642],["Moto Gloves","Turtle",488],
+                ["Specialist Gloves","Buckshot",280],["Specialist Gloves","Crimson Kimono",6878],["Specialist Gloves","Crimson Web",1363],["Specialist Gloves","Emerald Web",5161],["Specialist Gloves","Fade",1579],["Specialist Gloves","Field Agent",893],["Specialist Gloves","Forest DDPAT",646],["Specialist Gloves","Foundation",1963],["Specialist Gloves","Lt. Commander",611],["Specialist Gloves","Marble Fade",1310],["Specialist Gloves","Mogul",717],["Specialist Gloves","Tiger Strike",1236],
+                ["Sport Gloves","Amphibious",2152],["Sport Gloves","Arid",3417],["Sport Gloves","Big Game",1717],["Sport Gloves","Bronze Morph",559],["Sport Gloves","Hedge Maze",18932],["Sport Gloves","Nocts",5240],["Sport Gloves","Omega",3081],["Sport Gloves","Pandora's Box",17832],["Sport Gloves","Scarlet Shamagh",1241],["Sport Gloves","Slingshot",3715],["Sport Gloves","Superconductor",7993],["Sport Gloves","Vice",58406]
+            ];
+
+            gloveRows.forEach(([weapon, skin, avg]) => addOrUpdateSkin(weapon, skin, avg, '#ebca44'));
+
+            const knifeBasePrice = {
+                "Bayonet": 650, "Bowie Knife": 290, "Butterfly Knife": 1700, "Classic Knife": 420, "Falchion Knife": 260,
+                "Flip Knife": 470, "Gut Knife": 220, "Huntsman Knife": 360, "Karambit": 1450, "Kukri Knife": 430,
+                "M9 Bayonet": 980, "Navaja Knife": 170, "Nomad Knife": 350, "Paracord Knife": 290, "Shadow Daggers": 210,
+                "Skeleton Knife": 640, "Stiletto Knife": 460, "Survival Knife": 300, "Talon Knife": 780, "Ursus Knife": 390
+            };
+            const finishMult = {
+                "Safari Mesh": 0.72, "Scorched": 0.76, "Forest DDPAT": 0.78, "Urban Masked": 0.8,
+                "Boreal Forest": 0.82, "Night": 0.9, "Night Stripe": 0.9, "Blue Steel": 1.02, "Stained": 0.94,
+                "Case Hardened": 1.25, "Crimson Web": 1.28, "Slaughter": 1.55, "Fade": 2.05, "Tiger Tooth": 1.72,
+                "Marble Fade": 2.18, "Damascus Steel": 1.1, "Ultraviolet": 1.06, "Rust Coat": 0.85, "Lore": 1.65,
+                "Autotronic": 1.78, "Black Laminate": 1.24, "Freehand": 1.2, "Bright Water": 1.15,
+                "Doppler Phase 1": 2.3, "Doppler Phase 2": 2.35, "Doppler Phase 3": 2.38, "Doppler Phase 4": 2.45,
+                "Doppler Ruby": 4.2, "Doppler Sapphire": 4.35, "Doppler Black Pearl": 3.7,
+                "Gamma Doppler Phase 1": 2.4, "Gamma Doppler Phase 2": 2.45, "Gamma Doppler Phase 3": 2.5, "Gamma Doppler Phase 4": 2.58,
+                "Gamma Doppler Emerald": 5.1
+            };
+            const coreFinishes = [
+                "Safari Mesh","Scorched","Forest DDPAT","Urban Masked","Boreal Forest","Night","Blue Steel","Stained",
+                "Case Hardened","Crimson Web","Slaughter","Fade","Tiger Tooth","Marble Fade","Damascus Steel","Ultraviolet",
+                "Rust Coat","Lore","Autotronic","Black Laminate","Freehand","Bright Water","Doppler Phase 1","Doppler Phase 2",
+                "Doppler Phase 3","Doppler Phase 4","Doppler Ruby","Doppler Sapphire","Doppler Black Pearl","Gamma Doppler Phase 1",
+                "Gamma Doppler Phase 2","Gamma Doppler Phase 3","Gamma Doppler Phase 4","Gamma Doppler Emerald"
+            ];
+            KNIFE_TYPES.forEach((knife) => {
+                const base = knifeBasePrice[knife] || 320;
+                coreFinishes.forEach((finish) => {
+                    const price = base * (finishMult[finish] || 1);
+                    addOrUpdateSkin(knife, finish, price, '#ebca44');
+                });
+            });
+        }
+
+        addExtendedGlovesAndKnives();
+
         const casesDB = [];
         setTimeout(() => {
             casesDB.push(
@@ -2761,12 +2881,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const renameMap = {
                     'trash-or-knife': '1% Knife Rush',
                     'dragon': '1% Dragon Lore',
-                    'frosty': 'FROSTBITE AK-47'
+                    'frosty': 'FROSTY'
                 };
                 casesDB.forEach((c) => {
                     if (renameMap[c.id]) c.name = renameMap[c.id];
-                    if (c.id === 'dragon') c.img = findSkin('AWP', 'Dragon Lore').img;
-                    if (c.id === 'frosty') c.img = findSkin('AK-47', 'Ice Coaled').img;
                 });
             };
 
@@ -2892,7 +3010,54 @@ Zeus x27|Charged Up|8.50|#8847ff
                 });
             };
 
+            const mixKnivesIntoCases = () => {
+                const knifePool = Object.values(skinsDB).filter((s) => KNIFE_TYPES.includes(s.weapon)).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+                if (!knifePool.length) return;
+                const pickKnife = (min, max) => knifePool.find((k) => Number(k.price || 0) >= min && Number(k.price || 0) <= max)
+                    || knifePool.find((k) => Number(k.price || 0) >= min)
+                    || knifePool[Math.floor(Math.random() * knifePool.length)];
+
+                casesDB.forEach((c) => {
+                    if (!c.contents?.length) return;
+                    const lowerName = `${c.id} ${c.name}`.toLowerCase();
+                    const hasKnife = c.contents.some((it) => KNIFE_TYPES.includes(it?.skin?.weapon));
+
+                    c.contents = c.contents.map((it) => {
+                        if (Number(it.chance || 0) <= 1) {
+                            const jackpotKnife = pickKnife(c.price * 1.2, c.price * 40);
+                            return jackpotKnife ? { ...it, skin: jackpotKnife } : it;
+                        }
+                        return it;
+                    });
+
+                    if (!hasKnife && /(knife|tiger|arcana|legend|top|vac|quantum|dragon)/.test(lowerName)) {
+                        const knife = pickKnife(c.price * 0.9, c.price * 6);
+                        if (knife) {
+                            const targetIdx = c.contents.reduce((best, cur, idx, arr) => Number(cur.chance || 0) < Number(arr[best].chance || 999) ? idx : best, 0);
+                            c.contents[targetIdx] = { ...c.contents[targetIdx], skin: knife, chance: Math.min(5, Number(c.contents[targetIdx].chance || 1)) };
+                        }
+                    }
+                });
+
+                if (!casesDB.find((c) => c.id === 'all-knives')) {
+                    const knifeCaseItems = [
+                        pickKnife(80, 250), pickKnife(200, 450), pickKnife(400, 800), pickKnife(700, 1300), pickKnife(1200, 999999)
+                    ].filter(Boolean);
+                    if (knifeCaseItems.length >= 3) {
+                        casesDB.push({
+                            id: 'all-knives',
+                            name: 'ALL KNIVES',
+                            price: 180.00,
+                            color: 'yellow-400',
+                            img: knifeCaseItems[knifeCaseItems.length - 1].img,
+                            contents: knifeCaseItems.map((skin, i) => ({ skin, chance: [45, 28, 16, 8, 3][i] || 1 }))
+                        });
+                    }
+                }
+            };
+
             applyCaseCatalogRefresh();
+            mixKnivesIntoCases();
             diversifyCaseContents();
             applyHouseEdge();
             enforceHouseProfitStrict();
@@ -2904,6 +3069,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         let isSpinning = false;
         let spinAnimationId = null;
         let casesAffordableOnly = false;
+        let casesCategoryFilter = 'all';
         let userProfile = {
             nickname: '',
             displayName: '',
@@ -3233,21 +3399,21 @@ Zeus x27|Charged Up|8.50|#8847ff
                     <div class="bg-black/30 border border-yellow-400/20 rounded-xl p-3 space-y-2">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 min-w-0"><img src="${u.avatar || FALLBACK_IMG}" class="w-9 h-9 rounded-full object-cover border border-yellow-400/30"><div><div class="font-black text-white truncate">${u.displayName || u.nickname || 'user'} (${u.email || '-'})</div><div class="text-xs text-yellow-300">Balance: ${formatMoney(Number(u.balance || 0))}</div></div></div>
-                            <div class="flex items-center gap-1"><input type="number" step="0.01" id="admin-bal-${u.id}" class="w-24 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-white" value="10"><button onclick="adminAddBalance('${u.email}','admin-bal-${u.id}')" class="bg-green-600 px-2 py-1 rounded font-black text-xs">+ Peníze</button><button onclick="adminAddBalance('${u.email}','admin-bal-${u.id}', true)" class="bg-red-600 px-2 py-1 rounded font-black text-xs">- Peníze</button></div>
+                            <div class="flex items-center gap-1"><input type="number" step="0.01" id="admin-bal-${u.id}" class="w-24 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-white" value="10"><button onclick="adminAddBalance('${u.id}','admin-bal-${u.id}')" class="bg-green-600 px-2 py-1 rounded font-black text-xs">+ Peníze</button><button onclick="adminAddBalance('${u.id}','admin-bal-${u.id}', true)" class="bg-red-600 px-2 py-1 rounded font-black text-xs">- Peníze</button></div>
                         </div>
                         <details class="bg-black/25 border border-yellow-400/10 rounded p-2">
                             <summary class="cursor-pointer text-xs font-black text-blue-300">Give skin (výběr)</summary>
                             <div class="mt-2 grid md:grid-cols-2 gap-2">
                                 <input list="admin-skin-list-${u.id}" id="admin-skin-name-${u.id}" class="bg-black/40 border border-yellow-400/20 rounded px-2 py-1 text-xs" placeholder="Název skinu">
                                 <datalist id="admin-skin-list-${u.id}">${skinOptions}</datalist>
-                                <button onclick="adminGiveSkin('${u.email}','${u.id}')" class="bg-blue-600 px-2 py-1 rounded font-black text-xs">Give skin</button>
+                                <button onclick="adminGiveSkin('${u.id}','${u.id}')" class="bg-blue-600 px-2 py-1 rounded font-black text-xs">Give skin</button>
                             </div>
                         </details>
                         <details class="bg-black/25 border border-yellow-400/10 rounded p-2">
                             <summary class="cursor-pointer text-xs font-black text-red-300">Odebrat skin (z inventáře)</summary>
                             <div class="mt-2 grid md:grid-cols-2 gap-2">
                                 <select id="admin-skin-uid-${u.id}" class="bg-black/40 border border-yellow-400/20 rounded px-2 py-1 text-xs">${invOptions || '<option value="">Prázdný inventář</option>'}</select>
-                                <button onclick="adminRemoveSkin('${u.email}','${u.id}')" class="bg-red-700 px-2 py-1 rounded font-black text-xs">Odeber</button>
+                                <button onclick="adminRemoveSkin('${u.id}','${u.id}')" class="bg-red-700 px-2 py-1 rounded font-black text-xs">Odeber</button>
                             </div>
                         </details>
                     </div>`;
@@ -3257,33 +3423,45 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
-        async function adminAddBalance(email, inputId, subtract = false) {
+        async function adminAddBalance(userIdentifier, inputId, subtract = false) {
             const rawAmount = Number(document.getElementById(inputId)?.value || 0);
             const amount = subtract ? -Math.abs(rawAmount) : Math.abs(rawAmount);
             try {
-                await apiRequest('/api/admin/add-balance', 'POST', { email, amount });
+                await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier, amount });
                 showToast('Zůstatek upraven');
                 loadAdminUsers();
             } catch (err) { showToast(err.message, true); }
         }
 
         
-        async function adminGiveSkin(email, userId) {
+        async function adminGiveSkin(userIdentifier, userId) {
             const name = (document.getElementById(`admin-skin-name-${userId}`)?.value || '').trim();
             if (!name) return showToast('Vyplň název skinu', true);
-            const item = { uid: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, weapon: name.split('|')[0]?.trim() || name, skin: name.split('|')[1]?.trim() || '', price: 1, color: '#4b69ff', img: FALLBACK_IMG };
+            const skin = Object.values(skinsDB).find((s) => s.name.toLowerCase() === name.toLowerCase()) || null;
+            if (!skin) return showToast('Skin nenalezen v databázi.', true);
+            const item = {
+                uid: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+                name: skin.name,
+                weapon: skin.weapon,
+                skin: skin.skinName,
+                price: Number(skin.price || 0),
+                color: skin.color,
+                img: skin.img || FALLBACK_IMG
+            };
             try {
-                await apiRequest('/api/admin/inventory-edit', 'POST', { email, mode: 'add', item });
+                await apiRequest('/api/admin/inventory-edit', 'POST', { userIdentifier, mode: 'add', item });
                 showToast('Skin přidán');
+                loadAdminUsers();
             } catch (err) { showToast(err.message, true); }
         }
 
-        async function adminRemoveSkin(email, userId) {
+        async function adminRemoveSkin(userIdentifier, userId) {
             const uid = (document.getElementById(`admin-skin-uid-${userId}`)?.value || '').trim();
-            if (!uid) return showToast('Vyplň UID skinu', true);
+            if (!uid) return showToast('Vyber skin z inventáře', true);
             try {
-                await apiRequest('/api/admin/inventory-edit', 'POST', { email, mode: 'remove', uid });
+                await apiRequest('/api/admin/inventory-edit', 'POST', { userIdentifier, mode: 'remove', uid });
                 showToast('Skin odebrán');
+                loadAdminUsers();
             } catch (err) { showToast(err.message, true); }
         }
 
@@ -3843,6 +4021,22 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCases();
         }
 
+        function setCasesCategoryFilter(category) {
+            casesCategoryFilter = category;
+            ['all','featured','regular','premium','high-risk'].forEach((key) => {
+                const el = document.getElementById(`tab-${key}`);
+                if (!el) return;
+                const active = key === category;
+                el.classList.toggle('bg-yellow-400/20', active);
+                el.classList.toggle('text-yellow-200', active);
+                el.classList.toggle('border-yellow-300/40', active);
+                el.classList.toggle('bg-white/5', !active);
+                el.classList.toggle('text-gray-300', !active);
+                el.classList.toggle('border-white/20', !active);
+            });
+            renderCases();
+        }
+
         function showToast(text, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = text;
@@ -3992,17 +4186,29 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 const affordable = balanceBase >= c.price;
                 return `
-<div onclick="openCaseView('${c.id}')" class="bg-[#14171c] p-6 rounded-3xl border-2 border-yellow-400/25 hover:border-yellow-400 cursor-pointer transition-all group text-center shadow-lg relative overflow-hidden item-float ${glowClass}" style="animation-delay: ${idx * 60}ms;">
-    <div class="absolute inset-0 bg-yellow-400/5 group-hover:opacity-100 opacity-0 transition-opacity"></div>
-    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-32 object-contain group-hover:scale-110 transition-transform relative z-10 drop-shadow-xl mb-4">
-    <div class="font-black text-sm uppercase text-gray-300 relative z-10">${c.name}</div>
-    <div class="text-yellow-400 font-bold mt-1 relative z-10">${formatMoney(c.price)}</div>
+<div onclick="openCaseView('${c.id}')" class="bg-gradient-to-b from-[#171b25] to-[#12161f] px-5 pt-5 pb-6 min-h-[272px] rounded-[24px] border border-white/10 hover:border-yellow-300/55 cursor-pointer transition-all duration-300 group text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative overflow-hidden item-float dopamine-glow shine-sweep hover:scale-[1.03]" style="animation-delay: ${idx * 60}ms;">
+    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_50%_12%,rgba(250,204,21,0.16),transparent_52%)]"></div>
+    <div class="absolute left-4 right-4 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+    ${(c.price > 120 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-yellow-400/25 border border-yellow-300/45 text-yellow-200 font-black pulse-soft">Premium</div>' : (c.price > 50 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-pink-500/25 border border-pink-300/45 text-pink-200 font-black pulse-soft">Hot</div>' : ''))}
+    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-40 object-contain group-hover:scale-[1.08] transition-transform duration-300 relative z-10 drop-shadow-[0_14px_26px_rgba(0,0,0,0.55)] mb-4">
+    <div class="font-black text-[14px] uppercase text-gray-100 relative z-10 leading-tight tracking-wide">${c.name}</div>
+    <div class="inline-flex mt-2 px-3 py-1 rounded-full bg-yellow-400/12 border border-yellow-300/30 text-yellow-300 font-black text-[17px] relative z-10">${formatMoney(c.price)}</div>
 </div>
 `;
             };
 
             grid.innerHTML = groups.map(g => {
                 let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
+                if (casesCategoryFilter !== 'all') {
+                    items = items.filter((c) => {
+                        const p = Number(c.price || 0);
+                        if (casesCategoryFilter === 'featured') return p >= 45 || /legend|arcana|knife|dragon|quantum/i.test(c.name);
+                        if (casesCategoryFilter === 'regular') return p < 20;
+                        if (casesCategoryFilter === 'premium') return p >= 20 && p < 120;
+                        if (casesCategoryFilter === 'high-risk') return p >= 120 || /1%|risk|ultra|legendary/i.test(c.name);
+                        return true;
+                    });
+                }
                 if(casesAffordableOnly) items = items.filter(c => balanceBase >= c.price);
                 items = sortCases(items.slice());
                 if(items.length === 0) return '';
@@ -4479,7 +4685,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             // Currency selector handler
             const cur = document.getElementById('currency-select');
             if(cur) {
-                cur.addEventListener('change', updateUI);
+                cur.addEventListener('change', () => { updateUI(); renderCases(); renderInventory(); renderOwnPublicProfile(); });
             }
             const friendInput = document.getElementById('friend-search');
             if (friendInput) friendInput.addEventListener('input', () => searchUsers());

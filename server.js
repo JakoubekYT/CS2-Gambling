@@ -86,6 +86,43 @@ const giveawayStateSchema = new mongoose.Schema({
 
 const GiveawayState = mongoose.model('GiveawayState', giveawayStateSchema);
 
+
+const chatMessageSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nickname: { type: String, required: true },
+    text: { type: String, required: true, maxlength: 140 }
+  },
+  { timestamps: true }
+);
+chatMessageSchema.index({ createdAt: -1 });
+const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
+
+const battleRoomSchema = new mongoose.Schema(
+  {
+    roomId: { type: String, unique: true, index: true },
+    mode: { type: String, default: '1v1' },
+    rounds: { type: Number, default: 1 },
+    caseId: { type: String, default: '' },
+    caseName: { type: String, default: 'Case' },
+    casePrice: { type: Number, default: 0 },
+    contents: { type: Array, default: [] },
+    capacity: { type: Number, default: 2 },
+    status: { type: String, enum: ['waiting', 'done'], default: 'waiting' },
+    creatorId: { type: String, required: true },
+    creatorNickname: { type: String, default: 'Host' },
+    fillWithBots: { type: Boolean, default: false },
+    players: { type: Array, default: [] },
+    logs: { type: Array, default: [] },
+    winnerId: { type: String, default: null },
+    expiresAt: { type: Date, default: null }
+  },
+  { timestamps: true }
+);
+battleRoomSchema.index({ updatedAt: -1 });
+battleRoomSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+const BattleRoom = mongoose.model('BattleRoom', battleRoomSchema);
+
 const notificationsByUser = new Map();
 const NOTIFICATION_LIMIT = 120;
 const IMAGE_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
@@ -179,6 +216,48 @@ function mapServerError(err, fallback = 'Chyba serveru.') {
     return 'Nelze se připojit k databázi. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).';
   }
   return fallback;
+}
+
+
+function optionalAuth(req, _res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) return next();
+  req.user = null;
+  return next();
+}
+
+function escapeRegex(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\$&');
+}
+
+async function findUserByAdminIdentifier(rawIdentifier, fallbackEmail = '') {
+  const identifier = String(rawIdentifier || '').trim();
+  const fallback = String(fallbackEmail || '').trim().toLowerCase();
+
+  if (identifier) {
+    if (mongoose.isValidObjectId(identifier)) {
+      const byId = await User.findById(identifier);
+      if (byId) return byId;
+    }
+
+    const byEmail = await User.findOne({ email: identifier.toLowerCase() });
+    if (byEmail) return byEmail;
+
+    const escaped = escapeRegex(identifier);
+    const byNick = await User.findOne({
+      $or: [
+        { nickname: new RegExp(`^${escaped}$`, 'i') },
+        { displayName: new RegExp(`^${escaped}$`, 'i') },
+        { steamId: identifier }
+      ]
+    });
+    if (byNick) return byNick;
+  }
+
+  if (fallback) {
+    return User.findOne({ email: fallback });
+  }
+
+  return null;
 }
 
 function ensureAdmin(req, res, next) {
@@ -485,51 +564,48 @@ app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req,
   });
 });
 
+
 app.post('/api/admin/set-balance', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
-  const email = (req.body.email || '').toString().trim().toLowerCase();
+  const userIdentifier = (req.body.userIdentifier || req.body.email || '').toString().trim();
   const balance = Number(req.body.balance);
 
-  if (!email || !Number.isFinite(balance) || balance < 0) {
-    return res.status(400).json({ ok: false, message: 'Zadej email a balance >= 0.' });
+  if (!userIdentifier || !Number.isFinite(balance) || balance < 0) {
+    return res.status(400).json({ ok: false, message: 'Zadej userIdentifier/email a balance >= 0.' });
   }
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
-  }
+  const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
 
   user.balance = Math.round(balance * 100) / 100;
   await user.save();
-  return res.json({ ok: true, email: user.email, balance: user.balance });
+  return res.json({ ok: true, userId: user._id, email: user.email, balance: user.balance });
 });
 
 app.post('/api/admin/add-balance', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
-  const email = (req.body.email || '').toString().trim().toLowerCase();
+  const userIdentifier = (req.body.userIdentifier || req.body.email || '').toString().trim();
   const amount = Number(req.body.amount);
 
-  if (!email || !Number.isFinite(amount) || amount === 0) {
-    return res.status(400).json({ ok: false, message: 'Zadej email a amount (nenulové číslo).' });
+  if (!userIdentifier || !Number.isFinite(amount) || amount === 0) {
+    return res.status(400).json({ ok: false, message: 'Zadej userIdentifier/email a amount (nenulové číslo).' });
   }
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
-  }
+  const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
 
   user.balance = Math.max(0, Math.round((Number(user.balance || 0) + amount) * 100) / 100);
   await user.save();
   pushNotification(user._id, 'admin-balance', `Admin upravil zůstatek o ${amount} EUR. Nový stav: ${user.balance} EUR.`);
-  return res.json({ ok: true, email: user.email, balance: user.balance });
+  return res.json({ ok: true, userId: user._id, email: user.email, balance: user.balance });
 });
 
 
 app.post('/api/admin/inventory-edit', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
-  const email = (req.body.email || '').toString().trim().toLowerCase();
+  const userIdentifier = (req.body.userIdentifier || req.body.email || '').toString().trim();
   const mode = (req.body.mode || '').toString();
   const item = req.body.item && typeof req.body.item === 'object' ? req.body.item : null;
   const uid = (req.body.uid || '').toString();
 
-  const user = await User.findOne({ email });
+  const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
   if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
 
   if (!Array.isArray(user.inventory)) user.inventory = [];
@@ -545,7 +621,7 @@ app.post('/api/admin/inventory-edit', ensureDbReady, ensureAuth, ensureAdmin, as
 
   await user.save();
   pushNotification(user._id, 'admin-inventory', `Admin upravil tvůj inventář (${mode === 'add' ? 'přidal item' : 'odebral item'}).`);
-  return res.json({ ok: true, inventoryCount: user.inventory.length });
+  return res.json({ ok: true, userId: user._id, inventoryCount: user.inventory.length });
 });
 
 app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
@@ -734,7 +810,7 @@ async function resolveGiveawayRound(state, now, replacementSkin = null) {
   return state;
 }
 
-app.post('/api/giveaways/state', ensureDbReady, ensureAuth, async (req, res) => {
+app.post('/api/giveaways/state', ensureDbReady, optionalAuth, async (req, res) => {
   const now = Date.now();
   const tiers = Array.isArray(req.body?.tiers) ? req.body.tiers : [];
   const out = [];
@@ -760,7 +836,7 @@ app.post('/api/giveaways/state', ensureDbReady, ensureAuth, async (req, res) => 
       endsAt: st.endsAt,
       skin: st.skin,
       entriesCount: (st.entries || []).length,
-      myEntered: (st.entries || []).some((e) => String(e.userId) === String(req.user._id)),
+      myEntered: req.user ? (st.entries || []).some((e) => String(e.userId) === String(req.user._id)) : false,
       history: (st.history || []).slice(0, 3)
     });
   }
@@ -780,15 +856,10 @@ app.post('/api/giveaways/ticket', ensureDbReady, ensureAuth, async (req, res) =>
   return res.json({ ok: true, entriesCount: st.entries.length });
 });
 
+
 function battleCapacity(mode) {
   if (mode === '2v2' || mode === '1v1v1v1') return 4;
   return 2;
-}
-
-function cleanupBattleRoomIfEmpty(roomId) {
-  const room = battleRooms.get(String(roomId || ""));
-  if (!room) return;
-  if (!Array.isArray(room.players) || room.players.length === 0) battleRooms.delete(String(roomId));
 }
 
 function weightedRoll(contents) {
@@ -811,21 +882,22 @@ function weightedRoll(contents) {
   return { name: last.name || 'Skin', price: Number(last.price || 0), color: last.color || '#4b69ff', img: last.img || '' };
 }
 
+async function pruneBattleRooms(now = new Date()) {
+  await BattleRoom.deleteMany({ $or: [{ expiresAt: { $lte: now } }, { updatedAt: { $lt: new Date(now.getTime() - BATTLE_ROOM_TTL_MS) } }] });
+}
+
 app.get('/api/case-battle/rooms', ensureDbReady, async (_req, res) => {
-  const now = Date.now();
-  for (const [id, room] of battleRooms.entries()) {
-    if (now - room.updatedAt > BATTLE_ROOM_TTL_MS) battleRooms.delete(id);
-  }
-  const rooms = Array.from(battleRooms.values())
-    .filter((r) => r.status === 'waiting')
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 60);
-  return res.json({ ok: true, rooms });
+  const now = new Date();
+  await pruneBattleRooms(now);
+  const rooms = await BattleRoom.find({ status: 'waiting' }).sort({ updatedAt: -1 }).limit(60).lean();
+  return res.json({ ok: true, rooms: rooms.map((r) => ({ ...r, id: r.roomId })) });
 });
 
 app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) => {
-  const existing = Array.from(battleRooms.values()).find((r) => r.status === 'waiting' && String(r.creatorId) === String(req.user._id));
+  await pruneBattleRooms();
+  const existing = await BattleRoom.findOne({ status: 'waiting', creatorId: String(req.user._id) });
   if (existing) return res.status(400).json({ ok: false, message: 'Už máš otevřený battle. Nejprve ho dokonči nebo opusť.' });
+
   const mode = String(req.body?.mode || '1v1');
   const rounds = Math.max(1, Math.min(7, Number(req.body?.rounds || 1)));
   const caseId = String(req.body?.caseId || '');
@@ -833,8 +905,10 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
   const casePrice = Math.max(0, Number(req.body?.casePrice || 0));
   const contents = Array.isArray(req.body?.contents) ? req.body.contents.slice(0, 80) : [];
   const fillWithBots = Boolean(req.body?.fillWithBots);
-  const room = {
-    id: crypto.randomUUID(),
+
+  const roomId = crypto.randomUUID();
+  const room = await BattleRoom.create({
+    roomId,
     mode,
     rounds,
     caseId,
@@ -849,38 +923,46 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
     players: [{ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] }],
     logs: [],
     winnerId: null,
-    updatedAt: Date.now()
-  };
-  battleRooms.set(room.id, room);
-  return res.json({ ok: true, room });
+    expiresAt: new Date(Date.now() + BATTLE_ROOM_TTL_MS)
+  });
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId } });
 });
 
 app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res) => {
-  const room = battleRooms.get(String(req.params.id || ''));
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží.' });
+
   if (!room.players.some((p) => p.userId === String(req.user._id))) {
     if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
     room.players.push({ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] });
   }
-  room.updatedAt = Date.now();
-  return res.json({ ok: true, room });
+
+  room.updatedAt = new Date();
+  room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
+  await room.save();
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId } });
 });
 
-
 app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, res) => {
-  const roomId = String(req.params.id || '');
-  const room = battleRooms.get(roomId);
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.json({ ok: true, removed: true });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží nebo je dokončen.' });
+
   room.players = (room.players || []).filter((p) => String(p.userId) !== String(req.user._id));
-  room.updatedAt = Date.now();
-  cleanupBattleRoomIfEmpty(roomId);
-  return res.json({ ok: true, room: battleRooms.get(roomId) || null });
+  if (!room.players.length) {
+    await BattleRoom.deleteOne({ _id: room._id });
+    return res.json({ ok: true, room: null });
+  }
+
+  room.updatedAt = new Date();
+  room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
+  await room.save();
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId } });
 });
 
 app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, res) => {
-  const room = battleRooms.get(String(req.params.id || ''));
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
   if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Pouze zakladatel může spustit battle.' });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už byl spuštěn.' });
@@ -926,7 +1008,8 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
   const winner = [...room.players].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
   room.winnerId = winner?.userId || null;
   room.status = 'done';
-  room.updatedAt = Date.now();
+  room.updatedAt = new Date();
+  room.expiresAt = new Date(Date.now() + 30000);
 
   if (winner && !winner.bot) {
     const wu = await User.findById(winner.userId);
@@ -937,36 +1020,43 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
     }
   }
 
-  setTimeout(() => { battleRooms.delete(String(room.id)); }, 30000);
-  return res.json({ ok: true, room, fee });
+  await room.save();
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId }, fee });
 });
 
 app.get('/api/case-battle/room/:id', ensureDbReady, ensureAuth, async (req, res) => {
-  const room = battleRooms.get(String(req.params.id || ''));
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nebyla nalezena.' });
-  room.updatedAt = Date.now();
-  return res.json({ ok: true, room });
+  room.updatedAt = new Date();
+  if (room.status === 'waiting') room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
+  await room.save();
+  return res.json({ ok: true, room: { ...room.toObject(), id: room.roomId } });
 });
 
-app.get('/api/chat/messages', ensureDbReady, ensureAuth, (_req, res) => {
-  return res.json({ ok: true, messages: liveChatMessages });
+app.get('/api/chat/messages', ensureDbReady, optionalAuth, async (_req, res) => {
+  const docs = await ChatMessage.find({}).sort({ createdAt: -1 }).limit(LIVE_CHAT_MAX).lean();
+  return res.json({ ok: true, messages: docs.reverse().map((m) => ({ id: m._id, userId: String(m.userId), nickname: m.nickname, text: m.text, createdAt: m.createdAt })) });
 });
 
-app.post('/api/chat/messages', ensureDbReady, ensureAuth, (req, res) => {
+app.post('/api/chat/messages', ensureDbReady, ensureAuth, async (req, res) => {
   const text = (req.body.text || '').toString().trim().slice(0, 140);
   if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
 
-  liveChatMessages.push({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    userId: String(req.user._id),
+  await ChatMessage.create({
+    userId: req.user._id,
     nickname: req.user.nickname || req.user.displayName || 'user',
-    text,
-    createdAt: new Date().toISOString()
+    text
   });
-  if (liveChatMessages.length > LIVE_CHAT_MAX) liveChatMessages.splice(0, liveChatMessages.length - LIVE_CHAT_MAX);
+
+  const total = await ChatMessage.countDocuments();
+  if (total > LIVE_CHAT_MAX) {
+    const overflow = total - LIVE_CHAT_MAX;
+    const stale = await ChatMessage.find({}).sort({ createdAt: 1 }).limit(overflow).select('_id').lean();
+    if (stale.length) await ChatMessage.deleteMany({ _id: { $in: stale.map((d) => d._id) } });
+  }
+
   return res.json({ ok: true });
 });
-
 
 app.get('/api/trades/inbox', ensureDbReady, ensureAuth, async (req, res) => {
   const incoming = await Trade.find({ toUserId: req.user._id, status: 'pending' }).sort({ createdAt: -1 }).limit(30);
