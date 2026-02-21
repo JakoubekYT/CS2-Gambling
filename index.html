@@ -231,7 +231,7 @@
         <nav class="hidden lg:flex items-center gap-6">
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
-            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
+            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Free Cases</button>
             <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
         </nav>
         <div class="flex items-center gap-3">
@@ -299,8 +299,7 @@
                         <button id="tab-all" onclick="setCasesCategoryFilter('all')" class="px-3 py-2 text-xs font-black rounded-md bg-white/10 text-white">All</button>
                         <button id="tab-featured" onclick="setCasesCategoryFilter('featured')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Featured</button>
                         <button id="tab-regular" onclick="setCasesCategoryFilter('regular')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Regular</button>
-                        <button id="tab-creators" onclick="setCasesCategoryFilter('creators')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Our Creators</button>
-                        <button id="tab-cheap" onclick="setCasesCategoryFilter('cheap')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Cheap</button>
+                                                <button id="tab-cheap" onclick="setCasesCategoryFilter('cheap')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Cheap</button>
                         <button id="tab-premium" onclick="setCasesCategoryFilter('premium')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Premium</button>
                         <button id="tab-high-risk" onclick="setCasesCategoryFilter('high-risk')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">High Risk</button>
                     </div>
@@ -4854,7 +4853,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function setCasesCategoryFilter(category) {
             casesCategoryFilter = category;
-            ['all','featured','regular','creators','cheap','premium','high-risk'].forEach((key) => {
+            ['all','featured','regular','cheap','premium','high-risk'].forEach((key) => {
                 const el = document.getElementById(`tab-${key}`);
                 if (!el) return;
                 const active = key === category;
@@ -5011,7 +5010,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             const normalizeCategory = (c) => {
                 const source = String(c.category || '').toLowerCase();
                 if (source.includes('event')) return 'featured';
-                if (source.includes('creator')) return 'creators';
+                if (source.includes('creator')) return 'featured';
                 if (source.includes('premium')) return 'premium';
                 if (source.includes('risk')) return 'high-risk';
                 if (source.includes('regular')) return 'regular';
@@ -5031,7 +5030,6 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const normalized = normalizeCategory(c);
                 if (casesCategoryFilter === 'all') return true;
                 if (casesCategoryFilter === 'featured') return normalized === 'featured' || /event|hot|best|limited/i.test(c.name || '');
-                if (casesCategoryFilter === 'creators') return normalized === 'creators' || /creator|stream|klexa|pro/i.test(c.name || '');
                 if (casesCategoryFilter === 'cheap') return normalized === 'cheap';
                 if (casesCategoryFilter === 'regular') return normalized === 'regular';
                 if (casesCategoryFilter === 'premium') return normalized === 'premium';
@@ -5580,6 +5578,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
             if(modal) {
+                closeAuthModal();
                 modal.addEventListener('click', (e) => {
                     if(e.target === modal) closeAuthModal();
                 });
