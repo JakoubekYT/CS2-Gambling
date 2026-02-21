@@ -4521,12 +4521,18 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCreateBattleQueue();
             updateSelectorBottomBar();
         }
+        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
+        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function updateCbCaseCount(caseId, delta) {
             const cur = Number(cbSelectedCases.get(caseId) || 0);
             setCBBuilderCaseCount(caseId, cur + Number(delta || 0));
             renderCaseSelectorModal();
         }
+        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
+        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function changeCBBuilderCase(caseId, delta) {
             updateCbCaseCount(caseId, delta);
@@ -4817,6 +4823,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
                     track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px,0,0)`;
                 });
+                await Promise.all(spinPromises);
 
                 const lastStep = players.map(() => -1);
                 let rafId = 0;
@@ -4869,6 +4876,26 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             triggerEndgameSequence(room, liveScores);
             cbAnimationLock = false;
+        }
+
+        function patchCaseBattleRoom(room) {
+            const info = document.getElementById('cb-current-room');
+            const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
+            if (info) info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity}` : `Battle probíhá • ${room.players.length} hráčů`;
+            const totalValueEl = document.getElementById('cb-total-value');
+            if (totalValueEl) totalValueEl.textContent = formatMoney(Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || 1)));
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            const players = room.players || [];
+            const half = Math.ceil(players.length / 2);
+            if (t1) t1.textContent = formatMoney(players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0));
+            if (t2) t2.textContent = formatMoney(players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0));
+            players.forEach((pl, idx) => {
+                const scoreEl = document.getElementById(`cb-score-${idx}`);
+                if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
+            });
+            applyCaseBattleLeaderStyles(room);
+            applyCaseBattleResultStyles(room);
         }
 
         function renderCaseBattleRoom(room, animate = false) {
