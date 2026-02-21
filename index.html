@@ -406,115 +406,87 @@
                 <h2 class="text-3xl font-black uppercase">Giveaways (3 Tiers)</h2>
                 <div class="grid md:grid-cols-3 gap-4" id="giveaway-grid"></div>
             </section>
-            <section id="page-case-battle" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-3xl font-black uppercase text-white">Case Battle Online</h2>
-                </div>
-
-                <div id="cb-lobby-panel" class="space-y-4">
-                    <div class="bg-[#12161f] rounded-xl p-4 mb-4 flex flex-wrap items-center justify-between border border-white/10 gap-4 shadow-lg">
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <button class="cb-hub-tab active flex items-center gap-2" data-cb-list="active" onclick="setCaseBattleListTab('active')"><i data-lucide="timer" class="w-4 h-4"></i>Active</button>
-                            <button class="cb-hub-tab flex items-center gap-2" data-cb-list="mine" onclick="setCaseBattleListTab('mine')"><i data-lucide="swords" class="w-4 h-4"></i>My Battles</button>
-                            <div class="h-6 border-l border-white/10 mx-1"></div>
-                            <button class="cb-filter-chip active flex items-center gap-1 text-lime-300" data-cb-filter="classic" onclick="setCaseBattleFilter('classic')"><i data-lucide="flame" class="w-3.5 h-3.5"></i>Classic</button>
-                            <button class="cb-filter-chip flex items-center gap-1 text-purple-300" data-cb-filter="underdog" onclick="setCaseBattleFilter('underdog')"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>Underdog</button>
-                        </div>
-                        <button onclick="openCaseBattleBuilder()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all transform hover:scale-105">
-                            <i data-lucide="plus" class="w-4 h-4"></i>Create Battle
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 px-6 py-2 border-b border-white/5">
-                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">ROUNDS</div>
-                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">SCENARIO</div>
-                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">COST</div>
-                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">PLAYERS</div>
-                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">STATUS</div>
-                    </div>
-                    <div id="cb-open-rooms" class="flex flex-col gap-2"></div>
-                </div>
-
-                <div id="cb-room-panel" class="hidden flex-col bg-[#0b0d11] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                    <div class="px-4 py-3 bg-[#12161f] border-b border-white/10 flex items-center justify-between gap-3">
-                        <div class="shrink-0 px-4 py-2 rounded-xl border border-yellow-400/50 bg-yellow-400/10 text-yellow-300">
-                            <div class="text-[10px] uppercase font-black tracking-widest">Battle Rounds</div>
-                            <div id="cb-round-counter" class="text-xl font-black leading-none">1 of 1</div>
-                        </div>
-                        <div id="cb-case-queue" class="flex-1 overflow-x-auto whitespace-nowrap flex gap-2 pb-1 hide-scrollbar"></div>
-                        <div class="text-right shrink-0">
-                            <div class="text-[10px] uppercase text-gray-500 font-black tracking-widest">Battle Value</div>
-                            <div id="cb-total-value" class="text-yellow-400 font-black text-2xl drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">0.00 EUR</div>
-                        </div>
-                    </div>
-                    <div id="cb-room-teams" class="grid grid-cols-2 bg-[#0d1017] border-b border-white/5 relative"></div>
-                    <div id="cb-stage" class="grid gap-[2px] bg-[#1a1e29] p-[2px] w-full min-h-[500px]"></div>
-                </div>
-
-                <div id="cb-builder-modal" class="fixed inset-0 z-[150] hidden items-center justify-center bg-black/90 backdrop-blur-md p-4">
-                    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-2xl flex flex-col">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="text-2xl font-black uppercase text-white">Create Case Battle</div>
-                            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-black/30 border border-white/10 rounded-xl p-4"><div class="text-[10px] uppercase text-gray-400 font-black mb-3">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
-                            <div class="bg-black/30 border border-white/10 rounded-xl p-4"><div class="text-[10px] uppercase text-gray-400 font-black mb-3">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
-                            <div class="bg-black/30 border border-white/10 rounded-xl p-4"><div class="text-[10px] uppercase text-gray-400 font-black mb-3">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
-                            <div class="bg-black/30 border border-white/10 rounded-xl p-4"><div class="text-[10px] uppercase text-gray-400 font-black mb-3">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
-                        </div>
-                        <div class="bg-[#0d1017] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col">
-                            <div class="text-xs text-gray-400 font-bold uppercase mb-3">Battle Queue</div>
-                            <div class="flex gap-3 overflow-x-auto pb-2 items-center" id="cb-builder-queue"></div>
-                        </div>
-                        <div class="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-                            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-white">0</span></div>
-                            <div class="flex items-center gap-4">
-                                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-xl">0.00 EUR</div></div>
-                                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-8 py-3 rounded-lg text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)]">Create Battle</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-    <div id="cb-case-selector-modal" class="fixed inset-0 z-[999] bg-[#0b0d11]/95 backdrop-blur-md items-center justify-center p-4 hidden" style="display: none;">
-    <div class="w-full max-w-5xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-
-        <div class="px-5 pt-4 pb-3 border-b border-white/10 bg-[#0d1017]">
-            <div class="flex items-center justify-between">
-                <div class="text-xl font-black text-white uppercase tracking-wider">Select cases</div>
-                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-                <button class="px-4 py-2 rounded-lg bg-white/10 text-white text-xs font-black uppercase tracking-widest border border-white/20">All Cases</button>
-                <input id="cb-selector-search" type="text" placeholder="Search case..." oninput="renderCaseSelectorModal()" class="ml-auto bg-[#161a24] border border-white/10 rounded-lg px-4 py-2 text-xs text-white min-w-[200px] outline-none focus:border-yellow-400/50 transition-colors">
-            </div>
-        </div>
-
-        <div id="cb-selector-grid" class="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#0b0d11] custom-scroll"></div>
-
-        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div>
-                    <div id="cb-balance" class="text-yellow-300 font-black text-xl drop-shadow-md">0.00 EUR</div>
-                </div>
-                <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-lg rounded-xl px-16 py-3 shadow-[0_0_25px_rgba(192,242,12,0.25)] transition-all transform hover:scale-105 active:scale-95">
-                    Ready 0.00 EUR
-                </button>
-                <div class="text-right">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div>
-                    <div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl drop-shadow-md">0</div>
-                </div>
-            </div>
-        </div>
-
+            <section id="page-case-battle" class="page hidden max-w-[1400px] mx-auto space-y-6 fade-in">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-3xl font-black uppercase text-white drop-shadow-lg">Case Battle <span class="text-yellow-400">Online</span></h2>
     </div>
-</div>
+
+    <div id="cb-lobby-panel" class="space-y-4">
+        <div class="bg-[#12161f] rounded-xl p-4 flex flex-wrap items-center justify-between border border-white/10 gap-4 shadow-xl">
+            <div class="flex items-center gap-3 flex-wrap">
+                <button class="cb-hub-tab active flex items-center gap-2" data-cb-list="active" onclick="setCaseBattleListTab('active')"><i data-lucide="timer" class="w-4 h-4"></i>Active</button>
+                <button class="cb-hub-tab flex items-center gap-2" data-cb-list="mine" onclick="setCaseBattleListTab('mine')"><i data-lucide="swords" class="w-4 h-4"></i>My Battles</button>
+                <div class="h-6 border-l border-white/10 mx-1"></div>
+                <button class="cb-filter-chip active flex items-center gap-1 text-lime-300" data-cb-filter="classic" onclick="setCaseBattleFilter('classic')"><i data-lucide="flame" class="w-3.5 h-3.5"></i>Classic</button>
+                <button class="cb-filter-chip flex items-center gap-1 text-purple-300" data-cb-filter="underdog" onclick="setCaseBattleFilter('underdog')"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>Underdog</button>
+            </div>
+            <button onclick="openCaseBattleBuilder()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-8 py-3 rounded-lg shadow-[0_0_25px_rgba(192,242,12,0.25)] transition-all transform hover:scale-105 active:scale-95">
+                <i data-lucide="plus" class="w-5 h-5"></i>Create Battle
+            </button>
+        </div>
+        <div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 px-6 py-2 border-b border-white/5 bg-[#0b0d11]/50 rounded-t-xl mt-4">
+            <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center">Rounds</div>
+            <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Scenario</div>
+            <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Cost</div>
+            <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Players</div>
+            <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center">Action</div>
+        </div>
+        <div id="cb-open-rooms" class="flex flex-col gap-2 min-h-[300px]"></div>
+    </div>
+
+    <div id="cb-room-panel" class="hidden flex-col bg-[#0b0d11] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+        <div class="px-6 py-4 bg-[#12161f] border-b border-white/10 flex items-center justify-between gap-4" id="cb-room-header"></div>
+        <div id="cb-room-teams" class="grid grid-cols-2 bg-[#0d1017] border-b border-white/5 relative"></div>
+        <div id="cb-stage" class="grid gap-[2px] bg-[#1a1e29] p-[2px] min-h-[500px] w-full"></div>
+    </div>
 </section>
 
+<div id="cb-builder-modal" class="fixed inset-0 z-[150] bg-black/90 backdrop-blur-sm p-4 hidden items-center justify-center">
+    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
+            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
+        </div>
+        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
+            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
+            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
+        </div>
+        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
+            <div class="flex items-center gap-6">
+                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
+                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105 active:scale-95">Create Battle</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <section id="page-inventory" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
+<div id="cb-case-selector-modal" class="fixed inset-0 z-[200] bg-[#0b0d11]/95 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)]">
+        <div class="px-6 pt-5 pb-4 border-b border-white/10 bg-[#0d1017]">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-2xl font-black text-white uppercase tracking-widest">Select cases</div>
+                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <input id="cb-selector-search" type="text" placeholder="Search for cases..." oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white w-full max-w-sm outline-none focus:border-yellow-400/50">
+            </div>
+        </div>
+        <div id="cb-selector-grid" class="flex-1 overflow-y-auto px-6 py-6 bg-[#0b0d11] custom-scroll"></div>
+        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5 flex items-center justify-between">
+            <div><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div><div id="cb-balance" class="text-yellow-300 font-black text-xl">0.00 EUR</div></div>
+            <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-xl rounded-xl px-20 py-4 shadow-[0_0_30px_rgba(192,242,12,0.3)] transform hover:scale-105 transition-all">Ready 0.00 EUR</button>
+            <div class="text-right"><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div><div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl">0</div></div>
+        </div>
+    </div>
+</div>
+<section id="page-inventory" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6">
                     <div>
                         <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white">MŮJ <span class="text-yellow-400">INVENTÁŘ</span></h2>
@@ -4419,23 +4391,23 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbSelectedCases = new Map();
         // --- LOGIKA PŘEPÍNÁNÍ PANELŮ ---
         function cbSetPanels(inRoom) {
-            const lobbyPanel = document.getElementById('cb-lobby-panel');
-            const roomPanel = document.getElementById('cb-room-panel');
+    const lobbyPanel = document.getElementById('cb-lobby-panel');
+    const roomPanel = document.getElementById('cb-room-panel');
 
-            if (inRoom) {
-                if (lobbyPanel) lobbyPanel.classList.add('hidden');
-                if (roomPanel) {
-                    roomPanel.classList.remove('hidden');
-                    roomPanel.classList.add('flex');
-                }
-            } else {
-                if (lobbyPanel) lobbyPanel.classList.remove('hidden');
-                if (roomPanel) {
-                    roomPanel.classList.add('hidden');
-                    roomPanel.classList.remove('flex');
-                }
-            }
+    if (inRoom) {
+        if (lobbyPanel) lobbyPanel.classList.add('hidden');
+        if (roomPanel) {
+            roomPanel.classList.remove('hidden');
+            roomPanel.classList.add('flex');
         }
+    } else {
+        if (lobbyPanel) lobbyPanel.classList.remove('hidden');
+        if (roomPanel) {
+            roomPanel.classList.add('hidden');
+            roomPanel.classList.remove('flex');
+        }
+    }
+}
         function cbSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
         function cbAddLog(text) { const log = document.getElementById('cb-log'); if (!log) return; const row = document.createElement('div'); row.className='mb-1 text-gray-200'; row.textContent=text; log.appendChild(row); log.scrollTop=log.scrollHeight; }
 
@@ -4581,21 +4553,21 @@ Zeus x27|Charged Up|8.50|#8847ff
         function renderCaseSelector() { renderCaseSelectorModal(); }
         function renderCBBuilderQueue() { renderCreateBattleQueue(); }
         function openCaseSelectorModal() {
-            const modal = document.getElementById('cb-case-selector-modal');
-            if(modal) {
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex'; // DŮLEŽITÉ
-                renderCaseSelectorModal();
-            }
-        }
+    const modal = document.getElementById('cb-case-selector-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex'); // Musí být flex pro vycentrování
+        renderCaseSelectorModal();
+    }
+}
 
         function closeCaseSelectorModal() {
-            const modal = document.getElementById('cb-case-selector-modal');
-            if(modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none'; // DŮLEŽITÉ
-            }
-        }
+    const modal = document.getElementById('cb-case-selector-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {
@@ -4839,178 +4811,157 @@ Zeus x27|Charged Up|8.50|#8847ff
             lucide.createIcons();
         }
         function renderCaseBattleRoom(room, animate = false) {
-            if (cbAnimationLock) return; // Zákaz přepisování DOMu během točení
+    if (cbAnimationLock) return;
 
-            const header = document.getElementById('cb-room-header');
-            const teams = document.getElementById('cb-room-teams');
-            const stage = document.getElementById('cb-stage');
-            if (!room || !header || !teams || !stage) return;
+    const header = document.getElementById('cb-room-header');
+    const teams = document.getElementById('cb-room-teams');
+    const stage = document.getElementById('cb-stage');
+    if (!room || !header || !teams || !stage) return;
 
-            const totalRounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
-            const isDone = room?.status === 'done';
-            const isWaiting = room?.status === 'waiting';
-            const totalValue = Number(room?.casePrice || 0) * totalRounds * Math.max(2, Number(room?.capacity || 2));
+    const totalRounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
+    const isDone = room.status === 'done';
+    const isWaiting = room.status === 'waiting';
+    let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
 
-            // 1. TOP BAR
-            header.innerHTML = `
-                <div class="flex items-center gap-6">
-                    <div class="relative">
-                        <div class="absolute -inset-1 bg-yellow-400/20 blur rounded-lg"></div>
-                        <div class="relative bg-[#161a24] border border-yellow-400/40 rounded-lg px-5 py-2 text-center shadow-[0_0_15px_rgba(250,204,21,0.15)]">
-                            <div class="text-[10px] uppercase text-yellow-500 font-bold tracking-widest">Battle Rounds</div>
-                            <div class="text-xl font-black text-yellow-300 leading-none" id="cb-round-counter">${isDone ? 'FINISHED' : `1 of ${totalRounds}`}</div>
-                        </div>
+    header.innerHTML = `
+        <div class="flex items-center gap-6">
+            <div class="relative">
+                <div class="absolute -inset-1 bg-yellow-400/20 blur rounded-lg"></div>
+                <div class="relative bg-[#161a24] border border-yellow-400/40 rounded-lg px-6 py-3 text-center shadow-[0_0_15px_rgba(250,204,21,0.15)]">
+                    <div class="text-[10px] uppercase text-yellow-500 font-bold tracking-widest">Battle Rounds</div>
+                    <div class="text-2xl font-black text-yellow-300 leading-none mt-1" id="cb-round-counter">${isDone ? 'FINISHED' : `1 of ${totalRounds}`}</div>
+                </div>
+            </div>
+            <div class="flex gap-2 max-w-[400px] overflow-x-auto hide-scrollbar items-center px-2">
+                ${(room.caseQueue || [{caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG, casePrice: room.casePrice}]).slice(0, 10).map(q => `
+                    <div class="flex-shrink-0 text-center opacity-80 hover:opacity-100 transition-opacity">
+                        <img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-12 object-contain drop-shadow-md">
                     </div>
-                    <div class="flex gap-2 max-w-[300px] overflow-x-auto hide-scrollbar items-center">
-                        ${(room.caseQueue || [{ caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG, casePrice: room.casePrice }]).slice(0, 8).map((q) => `
-                            <div class="flex-shrink-0 text-center opacity-70">
-                                <img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-8 w-10 object-contain drop-shadow-md">
-                                <div class="text-[8px] text-gray-400 mt-1">${formatMoney(q.casePrice || room.casePrice)}</div>
-                            </div>
-                        `).join('')}
-                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="text-right">
+            <div class="text-[11px] uppercase text-gray-500 font-black tracking-widest">Total Value</div>
+            <div class="text-3xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.4)] mt-1" id="cb-total-value">${formatMoney(totalValue)}</div>
+        </div>
+    `;
+
+    let ctScore = 0; let tScore = 0;
+    (room.players || []).forEach((p, idx) => {
+        if (idx < Math.ceil((room.capacity || 2) / 2)) ctScore += Number(p.score || 0);
+        else tScore += Number(p.score || 0);
+    });
+
+    teams.innerHTML = `
+        <div class="p-4 flex justify-center items-center gap-4 border-r-2 border-[#1a1e29] ${ctScore > tScore ? 'bg-gradient-to-r from-blue-900/20 to-transparent' : ''}">
+            <div class="flex items-center gap-2 text-blue-400 font-black uppercase tracking-wider text-sm"><i data-lucide="shield" class="w-5 h-5"></i> Counter-Terrorist</div>
+            <div class="text-xl font-black ${ctScore > tScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(ctScore)} ${ctScore > tScore ? '↑' : ''}</div>
+        </div>
+        <div class="p-4 flex justify-center items-center gap-4 ${tScore > ctScore ? 'bg-gradient-to-l from-orange-900/20 to-transparent' : ''}">
+            <div class="text-xl font-black ${tScore > ctScore ? 'text-green-400' : 'text-gray-400'}">${tScore > ctScore ? '↑' : ''} ${formatMoney(tScore)}</div>
+            <div class="flex items-center gap-2 text-orange-400 font-black uppercase tracking-wider text-sm">Terrorist <i data-lucide="swords" class="w-5 h-5"></i></div>
+        </div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><div class="bg-[#12161f] border-2 border-green-500 text-green-400 text-xs font-black px-3 py-1.5 transform rotate-45 shadow-[0_0_20px_rgba(34,197,94,0.3)]"><div class="-rotate-45">VS</div></div></div>
+    `;
+
+    const colsCount = Math.max(2, Number(room.capacity || 2));
+    let gridColsClass = colsCount === 4 ? 'grid-cols-4' : (colsCount === 3 ? 'grid-cols-3' : 'grid-cols-2');
+    stage.className = `grid gap-[2px] bg-[#1a1e29] p-[2px] ${gridColsClass} min-h-[600px] w-full`;
+    let stageHtml = '';
+
+    for (let i = 0; i < colsCount; i++) {
+        const pl = room.players?.[i];
+
+        let topZoneHtml = '';
+        if (!pl) {
+            topZoneHtml = `
+            <div class="flex-1 flex flex-col items-center justify-center p-6 relative min-h-[250px] bg-[#12161f]">
+                <div class="absolute top-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
+                <div class="absolute top-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
+                <div class="absolute bottom-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
+                <div class="absolute bottom-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
+                <i data-lucide="loader-2" class="w-10 h-10 text-[#c0f20c] animate-spin mb-4"></i>
+                <div class="text-white font-black text-xl mb-6 tracking-widest uppercase">Waiting for Player</div>
+                <button onclick="fillCaseBattleBotSlot(${i})" class="bg-[#1a1e29] border border-white/10 hover:border-[#c0f20c] text-gray-300 hover:text-white text-xs font-black px-6 py-3 rounded-xl mb-3 transition-all flex items-center gap-2 shadow-lg">
+                    <i data-lucide="bot" class="w-4 h-4"></i> Play with bot
+                </button>
+            </div>`;
+        } else if (isWaiting) {
+            topZoneHtml = `
+            <div class="flex-1 flex flex-col items-center justify-center relative min-h-[250px] bg-gradient-to-b from-green-900/10 to-[#12161f]">
+                <div class="w-16 h-16 bg-[#c0f20c]/10 rounded-full flex items-center justify-center mb-4 ring-2 ring-[#c0f20c] shadow-[0_0_30px_rgba(192,242,12,0.2)]">
+                    <i data-lucide="check" class="w-8 h-8 text-[#c0f20c]"></i>
                 </div>
-                <div class="text-right">
-                    <div class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Battle Value</div>
-                    <div class="text-2xl font-black text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" id="cb-total-value">${formatMoney(totalValue)}</div>
+                <div class="text-[#c0f20c] font-black text-2xl mb-4 tracking-widest uppercase">Ready to Battle</div>
+            </div>`;
+        } else {
+            topZoneHtml = `
+            <div id="cb-spinner-box-${i}" class="relative h-56 w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/40 to-[#12161f] border-b-2 border-[#1a1e29] overflow-hidden flex flex-col justify-end pb-6">
+                <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-yellow-400 z-30 shadow-[0_0_20px_#facc15] transform -translate-x-1/2"></div>
+                <div id="cb-spin-track-${i}" class="absolute top-6 left-0 h-36 flex items-center will-change-transform z-20"></div>
+                <div id="cb-endgame-${i}" class="absolute inset-0 z-40 hidden flex-col items-center justify-center backdrop-blur-sm transition-all duration-500"></div>
+            </div>`;
+        }
+
+        let userInfoHtml = '';
+        if (pl) {
+            const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
+            userInfoHtml = `
+            <div class="px-5 py-4 flex items-center justify-between bg-[#161a24] border-y-2 border-[#1a1e29] z-50 shadow-md">
+                <div class="flex items-center gap-3 relative">
+                    <img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-lg border border-gray-600 object-cover shadow-lg">
+                    ${pl.bot ? '<div class="text-[9px] bg-gray-700 text-white px-1.5 rounded font-black absolute -bottom-2 -right-2 border border-[#161a24]">BOT</div>' : ''}
+                    <div class="text-sm font-black text-white truncate max-w-[120px]">${pl.nickname}</div>
                 </div>
-            `;
-
-            // 2. TEAMS
-            let ctScore = 0;
-            let tScore = 0;
-            (room.players || []).forEach((p, idx) => {
-                if (idx < Math.ceil(Math.max(2, Number(room?.capacity || 2)) / 2)) ctScore += Number(p?.score || 0);
-                else tScore += Number(p?.score || 0);
-            });
-
-            teams.innerHTML = `
-                <div class="p-4 flex justify-center items-center gap-4 border-r-2 border-[#1a1e29] ${ctScore > tScore ? 'bg-gradient-to-r from-blue-900/20 to-transparent' : ''}">
-                    <div class="flex items-center gap-2 text-blue-400 font-black uppercase tracking-wider text-sm"><i data-lucide="shield" class="w-5 h-5"></i> Counter-Terrorist</div>
-                    <div id="cb-team1-score" class="text-lg font-black ${ctScore > tScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(ctScore)} ${ctScore > tScore ? '↑' : ''}</div>
+                <div class="flex items-center gap-2">
+                    <i id="cb-crown-${i}" data-lucide="crown" class="w-5 h-5 text-yellow-400 hidden drop-shadow-[0_0_8px_#facc15]"></i>
+                    <div id="cb-score-${i}" class="text-lg font-black text-gray-300">${formatMoney(pl.score || 0)}</div>
                 </div>
-                <div class="p-4 flex justify-center items-center gap-4 ${tScore > ctScore ? 'bg-gradient-to-l from-orange-900/20 to-transparent' : ''}">
-                    <div id="cb-team2-score" class="text-lg font-black ${tScore > ctScore ? 'text-green-400' : 'text-gray-400'}">${tScore > ctScore ? '↑' : ''} ${formatMoney(tScore)}</div>
-                    <div class="flex items-center gap-2 text-orange-400 font-black uppercase tracking-wider text-sm">Terrorist <i data-lucide="swords" class="w-5 h-5"></i></div>
-                </div>
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><div class="bg-[#12161f] border-2 border-green-500/50 text-green-400 text-xs font-black px-2 py-1 transform rotate-45 shadow-[0_0_20px_rgba(34,197,94,0.2)]"><div class="-rotate-45">VS</div></div></div>
-            `;
+            </div>`;
+        } else {
+            userInfoHtml = `<div class="h-[72px] bg-[#161a24] border-y-2 border-[#1a1e29]"></div>`;
+        }
 
-            // --- 3. HRÁČI A SPINNERY (OPRAVENO) ---
-            const colsCount = Math.max(2, Number(room.capacity || 2));
-
-            // TAILWIND FIX: Třídy musí být vypsány explicitně, jinak je Tailwind nevygeneruje!
-            let gridColsClass = 'grid-cols-2';
-            if (colsCount === 3) gridColsClass = 'grid-cols-3';
-            if (colsCount === 4) gridColsClass = 'grid-cols-4';
-
-            stage.className = `grid gap-[2px] bg-[#1a1e29] p-[2px] ${gridColsClass} min-h-[500px] w-full`;
-
-            let stageHtml = '';
-            for (let i = 0; i < colsCount; i++) {
-                const pl = room.players?.[i];
-
-                // A. TOP ZONE (Waiting, Ready, or Spinning)
-                let topZoneHtml = '';
-                if (!pl) {
-                    // Prázdný slot - Čeká se na hráče (PIXEL PERFECT DESIGN)
-                    topZoneHtml = `
-                    <div class="flex-1 flex flex-col items-center justify-center p-6 relative min-h-[250px] bg-[#12161f]">
-                        <div class="absolute top-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
-                        <div class="absolute top-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
-                        <div class="absolute bottom-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
-                        <div class="absolute bottom-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
-                        <i data-lucide="loader-2" class="w-8 h-8 text-[#c0f20c] animate-spin mb-4"></i>
-                        <div class="text-white font-bold text-lg mb-6">Waiting for Player</div>
-                        <button onclick="fillCaseBattleBotSlot(${i})" class="bg-transparent border border-[#c0f20c] text-[#c0f20c] hover:bg-[#c0f20c] hover:text-black text-xs font-black px-6 py-2.5 rounded-lg mb-3 transition-all flex items-center gap-2">
-                            <i data-lucide="bot" class="w-4 h-4"></i> Play with random bot
-                        </button>
-                        <button class="text-[10px] text-[#c0f20c] font-bold hover:underline">Choose Bot</button>
-                    </div>`;
-                } else if (isWaiting) {
-                    // Obsazený slot - Připraven (PIXEL PERFECT DESIGN)
-                    topZoneHtml = `
-                    <div class="flex-1 flex flex-col items-center justify-center relative min-h-[250px] bg-gradient-to-b from-green-900/20 to-[#12161f]">
-                        <div class="w-14 h-14 bg-[#c0f20c]/20 rounded-full flex items-center justify-center mb-4 ring-2 ring-[#c0f20c]">
-                            <i data-lucide="check" class="w-8 h-8 text-[#c0f20c]"></i>
-                        </div>
-                        <div class="text-[#c0f20c] font-black text-xl mb-4">Ready to Battle</div>
-                    </div>`;
-                } else {
-                    // Hra běží - Spinner
-                    topZoneHtml = `
-                    <div id="cb-spinner-box-${i}" class="relative h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/40 to-[#12161f] border-b-2 border-[#1a1e29] overflow-hidden flex flex-col justify-end pb-4">
-                        <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-yellow-400 z-30 shadow-[0_0_15px_#facc15] transform -translate-x-1/2"></div>
-                        <div id="cb-spin-track-${i}" class="absolute top-4 left-0 h-28 flex items-center will-change-transform z-20"></div>
-                        <div id="cb-endgame-${i}" class="absolute inset-0 z-40 hidden flex-col items-center justify-center backdrop-blur-sm transition-all duration-500"></div>
-                    </div>`;
-                }
-
-                // B. USER INFO BAR
-                let userInfoHtml = '';
-                if (pl) {
-                    const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                    const isWinner = isDone && String(pl.userId) === String(room.winnerId);
-                    userInfoHtml = `
-                    <div class="px-4 py-3 flex items-center justify-between bg-[#161a24] border-y-2 border-[#1a1e29] z-50">
-                        <div class="flex items-center gap-2 relative">
-                            <img src="${avatar}" onerror="handleImgError(this)" class="w-8 h-8 rounded border border-gray-600 object-cover">
-                            ${pl.bot ? '<div class="text-[8px] bg-gray-700 text-white px-1 rounded font-black absolute -bottom-1 -right-1">BOT</div>' : ''}
-                            <div class="text-xs font-black text-gray-200 truncate max-w-[100px]">${pl.nickname}</div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i id="cb-crown-${i}" data-lucide="crown" class="w-4 h-4 text-yellow-400 hidden drop-shadow-[0_0_5px_#facc15]"></i>
-                            <div id="cb-score-${i}" class="text-sm font-black ${isWinner ? 'text-green-400' : 'text-gray-300'}">${formatMoney(pl.score || 0)}</div>
-                        </div>
-                    </div>`;
-                } else {
-                    // Prázdná lišta pro neobsazený slot
-                    userInfoHtml = `<div class="h-[52px] bg-[#161a24] border-y-2 border-[#1a1e29]"></div>`;
-                }
-
-                // C. HISTORY GRID (Vytvoří prázdné boxy dopředu)
-                let historyHtml = '';
-                for (let j = 0; j < totalRounds; j++) {
-                    const drop = pl?.drops?.[j];
-                    if (drop) {
-                        historyHtml += `
-                        <div class="bg-[#1a1e29] border-t-2 rounded-md p-2 text-center relative group shadow-lg" style="border-color: ${drop.color || '#4b69ff'}">
-                            <div class="absolute top-1 left-1 text-[8px] bg-black/60 px-1 rounded text-gray-300 font-black">${['FN','MW','FT','WW','BS'][Math.floor(Math.random()*5)]}</div>
-                            <img src="${drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 w-full object-contain mb-1 drop-shadow-md">
-                            <div class="text-[9px] truncate text-gray-400 font-bold">${drop.name}</div>
-                            <div class="text-[10px] text-yellow-400 font-black">${formatMoney(drop.price || 0)}</div>
-                        </div>`;
-                    } else {
-                        // Prázdný placeholder box
-                        historyHtml += `<div class="bg-[#161a24] border border-white/5 rounded-md h-[100px]"></div>`;
-                    }
-                }
-
-                // D. KOMPLETACE SLOUPCE
-                stageHtml += `
-                <div id="cb-player-col-${i}" class="bg-[#12161f] flex flex-col h-full relative">
-                    ${topZoneHtml}
-                    ${userInfoHtml}
-                    <div class="flex-1 p-3 overflow-y-auto">
-                        <div id="cb-history-${i}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
-                            ${historyHtml}
-                        </div>
-                    </div>
+        let historyHtml = '';
+        for (let j = 0; j < totalRounds; j++) {
+            const drop = pl?.drops?.[j];
+            if (drop) {
+                historyHtml += `
+                <div class="bg-[#1a1e29] border-t-[3px] rounded-lg p-3 text-center relative shadow-lg" style="border-top-color: ${drop.color || '#4b69ff'}">
+                    <div class="absolute top-1.5 left-1.5 text-[9px] bg-black/60 px-1.5 rounded text-gray-300 font-black">${['FN','MW','FT','WW','BS'][Math.floor(Math.random()*5)]}</div>
+                    <img src="${drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain mb-2 drop-shadow-md">
+                    <div class="text-[10px] truncate text-gray-400 font-bold uppercase">${drop.name}</div>
+                    <div class="text-xs text-yellow-400 font-black mt-1">${formatMoney(drop.price || 0)}</div>
                 </div>`;
-            }
-
-            stage.innerHTML = stageHtml;
-            lucide.createIcons();
-            updateBattleLeaders(room);
-
-            const signature = cbRoomSignature(room);
-            if (!isWaiting && signature !== cbLastAnimatedSignature) {
-                cbLastAnimatedSignature = signature;
-                animateCaseBattleRounds(room);
-            } else if (isDone) {
-                triggerEndgameSequence(room, (room.players || []).map((p) => Number(p?.score || 0)));
+            } else {
+                historyHtml += `<div class="bg-[#161a24] border border-white/5 rounded-lg h-[116px]"></div>`;
             }
         }
+
+        stageHtml += `
+        <div id="cb-player-col-${i}" class="bg-[#12161f] flex flex-col h-full relative">
+            ${topZoneHtml}
+            ${userInfoHtml}
+            <div class="flex-1 p-4 overflow-y-auto bg-[#0d1017]">
+                <div id="cb-history-${i}" class="grid grid-cols-2 lg:grid-cols-3 gap-3 content-start">
+                    ${historyHtml}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    stage.innerHTML = stageHtml;
+    lucide.createIcons();
+    updateBattleLeaders(room);
+
+    const signature = cbRoomSignature(room);
+    if (!isWaiting && signature !== cbLastAnimatedSignature) {
+        cbLastAnimatedSignature = signature;
+        animateCaseBattleRounds(room);
+    } else if (isDone) {
+        triggerEndgameSequence(room, (room.players || []).map((p) => Number(p?.score || 0)));
+    }
+}
 
 
         async function animateCaseBattleRounds(room) {
