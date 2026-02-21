@@ -22,58 +22,19 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
-        .live-drop-scroll { display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; min-height: 100%; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
-        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        
+        .live-drop-scroll { display: flex; align-items: center; gap: 0.5rem; min-height: 100%; width: 100%; }
+        @keyframes dropIn {
+            0% { transform: translateY(-30px) scale(0.9); opacity: 0; margin-left: -100px; }
+            50% { margin-left: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; margin-left: 0; }
+        }
+        .animate-drop-in {
+            animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
         .live-drop-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            padding: 0.35rem 0.45rem 0.3rem;
-            background: #1a1a24;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.06);
-            min-width: 98px;
-            width: 98px;
-            height: 76px;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
         }
-        .live-drop-tooltip {
-            position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
-            background: rgba(10,12,18,0.72);
-            border: 1px solid rgba(250,204,21,0.35); padding: 6px 8px; border-radius: 9999px; min-width: 0; text-align: center; z-index: 200;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4); display: none; pointer-events: none; backdrop-filter: blur(2px);
-        }
-        .live-drop-tooltip.visible { display: block; }
-        .live-drop-tooltip .tp-row { display:flex; gap:8px; align-items:center; }
-        .live-drop-tooltip .tp-avatar { width:48px; height:48px; border-radius:9999px; overflow:hidden; border:2px solid rgba(255,255,255,0.04); }
-        .live-drop-tooltip .tp-name { font-weight:800; color:#facc15; font-size:13px; }
-        .live-drop-tooltip .tp-when { font-size:12px; color:#cbd5e1; }
-        .live-drop-item::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 3px;
-            background: var(--drop-rarity-color, var(--rarity-blue));
-            box-shadow: 0 -4px 12px color-mix(in srgb, var(--drop-rarity-color, var(--rarity-blue)) 50%, transparent);
-        }
-        .live-drop-item:hover {
-            transform: translateY(-1px);
-            border-color: rgba(255,255,255,0.2);
-            background: #1f2230;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.45);
-        }
-        .live-drop-item img { max-height: 34px; max-width: 82px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.55)); }
-        .live-drop-item-name { font-size: 10px; font-weight: 600; color: #b8bfcb; text-align: center; line-height: 1.1; max-width: 88px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
+
         @keyframes dropPulse {
             0%, 100% { opacity: 0.92; }
             50% { opacity: 1; }
@@ -242,10 +203,23 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-12 bg-[#0b0d11] border-b border-white/5 flex items-center overflow-hidden z-40">
-        <div class="px-4 text-[10px] font-black uppercase tracking-[0.22em] text-gray-400 shrink-0">Live Drops</div>
-        <div class="flex-1 overflow-hidden h-full">
-            <div id="live-drops" class="flex items-center gap-2 h-full live-drop-scroll px-2"></div>
+    <div class="h-16 bg-[#0b0d11] border-b border-white/5 flex items-stretch z-40 relative shadow-md overflow-hidden">
+        <div class="flex-shrink-0 bg-[#12161f] border-r border-white/5 px-6 flex flex-col justify-center relative z-10 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_#facc15]"></div>
+                <span class="text-yellow-400 font-black text-[10px] uppercase tracking-[0.2em]">Live Drops</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="relative flex h-1.5 w-1.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                </span>
+                <span id="live-online-counter" class="text-gray-400 font-bold text-[9px] uppercase tracking-wider">1,687 Online</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-hidden relative flex items-center">
+            <div id="live-drops" class="flex items-center gap-2 px-4 w-full h-full"></div>
         </div>
     </div>
 
@@ -5621,123 +5595,87 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
+        let liveDropsAddTimer = null;
+        let liveDropsOnlineTimer = null;
+        let liveDropsSkinsPool = [];
+
+        function addRandomDrop() {
+            const dropsContainer = document.getElementById('live-drops');
+            if (!dropsContainer || !liveDropsSkinsPool.length) return;
+
+            const randomSkin = liveDropsSkinsPool[Math.floor(Math.random() * liveDropsSkinsPool.length)];
+            const item = document.createElement('div');
+            item.className = 'live-drop-item animate-drop-in flex-shrink-0 w-32 h-[85%] rounded-lg border border-white/5 relative overflow-hidden group cursor-pointer hover:-translate-y-1 hover:border-white/20';
+            item.style.background = `radial-gradient(circle at top, ${(randomSkin.color || '#4b69ff')}33 0%, #12161f 80%)`;
+            item.style.borderBottom = `2px solid ${randomSkin.color || '#4b69ff'}`;
+
+            item.innerHTML = `
+                <div class="absolute top-1 right-1 text-[8px] font-black text-white/50 z-10">${formatMoney(randomSkin.price || 0)}</div>
+                <div class="h-full flex flex-col items-center justify-center p-2 relative z-20">
+                    <img src="${randomSkin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform">
+                    <div class="text-[9px] text-gray-300 font-bold uppercase truncate w-full text-center mt-1">${randomSkin.name || 'Skin'}</div>
+                </div>
+            `;
+
+            const matchingCase = casesDB.find((c) => (c.contents || []).some((x) => String(x.skin?.id || '') === String(randomSkin.id || '')));
+            if (matchingCase?.id) {
+                item.addEventListener('click', () => openCaseView(matchingCase.id));
+            }
+
+            dropsContainer.prepend(item);
+            while (dropsContainer.children.length > 25) {
+                dropsContainer.lastChild.remove();
+            }
+        }
+
         function initializeLiveDrops() {
             const dropsContainer = document.getElementById('live-drops');
-            if(!dropsContainer) return;
-            dropsContainer.style.animation = 'none';
-            const tickerWrap = dropsContainer.parentElement;
-            const skinList = Object.values(skinsDB);
-            const cheapPool = skinList.filter(s => s.price <= 15);
-            const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
-            const expensivePool = skinList.filter(s => s.price > 120 && s.price <= 700);
-            const ultraPool = skinList.filter(s => s.price > 700 || KNIFE_TYPES.includes(s.weapon) || GLOVE_TYPES.includes(s.weapon));
+            if (!dropsContainer) return;
 
-            function pickWeightedLiveSkin() {
-                const roll = Math.random() * 100;
-                let pool = cheapPool;
-                // Realističtější feed: drtivá většina dropů je levná, drahé/nože jsou vzácné
-                if(roll < 82) pool = cheapPool;
-                else if(roll < 95) pool = midPool.length ? midPool : cheapPool;
-                else if(roll < 99.2) pool = expensivePool.length ? expensivePool : (midPool.length ? midPool : cheapPool);
-                else pool = ultraPool.length ? ultraPool : (expensivePool.length ? expensivePool : cheapPool);
-                return pool[Math.floor(Math.random() * pool.length)] || skinList[Math.floor(Math.random() * skinList.length)];
+            if (liveDropsAddTimer) {
+                clearInterval(liveDropsAddTimer);
+                liveDropsAddTimer = null;
             }
-            let lastSkinId = null;
-            let offsetX = 0;
-            let paused = false;
+            if (liveDropsOnlineTimer) {
+                clearInterval(liveDropsOnlineTimer);
+                liveDropsOnlineTimer = null;
+            }
 
-            function addRandomDrop() {
-                if(skinList.length === 0) return;
-                let attempts = 0;
-                let randomSkin = pickWeightedLiveSkin();
-                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
-                    randomSkin = pickWeightedLiveSkin();
-                    attempts++;
+            dropsContainer.innerHTML = '';
+            liveDropsSkinsPool = [];
+            for (const c of casesDB) {
+                for (const it of (c.contents || [])) {
+                    if (it?.skin) liveDropsSkinsPool.push(it.skin);
                 }
-                lastSkinId = randomSkin.id;
-
-                const matchingCases = casesDB.filter((c) => (c.contents || []).some((x) => x.skin?.id === randomSkin.id));
-                const sourceCase = matchingCases.length ? matchingCases[Math.floor(Math.random() * matchingCases.length)] : null;
-                const item = document.createElement('div');
-                item.className = 'live-drop-item';
-                item.style.setProperty('--drop-rarity-color', randomSkin.color || '#4b69ff');
-                item.title = `${randomSkin.name} • ${sourceCase?.name || 'Upgrade'}`;
-
-                const img = document.createElement('img');
-                img.loading = 'eager';
-                img.decoding = 'async';
-                img.src = randomSkin.img;
-                img.alt = randomSkin.name;
-                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
-                img.onerror = handleImgError;
-
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'live-drop-item-name';
-                nameDiv.textContent = randomSkin.name;
-
-                const tooltip = document.createElement('div');
-                tooltip.className = 'live-drop-tooltip';
-                tooltip.innerHTML = `<div class="text-[11px] text-yellow-300 font-black uppercase tracking-wide">→ ${sourceCase?.name ? 'Otevřít bednu' : 'Do upgraderu'}</div>`;
-
-                item.appendChild(img);
-                item.appendChild(nameDiv);
-                item.appendChild(tooltip);
-
-                item.addEventListener('mouseenter', () => { tooltip.classList.add('visible'); item.style.zIndex = '100'; });
-                item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); else { switchPage('upgrade'); showToast('Skin není v bedně, otevřen upgrade.'); } });
-                item.addEventListener('mouseleave', () => { tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
-
-                dropsContainer.appendChild(item);
-                if(dropsContainer.children.length > 140) dropsContainer.removeChild(dropsContainer.lastChild);
             }
 
-            for(let i=0;i<26;i++) addRandomDrop();
-            setTimeout(() => { for(let i=0;i<10;i++) addRandomDrop(); }, 300);
-            setInterval(addRandomDrop, 1200);
-            setInterval(() => {
-                if(dropsContainer.children.length < 6) {
-                    for(let i=0;i<12;i++) addRandomDrop();
-                }
-            }, 4000);
-
-            let lastTs = performance.now();
-            const speed = 28;
-            const gapPx = (() => { const g = parseFloat(getComputedStyle(dropsContainer).gap || getComputedStyle(dropsContainer).columnGap || "12"); return Number.isFinite(g) ? g : 12; })();
-            function getItemWidth(el) {
-                if(!el) return 0;
-                return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;
-            }
-            function animate(ts) {
-                const dt = Math.min(0.05, (ts - lastTs) / 1000);
-                lastTs = ts;
-                if(!paused) {
-                    offsetX -= speed * dt;
-                    let first = dropsContainer.firstElementChild;
-                    let firstWidth = getItemWidth(first);
-                    let moveCount = 0;
-                    const rotate = [];
-                    while(first && firstWidth > 0 && -offsetX >= firstWidth && moveCount < 5) {
-                        offsetX += firstWidth;
-                        rotate.push(first);
-                        first = first.nextElementSibling;
-                        firstWidth = getItemWidth(first);
-                        moveCount += 1;
-                    }
-                    if (rotate.length) {
-                        const frag = document.createDocumentFragment();
-                        rotate.forEach((el) => frag.appendChild(el));
-                        dropsContainer.appendChild(frag);
-                    }
-                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
-                }
-                requestAnimationFrame(animate);
+            if (!liveDropsSkinsPool.length) {
+                liveDropsSkinsPool = [{
+                    id: 'fallback-live-skin',
+                    name: 'Fallback Skin',
+                    img: FALLBACK_IMG,
+                    price: 0,
+                    color: '#4b69ff'
+                }];
             }
 
-            if (tickerWrap) {
-                tickerWrap.addEventListener('mouseenter', () => { paused = true; });
-                tickerWrap.addEventListener('mouseleave', () => { paused = false; });
+            for (let i = 0; i < 12; i += 1) {
+                addRandomDrop();
             }
-            requestAnimationFrame(animate);
+
+            const onlineCounter = document.getElementById('live-online-counter');
+            let online = Number((document.getElementById('online-count')?.textContent || '1687').replace(/\D/g, '')) || 1687;
+            if (onlineCounter) onlineCounter.textContent = `${online.toLocaleString('en-US')} Online`;
+
+            liveDropsAddTimer = setInterval(() => {
+                addRandomDrop();
+            }, 2300);
+
+            liveDropsOnlineTimer = setInterval(() => {
+                const delta = Math.floor(Math.random() * 25) - 12;
+                online = Math.max(1200, online + delta);
+                if (onlineCounter) onlineCounter.textContent = `${online.toLocaleString('en-US')} Online`;
+            }, 5000);
         }
 
         function renderChatMessage(container, msg, mine = false) {
