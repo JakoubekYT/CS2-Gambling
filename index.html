@@ -574,52 +574,6 @@
         Akce úspěšná!
     </div>
 
-    <div id="cb-builder-modal" class="fixed inset-0 z-[9990] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh]">
-        <div class="flex items-center justify-between mb-4">
-            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
-            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
-        </div>
-        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
-            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
-            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
-        </div>
-        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
-            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
-            <div class="flex items-center gap-6">
-                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
-                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105 active:scale-95">Create Battle</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="cb-case-selector-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#0b0d11]/95 backdrop-blur-md p-4">
-    <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)]">
-        <div class="px-6 pt-5 pb-4 border-b border-white/10 bg-[#0d1017]">
-            <div class="flex items-center justify-between mb-4">
-                <div class="text-2xl font-black text-white uppercase tracking-widest">Select cases</div>
-                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <input id="cb-selector-search" type="text" placeholder="Search for cases..." oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white w-full max-w-sm outline-none focus:border-yellow-400/50">
-            </div>
-        </div>
-        <div id="cb-selector-grid" class="flex-1 overflow-y-auto px-6 py-6 bg-[#0b0d11] custom-scroll"></div>
-        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5 flex items-center justify-between">
-            <div><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div><div id="cb-balance" class="text-yellow-300 font-black text-xl">0.00 EUR</div></div>
-            <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-xl rounded-xl px-20 py-4 shadow-[0_0_30px_rgba(192,242,12,0.3)] transform hover:scale-105 transition-all">Ready 0.00 EUR</button>
-            <div class="text-right"><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div><div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl">0</div></div>
-        </div>
-    </div>
-</div>
-
 
 <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
@@ -2607,231 +2561,181 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
             );
 
-            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
-            // Manual tailored loadouts for newly added cases (no generic generator output)
+            // --- TVRDÁ DEFINICE BEDEN (HARDCODED) ---
             const manualCaseIds = new Set();
-            const manualCaseMeta = {
-                'coinflip': { name: '50/50 Profit', price: 50.00, color: 'red', img: findSkin('AWP', 'Crakow!')?.img || FALLBACK_IMG },
-                'covert': { name: 'Covert Dreams', price: 13.00, color: 'red', img: findSkin('Desert Eagle', 'Code Red')?.img || FALLBACK_IMG },
-                'trash-or-knife': { name: '1% KNIFE Risk', price: 25.00, color: 'yellow-400', img: findSkin('M9 Bayonet', 'Autotronic')?.img || FALLBACK_IMG },
-                'demolition': { name: 'DEMOLITION', price: 11.00, color: 'red', img: findSkin('AWP', 'The Prince')?.img || FALLBACK_IMG },
-                'vac-attack': { name: 'VAC ATTACK', price: 85.00, color: 'red', img: findSkin('Karambit', 'Fade')?.img || FALLBACK_IMG },
-                'electronic': { name: 'ELECTRONIC', price: 33.00, color: 'purple', img: findSkin('M9 Bayonet', 'Autotronic')?.img || FALLBACK_IMG },
-                'juice-20': { name: '20 JUICE', price: 150.00, color: 'blue', img: findSkin('Desert Eagle', 'Fennec Fox')?.img || FALLBACK_IMG },
-                'wpn-p90': { name: 'P90', price: 0.90, color: 'blue', img: findSkin('P90', 'Death by Kitty')?.img || FALLBACK_IMG },
-                'wpn-deagle': { name: 'DESERT EAGLE', price: 1.50, color: 'purple', img: findSkin('Desert Eagle', 'Fennec Fox')?.img || FALLBACK_IMG },
-                'wpn-usps': { name: 'USP-S', price: 1.65, color: 'purple', img: findSkin('USP-S', 'Kill Confirmed')?.img || FALLBACK_IMG },
-                'wpn-m4a4': { name: 'M4A4', price: 2.75, color: 'purple', img: findSkin('M4A4', 'Howl')?.img || FALLBACK_IMG },
-                'wpn-ak47': { name: 'AK-47', price: 6.00, color: 'pink', img: findSkin('AK-47', 'Leet Museo')?.img || FALLBACK_IMG },
-                'wpn-awp': { name: 'AWP', price: 10.00, color: 'red', img: findSkin('AWP', 'Dragon Lore')?.img || FALLBACK_IMG },
-                'rarity-covert': { name: 'COVERT', price: 13.00, color: 'red', img: findSkin('Desert Eagle', 'Code Red')?.img || FALLBACK_IMG }
-            };
-            const setManualCaseContents = (caseId, rows) => {
-                const meta = manualCaseMeta[caseId] || {};
+            const setManualCaseContents = (caseId, rows, meta) => {
                 let c = casesDB.find((x) => x.id === caseId);
                 if (!c) {
-                    c = {
-                        id: caseId,
-                        name: meta.name || caseId.toUpperCase(),
-                        price: Number(meta.price || 1),
-                        color: meta.color || 'blue',
-                        img: meta.img || FALLBACK_IMG,
-                        contents: []
-                    };
+                    c = { id: caseId, name: meta.name || caseId.toUpperCase(), price: Number(meta.price || 1), color: meta.color || 'blue', img: meta.img || FALLBACK_IMG, contents: [] };
                     casesDB.push(c);
                 }
-                if (!Array.isArray(rows) || !rows.length) return;
-                const parsed = rows
-                    .map(([w, n, ch]) => ({ skin: findSkin(w, n), chance: Number(ch || 0) }))
-                    .filter((x) => x.skin && x.chance > 0);
-                if (!parsed.length) return;
+                const parsed = rows.map(([w, n, ch]) => ({ skin: findSkin(w, n), chance: Number(ch || 0) })).filter((x) => x.skin && x.chance > 0);
                 const total = parsed.reduce((a, b) => a + b.chance, 0);
-                const scaled = parsed.map((x) => ({ ...x, chance: (x.chance / total) * 100 }));
-                const rounded = scaled.map((x) => ({ ...x, chance: Math.round(x.chance * 100000) / 100000 }));
-                const diff = Math.round((100 - rounded.reduce((a, b) => a + b.chance, 0)) * 100000) / 100000;
-                rounded[rounded.length - 1].chance = Math.max(0.00001, Math.round((rounded[rounded.length - 1].chance + diff) * 100000) / 100000);
-                c.contents = rounded;
+                // Vložení do bedny se zaokrouhlenými %
+                c.contents = parsed.map((x) => ({ ...x, chance: Math.round((x.chance / total) * 100 * 1000) / 1000 }));
                 manualCaseIds.add(caseId);
             };
 
-            setManualCaseContents('coinflip', [
-                ['P250', 'Sand Dune', 50.0],
-                ['AWP', 'Crakow!', 50.0]
-            ]);
+            setTimeout(() => {
+                // 1% KNIFE
+                setManualCaseContents('trash-or-knife', [
+                    ['P250', 'Sand Dune', 50.0],
+                    ['G3SG1', 'Safari Mesh', 49.0],
+                    ['M9 Bayonet', 'Autotronic', 1.0] // 1% přesně, cover image
+                ], { name: '1% KNIFE Risk', price: 25.00, color: 'yellow-400', img: findSkin('M9 Bayonet', 'Autotronic').img });
 
-            setManualCaseContents('covert', [
-                ['AK-47', 'Bloodsport', 60.0],
-                ['M4A4', 'Neo-Noir', 25.0],
-                ['USP-S', 'Kill Confirmed', 10.0],
-                ['AWP', 'Asiimov', 4.5],
-                ['Desert Eagle', 'Code Red', 0.5]
-            ]);
+                // COINFLIP (50/50)
+                setManualCaseContents('coinflip', [
+                    ['P250', 'Sand Dune', 50.0],
+                    ['AWP', 'Crakow!', 50.0]
+                ], { name: '50/50 Profit', price: 50.00, color: 'red', img: findSkin('AWP', 'Crakow!').img });
 
-            setManualCaseContents('trash-or-knife', [
-                ['P250', 'Sand Dune', 50.0],
-                ['G3SG1', 'Safari Mesh', 49.0],
-                ['M9 Bayonet', 'Autotronic', 1.0]
-            ]);
+                // DEMOLITION
+                setManualCaseContents('demolition', [
+                    ['Glock-18', 'Catacombs', 45.0],
+                    ['AK-47', 'Redline', 35.0],
+                    ['AWP', 'Asiimov', 19.5],
+                    ['AWP', 'The Prince', 0.5] // Nejdražší, Cover
+                ], { name: 'DEMOLITION', price: 11.00, color: 'red', img: findSkin('AWP', 'The Prince').img });
 
-            setManualCaseContents('demolition', [
-                ['P250', 'Sand Dune', 45.0],
-                ['Glock-18', 'Catacombs', 30.0],
-                ['AK-47', 'Redline', 20.0],
-                ['AWP', 'Asiimov', 4.5],
-                ['AWP', 'The Prince', 0.5]
-            ]);
+                // PRINTSTREAM ONLY
+                setManualCaseContents('printstream-only', [
+                    ['Desert Eagle', 'Printstream', 60.0],
+                    ['USP-S', 'Printstream', 35.0],
+                    ['M4A1-S', 'Printstream', 5.0] // Nejdražší, Cover
+                ], { name: 'PRINTSTREAM', price: 25.00, color: 'red', img: findSkin('M4A1-S', 'Printstream').img });
 
-            setManualCaseContents('vac-attack', [
-                ['AWP', 'Atheris', 45.0],
-                ['M4A4', 'Hellfire', 35.0],
-                ['AK-47', 'Bloodsport', 15.0],
-                ['AWP', 'Dragon Lore', 4.5],
-                ['Karambit', 'Fade', 0.5]
-            ]);
+                // COVERT (Only red)
+                setManualCaseContents('covert', [
+                    ['AK-47', 'Bloodsport', 45.0],
+                    ['M4A4', 'Neo-Noir', 35.0],
+                    ['USP-S', 'Kill Confirmed', 15.0],
+                    ['AWP', 'Asiimov', 4.5],
+                    ['Desert Eagle', 'Code Red', 0.5] // Vše Covert
+                ], { name: 'Covert Dreams', price: 100.00, color: 'red', img: findSkin('Desert Eagle', 'Code Red').img });
 
-            setManualCaseContents('electronic', [
-                ['MAC-10', 'Disco Tech', 45.0],
-                ['UMP-45', 'Scaffold', 35.0],
-                ['M4A1-S', 'Icarus Fell', 15.0],
-                ['Karambit', 'Doppler Phase 3', 4.5],
-                ['M9 Bayonet', 'Autotronic', 0.5]
-            ]);
+                // ELECTRONIC
+                setManualCaseContents('electronic', [
+                    ['MAC-10', 'Disco Tech', 45.0],
+                    ['UMP-45', 'Scaffold', 35.0],
+                    ['M4A1-S', 'Icarus Fell', 19.5],
+                    ['M9 Bayonet', 'Autotronic', 0.5] // Cover image
+                ], { name: 'ELECTRONIC', price: 33.00, color: 'purple', img: findSkin('M9 Bayonet', 'Autotronic').img });
 
-            setManualCaseContents('juice-20', [
-                ['P250', 'Sand Dune', 50.0],
-                ['Glock-18', 'Water Elemental', 30.0],
-                ['Desert Eagle', 'Fennec Fox', 20.0]
-            ]);
+                // PLANT B
+                setManualCaseContents('plant-b', [
+                    ['UMP-45', 'Primal Saber', 50.0],
+                    ['MAC-10', 'Neon Rider', 30.0],
+                    ['M4A4', 'Hellfire', 19.5],
+                    ['M4A1-S', 'Hot Rod', 0.5] // Nejdražší, Cover (žádný Howl)
+                ], { name: 'PLANT B', price: 36.00, color: 'red', img: findSkin('M4A1-S', 'Hot Rod').img });
 
-            setManualCaseContents('wpn-p90', [
-                ['P90', 'Sand Spray', 45.0],
-                ['P90', 'Off World', 30.0],
-                ['P90', 'Grim', 15.0],
-                ['P90', 'Traction', 8.0],
-                ['P90', 'Asiimov', 1.5],
-                ['P90', 'Death by Kitty', 0.5]
-            ]);
+                // CANDY SHOP
+                setManualCaseContents('candy-shop', [
+                    ['Glock-18', 'Snack Attack', 50.0],
+                    ['Five-SeveN', 'Monkey Business', 35.0],
+                    ['MAC-10', 'Disco Tech', 14.5],
+                    ['Skeleton Knife', 'Marble Fade', 0.5] // Cover Image
+                ], { name: 'CANDY SHOP', price: 45.00, color: 'red', img: findSkin('Skeleton Knife', 'Marble Fade').img });
 
-            setManualCaseContents('wpn-deagle', [
-                ['Desert Eagle', 'Conspiracy', 40.0],
-                ['Desert Eagle', 'Mecha Industries', 30.0],
-                ['Desert Eagle', 'Code Red', 20.0],
-                ['Desert Eagle', 'Blaze', 9.5],
-                ['Desert Eagle', 'Fennec Fox', 0.5]
-            ]);
+                // FERRO
+                setManualCaseContents('ferro', [
+                    ['AK-47', 'Bloodsport', 50.0],
+                    ['M4A4', 'Temukau', 35.0],
+                    ['Desert Eagle', 'Blaze', 14.5],
+                    ['Butterfly Knife', 'Tiger Tooth', 0.5] // Cover Image, nejvzácnější
+                ], { name: 'FERRO', price: 30.00, color: 'red', img: findSkin('Butterfly Knife', 'Tiger Tooth').img });
 
-            setManualCaseContents('wpn-usps', [
-                ['USP-S', 'Blueprint', 42.0],
-                ['USP-S', 'Cortex', 30.0],
-                ['USP-S', 'Neo-Noir', 20.0],
-                ['USP-S', 'Printstream', 7.5],
-                ['USP-S', 'Kill Confirmed', 0.5]
-            ]);
+                // KINGDOM
+                setManualCaseContents('kingdom', [
+                    ['AK-47', 'The Empress', 50.0],
+                    ['M4A4', 'The Emperor', 35.0],
+                    ['M9 Bayonet', 'Lore', 14.5],
+                    ['Butterfly Knife', 'Gamma Doppler', 0.5] // Cover Image
+                ], { name: 'KINGDOM', price: 46.50, color: 'red', img: findSkin('Butterfly Knife', 'Gamma Doppler').img });
 
-            setManualCaseContents('wpn-m4a4', [
-                ['M4A4', 'Spider Lily', 40.0],
-                ['M4A4', 'Tooth Fairy', 30.0],
-                ['M4A4', 'Neo-Noir', 20.0],
-                ['M4A4', 'The Emperor', 9.5],
-                ['M4A4', 'Howl', 0.5]
-            ]);
+                // 20 JUICE
+                setManualCaseContents('juice-20', [
+                    ['P250', 'Sand Dune', 50.0],
+                    ['Glock-18', 'Water Elemental', 30.0],
+                    ['Desert Eagle', 'Fennec Fox', 20.0] // PŘESNĚ 20%
+                ], { name: '20 JUICE', price: 150.00, color: 'blue', img: findSkin('Desert Eagle', 'Fennec Fox').img });
 
-            setManualCaseContents('wpn-ak47', [
-                ['AK-47', 'Slate', 40.0],
-                ['AK-47', 'Redline', 30.0],
-                ['AK-47', 'The Empress', 20.0],
-                ['AK-47', 'Bloodsport', 9.5],
-                ['AK-47', 'Leet Museo', 0.5]
-            ]);
+                // VAC ATTACK
+                setManualCaseContents('vac-attack', [
+                    ['AWP', 'Atheris', 45.0],
+                    ['M4A4', 'Hellfire', 35.0],
+                    ['AK-47', 'Bloodsport', 19.5],
+                    ['Karambit', 'Fade', 0.5] // Cover image
+                ], { name: 'VAC ATTACK', price: 85.00, color: 'red', img: findSkin('Karambit', 'Fade').img });
 
-            setManualCaseContents('wpn-awp', [
-                ['AWP', 'Atheris', 40.0],
-                ['AWP', 'Exoskeleton', 30.0],
-                ['AWP', 'Neo-Noir', 20.0],
-                ['AWP', 'Asiimov', 9.5],
-                ['AWP', 'Dragon Lore', 0.5]
-            ]);
+                renderCases();
+            }, 200);
 
-            setManualCaseContents('rarity-covert', [
-                ['AK-47', 'Bloodsport', 60.0],
-                ['M4A4', 'Neo-Noir', 25.0],
-                ['USP-S', 'Kill Confirmed', 10.0],
-                ['AWP', 'Asiimov', 4.5],
-                ['Desert Eagle', 'Code Red', 0.5]
-            ]);
-        }, 50);
-
-            function renderCaseSelectorModal() {
-    const grid = document.getElementById('cb-selector-grid');
-    if (!grid) return;
-
-    // Záchrana, pokud neexistují data
-    if (!Array.isArray(casesDB) || casesDB.length === 0) {
-        grid.innerHTML = '<div class="text-center text-gray-500 p-6">Načítám caseky…</div>';
-        return;
-    }
-
-    const q = (document.getElementById('cb-selector-search')?.value || '').toLowerCase().trim();
-    // Odfiltruje bedny, které nemají definovaný obsah nebo nesedí vyhledávání
-    const all = casesDB.filter((c) => {
-        if (!c || !c.contents || c.contents.length === 0) return false;
-        return !q || String(c.name || '').toLowerCase().includes(q);
-    });
-
-    if (all.length === 0) {
-        grid.innerHTML = '<div class="text-center text-gray-500 py-8">Žádné bedny k zobrazení.</div>';
-        return;
-    }
-
-    // Bezpečné vykreslení gridu
-    let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">';
-    all.forEach(c => {
-        const count = Number(cbSelectedCases.get(c.id) || 0);
-        const selected = count > 0;
-        const price = Number(c.price || 0);
-        const color = c.color || '#4b69ff';
-
-        html += `
-        <div class="relative bg-[#161a24] border-t-2 rounded-xl p-3 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] ${selected ? 'ring-2 ring-[#c0f20c]' : ''}" style="border-top-color: ${color}">
-            <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black z-20">${formatMoney(price)}</div>
-            ${selected ? '<div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#c0f20c] grid place-items-center text-black z-20"><i data-lucide="check" class="w-3 h-3"></i></div>' : ''}
-
-            <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md my-2 z-10 ${selected ? 'opacity-50' : ''}">
-            <div class="text-[11px] font-black text-gray-200 uppercase truncate w-full text-center z-10">${c.name || 'Case'}</div>
-
-            <div class="mt-2 w-full flex items-center justify-between bg-[#0b0d11] rounded-lg p-1 z-20">
-                <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-white">-</button>
-                <div class="text-xs font-black text-[#c0f20c]">${count}</div>
-                <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-6 h-6 rounded bg-[#c0f20c] hover:bg-[#a3cc0a] flex items-center justify-center text-black">+</button>
-            </div>
-        </div>`;
-    });
-    html += '</div>';
-
-    grid.innerHTML = html;
-    updateSelectorBottomBar();
-    lucide.createIcons();
-}
+        function openCaseBattleBuilder() {
+            const modal = document.getElementById('cb-builder-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            renderCreateBattleQueue();
+            renderCaseSelectorModal();
+        }
+        function closeCaseBattleBuilder() { 
+            const builder = document.getElementById('cb-builder-modal'); 
+            const selector = document.getElementById('cb-case-selector-modal'); 
+            if (builder) { builder.classList.add('hidden'); builder.classList.remove('flex'); }
+            if (selector) { selector.classList.add('hidden'); selector.style.display = 'none'; } 
+        }
+        function openCaseSelectorModal() {
+            const modal = document.getElementById('cb-case-selector-modal');
+            if(modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                renderCaseSelectorModal();
+            }
+        }
+        function closeCaseSelectorModal() {
+            const modal = document.getElementById('cb-case-selector-modal');
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        }
+        function renderCaseSelectorModal() {
+            const grid = document.getElementById('cb-selector-grid');
+            if (!grid) return;
+            if (!Array.isArray(casesDB) || casesDB.length === 0) return;
+            const q = (document.getElementById('cb-selector-search')?.value || '').toLowerCase().trim();
+            
+            // Zabrání pádům při filtrování špatných dat
+            const all = casesDB.filter(c => c && c.contents && c.contents.length > 0 && (!q || String(c.name || '').toLowerCase().includes(q)));
+            
+            let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">';
+            all.forEach(c => {
+                const count = Number(cbSelectedCases.get(c.id) || 0);
+                const selected = count > 0;
+                html += `
+                <div class="relative bg-[#161a24] border-t-2 rounded-xl p-3 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] ${selected ? 'ring-2 ring-[#c0f20c]' : ''}" style="border-top-color: ${c.color || '#4b69ff'}">
+                    <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black z-20">${formatMoney(c.price)}</div>
+                    ${selected ? '<div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#c0f20c] grid place-items-center text-black z-20"><i data-lucide="check" class="w-3 h-3"></i></div>' : ''}
+                    <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md my-2 z-10 ${selected ? 'opacity-50' : ''}">
+                    <div class="text-[11px] font-black text-gray-200 uppercase truncate w-full text-center z-10">${c.name}</div>
+                    <div class="mt-2 w-full flex items-center justify-between bg-[#0b0d11] rounded-lg p-1 z-20">
+                        <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-white">-</button>
+                        <div class="text-xs font-black text-[#c0f20c]">${count}</div>
+                        <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-6 h-6 rounded bg-[#c0f20c] hover:bg-[#a3cc0a] flex items-center justify-center text-black">+</button>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            grid.innerHTML = html;
+            updateSelectorBottomBar();
+            lucide.createIcons();
+        }
 
         function renderCaseSelectorGrid() { renderCaseSelectorModal(); }
         function renderCaseSelector() { renderCaseSelectorModal(); }
         function renderCBBuilderQueue() { renderCreateBattleQueue(); }
-        function openCaseSelectorModal() {
-    const modal = document.getElementById('cb-case-selector-modal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex'); // NUTNÉ PRO VYCENTROVÁNÍ
-        renderCaseSelectorModal();
-    }
-}
-
-        function closeCaseSelectorModal() {
-    const modal = document.getElementById('cb-case-selector-modal');
-    if(modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-}
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {
@@ -4338,5 +4242,52 @@ Zeus x27|Charged Up|8.50|#8847ff
             showToast('FREE bedna dostupná!');
         }
     </script>
+
+<div id="cb-builder-modal" class="fixed inset-0 z-[9990] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
+            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
+        </div>
+        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
+            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
+            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
+        </div>
+        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
+            <div class="flex items-center gap-6">
+                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
+                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105">Create Battle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cb-case-selector-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#0b0d11]/95 backdrop-blur-md p-4" style="display: none;">
+    <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-2xl">
+        <div class="px-6 pt-5 pb-4 border-b border-white/10 bg-[#0d1017]">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-2xl font-black text-white uppercase tracking-widest">Select cases</div>
+                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <input id="cb-selector-search" type="text" placeholder="Search for cases..." oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white w-full max-w-sm outline-none focus:border-yellow-400/50">
+            </div>
+        </div>
+        <div id="cb-selector-grid" class="flex-1 overflow-y-auto px-6 py-6 bg-[#0b0d11] custom-scroll"></div>
+        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5 flex items-center justify-between">
+            <div><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div><div id="cb-balance" class="text-yellow-300 font-black text-xl">0.00 EUR</div></div>
+            <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-xl rounded-xl px-20 py-4 shadow-[0_0_30px_rgba(192,242,12,0.3)] transform hover:scale-105">Ready</button>
+            <div class="text-right"><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div><div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl">0</div></div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
