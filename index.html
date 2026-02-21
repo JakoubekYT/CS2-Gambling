@@ -4835,87 +4835,101 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function animateCaseBattleRounds(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
-            const sessionId = ++cbAnimationSession;
             const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
             const players = room.players || [];
-            const liveScores = players.map(() => 0);
+            const liveScores = players.map((p) => Number(p.score || 0));
+            let tickInterval = null;
 
-            for (let round = 0; round < rounds; round += 1) {
-                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
-                const rc = document.getElementById('cb-round-counter');
-                if (rc) rc.textContent = `${round + 1} of ${rounds}`;
+            try {
+                for (let round = 0; round < rounds; round += 1) {
+                    const rc = document.getElementById('cb-round-counter');
+                    if (rc) rc.textContent = `Round ${round + 1} of ${rounds}`;
 
-                players.forEach((pl, idx) => {
-                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
-                    const track = document.getElementById(`cb-spin-track-${idx}`);
-                    if (!viewport || !track) return;
-                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
-                    const srcCase = (room.caseQueue || [])[round];
-                    const tape = cbBuildSpinnerTrack(srcCase?.contents || room.contents, drop);
-                    track.innerHTML = tape.map((it) => `<div class="w-[140px] h-full flex-shrink-0 px-2"><div class="h-full bg-[#1a1e29] border border-white/5 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it.name}</div></div></div>`).join('');
-                    track.style.transition = 'none';
-                    track.style.transform = 'translate3d(0px,0,0)';
-                    void track.offsetWidth;
-                    const containerWidth = viewport.clientWidth || 520;
-                    const stopOffset = (50 * 140) - (containerWidth / 2) + 70 + (Math.random() * 60 - 30);
-                    track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
-                    track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px,0,0)`;
-                });
-
-                const lastStep = players.map(() => -1);
-                let rafId = 0;
-                const tickLoop = () => {
-                    players.forEach((_, idx) => {
+                    players.forEach((pl, idx) => {
+                        const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
                         const track = document.getElementById(`cb-spin-track-${idx}`);
-                        if (!track) return;
-                        const x = Math.abs(cbParseTranslateX(getComputedStyle(track).transform));
+                        if (!viewport || !track) return;
+
+                        const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
+                        const roundCase = (room.caseQueue || [])[round];
+                        const tape = cbBuildSpinnerTrack(roundCase?.contents || room.contents, drop);
+
+                        track.innerHTML = tape.map((it) => `<div class="w-[140px] flex-shrink-0 h-full px-2"><div class="h-full bg-[#1a1e29] border border-white/5 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it.name}</div></div></div>`).join('');
+                        track.style.transition = 'none';
+                        track.style.transform = 'translate3d(0px,0,0)';
+                        void track.offsetWidth;
+
+                        const containerWidth = viewport.clientWidth || 560;
+                        const stopOffset = (50 * 140) - (containerWidth / 2) + 70 + (Math.random() * 60 - 30);
+                        track.style.transition = 'transform 6s cubic-bezier(0.12, 0, 0.1, 1)';
+                        track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px, 0, 0)`;
+                    });
+
+                    let lastStep = -1;
+                    tickInterval = setInterval(() => {
+                        const sampleTrack = document.getElementById('cb-spin-track-0');
+                        if (!sampleTrack) return;
+                        const x = Math.abs(cbParseTranslateX(getComputedStyle(sampleTrack).transform));
                         const step = Math.floor(x / 140);
-                        if (step !== lastStep[idx]) {
-                            lastStep[idx] = step;
+                        if (step !== lastStep) {
+                            lastStep = step;
                             SoundEngine.playTick();
                         }
-                    });
-                    rafId = requestAnimationFrame(tickLoop);
-                };
-                rafId = requestAnimationFrame(tickLoop);
+                    }, 60);
 
-                await new Promise((r) => setTimeout(r, 7000));
-                cancelAnimationFrame(rafId);
-
-                players.forEach((pl, idx) => {
-                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
-                    liveScores[idx] += Number(drop?.price || 0);
-                    const scoreEl = document.getElementById(`cb-score-${idx}`);
-                    if (scoreEl) scoreEl.textContent = formatMoney(liveScores[idx]);
-                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
-                    if (nameEl) nameEl.textContent = drop?.name || '-';
-                    const hist = document.getElementById(`cb-history-${idx}`);
-                    if (hist && drop) {
-                        hist.insertAdjacentHTML('afterbegin', cbHistoryCard(drop, round));
-                        while (hist.children.length > 9) hist.removeChild(hist.lastChild);
+                    await new Promise((resolve) => setTimeout(resolve, 6500));
+                    if (tickInterval) {
+                        clearInterval(tickInterval);
+                        tickInterval = null;
                     }
-                });
 
-                applyCaseBattleLeaderStylesByScores(liveScores);
-                const half = Math.ceil(players.length / 2);
-                const team1 = liveScores.slice(0, half).reduce((a, b) => a + b, 0);
-                const team2 = liveScores.slice(half).reduce((a, b) => a + b, 0);
-                const t1 = document.getElementById('cb-team1-score');
-                const t2 = document.getElementById('cb-team2-score');
-                if (t1) t1.textContent = formatMoney(team1);
-                if (t2) t2.textContent = formatMoney(team2);
-                document.getElementById('cb-team1-lead')?.classList.toggle('hidden', team1 <= team2);
-                document.getElementById('cb-team2-lead')?.classList.toggle('hidden', team2 <= team1);
-                SoundEngine.playWin();
+                    players.forEach((pl, idx) => {
+                        const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
+                        liveScores[idx] += Number(drop.price || 0);
+                        pl.score = liveScores[idx];
 
-                await new Promise((r) => setTimeout(r, 1500));
+                        const scoreEl = document.getElementById(`cb-score-${idx}`);
+                        if (scoreEl) scoreEl.textContent = formatMoney(liveScores[idx]);
+
+                        const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                        if (nameEl) nameEl.textContent = drop.name || 'Skin';
+
+                        const hist = document.getElementById(`cb-history-${idx}`);
+                        if (hist) {
+                            hist.insertAdjacentHTML('afterbegin', cbHistoryCard(drop, round));
+                            while (hist.children.length > 12) hist.removeChild(hist.lastChild);
+                        }
+                    });
+
+                    updateBattleLeaders(room, liveScores);
+                    SoundEngine.playWin();
+                    await new Promise((resolve) => setTimeout(resolve, 1500));
+                }
+
+                if (room.status === 'done' || room.status === 'in_progress') {
+                    triggerEndgameSequence(room, liveScores);
+                }
+            } finally {
+                if (tickInterval) clearInterval(tickInterval);
+                cbAnimationLock = false;
             }
-
-            triggerEndgameSequence(room, liveScores);
-            cbAnimationLock = false;
         }
 
+        function updateBattleLeaders(room, liveScores = null) {
+            const scores = Array.isArray(liveScores) ? liveScores : (room.players || []).map((p) => Number(p.score || 0));
+            applyCaseBattleLeaderStylesByScores(scores);
+            const half = Math.ceil(scores.length / 2);
+            const team1 = scores.slice(0, half).reduce((a, b) => a + b, 0);
+            const team2 = scores.slice(half).reduce((a, b) => a + b, 0);
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            if (t1) t1.textContent = formatMoney(team1);
+            if (t2) t2.textContent = formatMoney(team2);
+            document.getElementById('cb-team1-lead')?.classList.toggle('hidden', team1 <= team2);
+            document.getElementById('cb-team2-lead')?.classList.toggle('hidden', team2 <= team1);
+        }
         function renderCaseBattleRoom(room, animate = false) {
+            if (cbAnimationLock) return;
             const stage = document.getElementById('cb-stage');
             const queueEl = document.getElementById('cb-case-queue');
             const info = document.getElementById('cb-current-room');
@@ -4928,43 +4942,35 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (totalEl) totalEl.textContent = formatMoney(battleValue);
             if (info) info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity}` : `Battle běží • ${room.players.length} hráčů`;
 
-            const queue = Array.isArray(room.caseQueue) && room.caseQueue.length ? room.caseQueue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => q)) : Array.from({ length: rounds }).map(() => ({ caseName: room.caseName || caseObj?.name || 'Case', caseImg: caseObj?.img || FALLBACK_IMG, casePrice: room.casePrice || 0 }));
-            queueEl.innerHTML = queue.map((q, idx) => `<div class="w-12 shrink-0 text-center opacity-70"><img src="${q.caseImg || caseObj?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-12 h-12 object-contain rounded bg-black/30"><div class="text-[9px] text-yellow-300">${formatMoney(q.casePrice || room.casePrice || 0)}</div></div>`).join('');
+            const queue = Array.isArray(room.caseQueue) && room.caseQueue.length
+                ? room.caseQueue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => q))
+                : Array.from({ length: rounds }).map(() => ({ caseName: room.caseName || caseObj?.name || 'Case', caseImg: caseObj?.img || FALLBACK_IMG, casePrice: room.casePrice || 0 }));
+            queueEl.innerHTML = queue.map((q) => `<div class="w-12 shrink-0 text-center opacity-70"><img src="${q.caseImg || caseObj?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-12 h-12 object-contain rounded bg-black/30"><div class="text-[9px] text-yellow-300">${formatMoney(q.casePrice || room.casePrice || 0)}</div></div>`).join('');
 
             const playersForView = [...(room.players || [])];
             while (playersForView.length < Number(room.capacity || playersForView.length || 0)) playersForView.push(null);
+
             stage.innerHTML = playersForView.map((pl, idx) => {
                 if (!pl) {
                     return `<div class="bg-[#12161f] flex flex-col min-h-[420px]"><div class="px-3 py-2 border-b border-white/5 flex items-center justify-between"><div class="text-sm font-black text-gray-400">Waiting for Player</div><button onclick="fillCaseBattleBotSlot(${idx})" class="text-[10px] bg-yellow-400/20 border border-yellow-300/40 text-yellow-200 px-2 py-1 rounded">Play with random bot</button></div><div class="flex-1 grid place-items-center text-gray-500 text-sm">Waiting slot</div></div>`;
                 }
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                return `<div id="cb-player-${idx}" class="bg-[#12161f] flex flex-col relative min-h-[420px]">
-                    <div class="px-3 py-2 border-b border-white/5 flex items-center justify-between">
-                        <div class="flex items-center gap-2 min-w-0"><img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-full border border-white/20"><div class="font-black text-sm truncate">${pl.nickname}${pl.bot ? ' <span class="text-[10px] text-yellow-300">BOT</span>' : ''}</div><i data-lucide="crown" id="cb-leader-crown-${idx}" class="w-4 h-4 text-yellow-400 hidden"></i></div>
-                        <div id="cb-score-${idx}" class="font-black text-gray-400">0.00 EUR</div>
-                    </div>
-                    <div class="h-48 overflow-hidden relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/30 to-[#12161f]">
-                        <div class="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-yellow-400 z-30 shadow-[0_0_15px_#facc15]"></div>
-                        <div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden">
-                            <div id="cb-spin-track-${idx}" class="absolute left-0 h-full flex items-center will-change-transform z-20"></div>
-                        </div>
-                        <div id="cb-endgame-${idx}" class="hidden absolute inset-0 z-50 flex items-center justify-center"></div>
-                    </div>
-                    <div id="cb-spin-name-${idx}" class="px-3 py-2 text-xs font-bold text-gray-300 truncate border-b border-white/5">Čeká se na drop...</div>
-                    <div id="cb-history-${idx}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 p-3 mt-auto h-full items-start"></div>
-                </div>`;
+                return `<div id="cb-player-${idx}" class="bg-[#12161f] flex flex-col relative min-h-[420px]"><div class="px-3 py-2 border-b border-white/5 flex items-center justify-between"><div class="flex items-center gap-2 min-w-0"><img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-full border border-white/20"><div class="font-black text-sm truncate">${pl.nickname}${pl.bot ? ' <span class="text-[10px] text-yellow-300">BOT</span>' : ''}</div><i data-lucide="crown" id="cb-leader-crown-${idx}" class="w-4 h-4 text-yellow-400 hidden"></i></div><div id="cb-score-${idx}" class="font-black text-gray-400">${formatMoney(Number(pl.score || 0))}</div></div><div class="h-48 overflow-hidden relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/30 to-[#12161f]"><div class="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-yellow-400 z-30 shadow-[0_0_15px_#facc15]"></div><div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden"><div id="cb-spin-track-${idx}" class="absolute left-0 h-full flex items-center will-change-transform z-20"></div></div><div id="cb-endgame-${idx}" class="hidden absolute inset-0 z-50 flex items-center justify-center"></div></div><div id="cb-spin-name-${idx}" class="px-3 py-2 text-xs font-bold text-gray-300 truncate border-b border-white/5">Čeká se na drop...</div><div id="cb-history-${idx}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 p-3 mt-auto h-full items-start"></div></div>`;
             }).join('');
 
             patchCaseBattleRoom(room);
+            updateBattleLeaders(room);
+
+            const fullSlots = (room.players || []).length >= Number(room.capacity || 0);
             const signature = cbRoomSignature(room);
-            const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
-            if (shouldAnimate) {
+            const canAnimateStatus = room.status === 'in_progress' || room.status === 'done';
+            if (canAnimateStatus && fullSlots && signature !== cbLastAnimatedSignature) {
                 cbLastAnimatedSignature = signature;
                 animateCaseBattleRounds(room);
             }
+
             lucide.createIcons();
         }
-
         function applyCaseBattleLeaderStyles(room) {
             const scores = (room.players || []).map((p) => Number(p.score || 0));
             applyCaseBattleLeaderStylesByScores(scores);
