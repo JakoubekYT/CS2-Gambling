@@ -2580,20 +2580,66 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
             );
 
-            // --- TVRDÁ DEFINICE BEDEN (HARDCODED) ---
+            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
+            // Manual tailored loadouts for newly added cases (no generic generator output)
+            // --- SMART CASE ENGINE ---
             const manualCaseIds = new Set();
-            const setManualCaseContents = (caseId, rows, meta = {}) => {
-                let c = casesDB.find((x) => x.id === caseId);
+
+            const CASEHUG_IMAGE_FILES = [
+                "5_dagura.png", "10_boombox.png", "20_JUICE.png", "50_RACE.png", "AFK.png", "AK_47_3.png",
+                "ALIEN.png", "ANTIDOTE.png", "ARABESQUE.png", "ARCANA.png", "ASLAN.png", "AWP.png",
+                "BABUSHKA.png", "BANG_BANG.png", "BANK_HEIST.png", "BERKAY.png", "BIKE.png", "BLAZE.png",
+                "bloody.png", "bombsite_b_1.png", "BUNNY_HOP.png", "BUZZER_BLADE.png", "CALL_ME.png",
+                "candy_drop_1.png", "CANDY_SHOP.png", "champion_1.png", "CHINATOWN.png", "CIRCUS.png",
+                "DART_CLUB.png", "DEMOLITION.png", "DESERT_EAGLE.png", "DOUBLE_CHEESE.png", "DUCK_LUCK.png",
+                "duel.png", "EL_BOBRITO.png", "ELECTRONIC.png", "FARM_AWP.png", "FARM_GAMMA.png", "FARM_GLOVES.png",
+                "FARM_KNIFE.png", "FBBTV.png", "FERRO.png", "FLIP_KNIVES_2.png", "FOXIE.png", "FRANIO.png",
+                "FROSTY.png", "GALAXY.png", "GAMBIT.png", "GAME_ON.png", "GIGA_BULA_2.png", "GLOVES_2.png",
+                "glowing_stone.png", "GOLD_NOVA.png", "GOLDERRA.png", "GUARD.png", "GUMMY_LOVE_2.png",
+                "HAPPY_CAKE_2.png", "HELLFIRE_NEW.png", "HLTV_V1.png", "HLTV_V2.png", "HORUS.png", "hot_ice_2.png",
+                "HOWL_4.png", "HYDRA_2.png", "INSECTOR.png", "ISAMU_V1_V3.png", "ISAMU_V2.png", "ISAMU_V3_V2.png",
+                "JASONPLAY_2.png", "KAERYKA.png", "kingdom_1.png", "KNIFE_2.png", "LAB.png", "LORD.png",
+                "LUCKY_TEDDY_NEW.png", "M4A4_2.png", "nightmare_1.png", "NITRO_V1.png", "NITRO_V2.png",
+                "NITRO_V3_2.png", "ORGANIC.png", "P90_2.png", "PAINKILLER.png", "POMPA_TEAM.png", "PRINTSTREAM.png",
+                "QUANTUM.png", "RARITY_CLASSIFIED.png", "RARITY_COVERT.png", "RARITY_MILSPEC.png",
+                "RARITY_RESTRICTED.png", "REDSTONE.png", "RETRO.png", "RISKY.png", "RITUAL.png", "ROYAL.png",
+                "SAVAGE.png", "SAVANNA.png", "SHADOW_DAGGERS.png", "SNAKE.png", "SPAJKK.png", "STATTRAK_2.png",
+                "STRATY.png", "TAXI.png", "TIGER.png", "TITAN.png", "TOXIC.png", "TUNG_TUNG.png", "TURBO_WIN.png",
+                "USP_S_2.png", "VAC_ATTACK.png", "war_god.png", "WARZONE.png", "WILD_WEST.png", "WILDSHOT.png",
+                "WORKSHOP.png"
+            ];
+            const CASEHUG_BASE_URL = 'https://cdn.casehug.com/cases/';
+            const slugCase = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+            const caseImageBySlug = Object.fromEntries(CASEHUG_IMAGE_FILES.map((f) => [slugCase(f.replace(/\.png$/i, '')), f]));
+            const CASE_IMAGE_OVERRIDES = {
+                'coinflip': '50_RACE.png',
+                'trash-or-knife': 'SAVAGE.png',
+                '20-juice': '20_JUICE.png',
+                'desert-eagle': 'DESERT_EAGLE.png',
+                'bombsite-b1': 'bombsite_b_1.png',
+                'elektronik': 'ELECTRONIC.png',
+                'fero': 'FERRO.png',
+                'giga-buka-2': 'GIGA_BULA_2.png',
+                'usp': 'USP_S_2.png',
+                'wild-shots': 'WILDSHOT.png'
+            };
+            function resolveCaseImageUrl(id, name) {
+                const override = CASE_IMAGE_OVERRIDES[id];
+                if (override) return `${CASEHUG_BASE_URL}${override}`;
+                const idFile = caseImageBySlug[slugCase(id)];
+                if (idFile) return `${CASEHUG_BASE_URL}${idFile}`;
+                const nameFile = caseImageBySlug[slugCase(name)];
+                if (nameFile) return `${CASEHUG_BASE_URL}${nameFile}`;
+                return null;
+            }
+
+            function createSmartCase(id, name, price, color, coverWeapon, coverSkin, category, constraints = {}) {
+                const cSkin = findSkin(coverWeapon, coverSkin);
+                if (!cSkin) return;
+
+                let c = casesDB.find(x => x.id === id);
                 if (!c) {
-                    c = {
-                        id: caseId,
-                        name: meta.name || caseId.toUpperCase(),
-                        price: Number(meta.price || 1),
-                        color: meta.color || 'blue',
-                        img: meta.img || FALLBACK_IMG,
-                        category: meta.category || '',
-                        contents: []
-                    };
+                    c = { id, name, price, color, img: (resolveCaseImageUrl(id, name) || cSkin.img), category, contents: [] };
                     casesDB.push(c);
                 } else {
                     c.name = meta.name || c.name;
@@ -2602,116 +2648,189 @@ Zeus x27|Charged Up|8.50|#8847ff
                     c.img = meta.img || c.img || FALLBACK_IMG;
                     c.category = meta.category || c.category || '';
                 }
-                const parsed = rows.map(([w, n, ch]) => ({ skin: findSkin(w, n), chance: Number(ch || 0) })).filter((x) => x.skin && x.chance > 0);
-                const total = parsed.reduce((a, b) => a + b.chance, 0);
-                // Vložení do bedny se zaokrouhlenými %
-                c.contents = parsed.map((x) => ({ ...x, chance: Math.round((x.chance / total) * 100 * 1000) / 1000 }));
-                manualCaseIds.add(caseId);
-            };
+                
+                // Logika 50/50
+                const resolvedImg = resolveCaseImageUrl(id, name);
+                if (resolvedImg) c.img = resolvedImg;
 
-setTimeout(() => {
-    // 1. 50/50 PROFIT (Kasino vydělá 2.50 EUR)
-    setManualCaseContents('coinflip', [
-        ['P250', 'Sand Dune', 50.0],
-        ['AWP', 'Crakow!', 50.0]
-    ], { name: '50/50 Profit', price: 50.00, color: 'red', img: 'https://cdn.casehug.com/cases/50_RACE.png?width=640&quality=85', category: 'high-risk' });
+                if (constraints.is5050) {
+                    const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
+                    c.contents = [
+                        { skin: cSkin, chance: 50 },
+                        { skin: trash, chance: 50 }
+                    ];
+                    manualCaseIds.add(id);
+                    return;
+                }
 
-    // 2. 1% KNIFE
-    setManualCaseContents('trash-or-knife', [
-        ['P250', 'Sand Dune', 99.0],
-        ['M9 Bayonet', 'Autotronic', 1.0]
-    ], { name: '1% KNIFE Risk', price: 25.00, color: 'yellow-400', img: 'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85', category: 'high-risk' });
+                // Získání filler skinů
+                let pool = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price < cSkin.price && s.price < (price * 3));
+                
+                if (constraints.weapon) pool = pool.filter(s => s.weapon === constraints.weapon);
+                if (constraints.rarity) pool = pool.filter(s => s.rarityName === constraints.rarity);
+                
+                if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
+                pool.sort((a,b) => a.price - b.price); // Od nejlevnějšího
 
-    // 3. DEMOLITION
-    setManualCaseContents('demolition', [
-        ['P250', 'Sand Dune', 80.0],
-        ['Glock-18', 'Catacombs', 17.0],
-        ['AK-47', 'Redline', 2.9],
-        ['AWP', 'The Prince', 0.1]
-    ], { name: 'DEMOLITION', price: 11.00, color: 'red', img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85', category: 'regular' });
+                // Matematika (Casino win: EV = 85% ceny bedny)
+                const targetEV = price * 0.85;
+                
+                let coverChance = constraints.exactChance || ((targetEV * 0.4) / cSkin.price * 100);
+                if (coverChance > 5 && !constraints.exactChance) coverChance = 5;
+                if (coverChance < 0.01) coverChance = 0.01;
 
-    // 4. M4A4 (Záchrana EV přes levné M4A4)
-    setManualCaseContents('wpn-m4a4', [
-        ['M4A4', 'Magnesium', 75.0],
-        ['M4A4', 'Poly Mag', 20.0],
-        ['M4A4', 'Converter', 4.8],
-        ['M4A4', 'Asiimov', 0.2] // Obrázek
-    ], { name: 'M4A4', price: 2.75, color: 'purple', img: 'https://cdn.casehug.com/cases/M4A4_2.png?width=640&quality=85', category: 'cheap' });
+                let contents = [{ skin: cSkin, chance: coverChance }];
+                let chanceLeft = 100 - coverChance;
+                
+                // Vybereme 5 levnějších skinů na vyplnění
+                const fillers = [];
+                const step = Math.max(1, Math.floor(pool.length / 5));
+                for(let i=0; i<Math.min(5, pool.length); i++) {
+                    fillers.push(pool[i * step]);
+                }
+                fillers.reverse(); // Od nejdražšího z fillerů po nejlevnější
+                
+                for(let i=0; i<fillers.length; i++) {
+                    let ch = (i === fillers.length - 1) ? chanceLeft : (chanceLeft * 0.55);
+                    chanceLeft -= ch;
+                    contents.push({ skin: fillers[i], chance: ch });
+                }
 
-    // 5. USP-S
-    setManualCaseContents('wpn-usps', [
-        ['USP-S', 'Torque', 60.0],
-        ['USP-S', 'Lead Conduit', 35.0],
-        ['USP-S', 'Cyrex', 4.5],
-        ['USP-S', 'Kill Confirmed', 0.5] // Obrázek
-    ], { name: 'USP-S', price: 4.00, color: 'purple', img: 'https://cdn.casehug.com/cases/USP_S_2.png?width=640&quality=85', category: 'cheap' });
+                // Ošetření nepřesností a seřazení
+                const totalChance = contents.reduce((a, b) => a + b.chance, 0);
+                contents[contents.length - 1].chance += (100 - totalChance);
+                contents.sort((a, b) => b.skin.price - a.skin.price);
+                
+                c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
+                manualCaseIds.add(id);
+            }
 
-    // 6. P90
-    setManualCaseContents('wpn-p90', [
-        ['P90', 'Sand Spray', 70.0],
-        ['P90', 'Grim', 25.0],
-        ['P90', 'Traction', 4.8],
-        ['P90', 'Death by Kitty', 0.2] // Obrázek
-    ], { name: 'P90', price: 1.80, color: 'blue', img: 'https://cdn.casehug.com/cases/P90_2.png?width=640&quality=85', category: 'cheap' });
+            // INICIALIZACE VŠECH KLIENTOVÝCH BEDEN
+            setTimeout(() => {
+                // 50/50 Bety
+                createSmartCase('coinflip', '50/50 Profit', 50.00, 'red', 'AWP', 'Crakow!', 'high-risk', { is5050: true });
+                
+                // 1% Knife a speciální
+                createSmartCase('trash-or-knife', '1% KNIFE Risk', 25.00, 'yellow-400', 'M9 Bayonet', 'Autotronic', 'high-risk', { exactChance: 1.0 });
+                
+                // Klasické bedny (Smart engine automaticky dopočítá procenta ve prospěch kasina)
+                createSmartCase('5-dagura', '5_dagura', 20.00, 'yellow-400', 'Shadow Daggers', 'Tiger Tooth', 'regular');
+                createSmartCase('10-boombox', '10_boombox', 10.00, 'red', 'Bowie Knife', 'Gamma Doppler', 'regular');
+                createSmartCase('20-juice', '20_juice', 150.00, 'blue', 'Desert Eagle', 'Fennec Fox', 'premium', { exactChance: 20.0 });
+                createSmartCase('50-race', '50_race', 1250.00, 'red', 'M9 Bayonet', 'Gamma Doppler', 'high-risk');
+                createSmartCase('afk', 'AFK', 0.10, 'blue', 'P90', 'Emerald Dragon', 'cheap');
+                createSmartCase('ak-47-3', 'AK_47_3', 6.00, 'pink', 'AK-47', 'Fuel Injector', 'cheap', { weapon: 'AK-47' });
+                createSmartCase('alien', 'Alien', 1.25, 'purple', 'AK-47', 'Vulcan', 'cheap');
+                createSmartCase('antidote', 'Antidote', 8.50, 'purple', 'Nomad Knife', 'Stained', 'regular');
+                createSmartCase('arabesque', 'Arabesque', 60.00, 'yellow-400', 'AK-47', 'Gold Arabesque', 'premium');
+                createSmartCase('arcana', 'Arcana', 120.00, 'yellow-400', 'Butterfly Knife', 'Gamma Doppler', 'high-risk');
+                createSmartCase('aslan', 'Aslan', 12.00, 'red', 'Huntsman Knife', 'Marble Fade', 'regular');
+                createSmartCase('awp', 'AWP', 10.00, 'red', 'AWP', 'Gungnir', 'cheap', { weapon: 'AWP' });
+                createSmartCase('babuska', 'Babuška', 152.50, 'red', 'M9 Bayonet', 'Gamma Doppler', 'premium');
+                createSmartCase('bang-bang', 'Bang Bang', 30.00, 'red', 'M9 Bayonet', 'Tiger Tooth', 'premium');
+                createSmartCase('bank-heist', 'Bank Heist', 11.00, 'red', 'AK-47', 'Leet Museo', 'regular');
+                createSmartCase('berkay', 'Berkay', 28.00, 'pink', 'Hand Wraps', 'Leather', 'regular');
+                createSmartCase('bike', 'Bike', 140.00, 'red', 'Moto Gloves', 'Blood Pressure', 'premium');
+                createSmartCase('blaze', 'Blaze', 25.00, 'red', 'Desert Eagle', 'Blaze', 'premium');
+                createSmartCase('bloody', 'Bloody', 60.00, 'red', 'Talon Knife', 'Slaughter', 'premium');
+                createSmartCase('bombsite-b1', 'Bombsite B1', 36.00, 'red', 'M4A1-S', 'Hot Rod', 'premium');
+                createSmartCase('bunny-hop', 'Bunny Hop', 12.75, 'purple', 'Bowie Knife', 'Gamma Doppler', 'regular');
+                createSmartCase('buzzer-blade', 'Buzzer Blade', 42.00, 'yellow-400', 'M9 Bayonet', 'Gamma Doppler', 'premium');
+                createSmartCase('call-me', 'Call Me', 50.00, 'red', 'Karambit', 'Autotronic', 'premium');
+                createSmartCase('candy-drop', 'Candy Drop', 0.40, 'purple', 'M4A1-S', 'Mecha Industries', 'cheap');
+                createSmartCase('candy-shop', 'Candy Shop', 45.00, 'red', 'Skeleton Knife', 'Marble Fade', 'premium');
+                createSmartCase('circus', 'Circus', 80.00, 'red', 'M9 Bayonet', 'Marble Fade', 'premium');
+                createSmartCase('dart-club', 'Dart Club', 15.00, 'blue', 'Gut Knife', 'Gamma Doppler', 'regular');
+                createSmartCase('demolition', 'Demolition', 11.00, 'red', 'AWP', 'The Prince', 'regular');
+                createSmartCase('desert-eagle', 'Desert Eagle', 3.50, 'purple', 'Desert Eagle', 'Fennec Fox', 'cheap', { weapon: 'Desert Eagle' });
+                createSmartCase('double-cheese', 'Double Cheese', 0.70, 'blue', 'AK-47', 'Bloodsport', 'cheap');
+                createSmartCase('duck-luck', 'Duck Luck', 1.00, 'blue', 'Shadow Daggers', 'Lore', 'cheap');
+                createSmartCase('duel', 'Duel', 25.00, 'red', 'AK-47', 'Fuel Injector', 'regular');
+                createSmartCase('el-bobrito', 'El Bobrito', 45.00, 'red', 'M9 Bayonet', 'Crimson Web', 'premium');
+                createSmartCase('elektronik', 'Elektronik', 33.00, 'purple', 'M9 Bayonet', 'Autotronic', 'premium');
+                createSmartCase('farm-awp', 'Farm AWP', 15.00, 'red', 'AWP', 'Lightning Strike', 'regular');
+                createSmartCase('farm-gamma', 'Farm Gamma', 25.00, 'red', 'M9 Bayonet', 'Gamma Doppler', 'regular');
+                createSmartCase('farm-gloves', 'Farm Gloves', 15.00, 'pink', 'Broken Fang Gloves', 'Jade', 'regular');
+                createSmartCase('farm-knife', 'Farm Knife', 12.00, 'purple', 'Stiletto Knife', 'Ultraviolet', 'regular');
+                createSmartCase('fbbtv', 'FBBTV', 8.00, 'purple', 'Paracord Knife', 'Marble Fade', 'cheap');
+                createSmartCase('fero', 'Fero', 30.00, 'red', 'Butterfly Knife', 'Tiger Tooth', 'premium');
+                createSmartCase('flip-knives', 'Flip Knives', 200.00, 'yellow-400', 'Flip Knife', 'Gamma Doppler', 'high-risk', { weapon: 'Flip Knife' });
+                createSmartCase('foxie', 'Foxie', 25.00, 'red', 'Desert Eagle', 'Fennec Fox', 'premium');
+                createSmartCase('franio', 'Franio', 15.00, 'blue', 'AK-47', 'Ice Coaled', 'regular');
+                createSmartCase('frosty', 'Frosty', 0.80, 'blue', 'AK-47', 'Ice Coaled', 'cheap');
+                createSmartCase('galaxy', 'Galaxy', 45.00, 'purple', 'Karambit', 'Fade', 'premium');
+                createSmartCase('gambit', 'Gambit', 18.00, 'yellow-400', 'Stiletto Knife', 'Tiger Tooth', 'regular');
+                createSmartCase('game-on', 'Game On', 4.50, 'purple', 'Glock-18', 'Gamma Doppler', 'cheap');
+                createSmartCase('giga-buka-2', 'Giga Buka 2', 35.00, 'purple', 'Talon Knife', 'Marble Fade', 'premium');
+                createSmartCase('gloves-2', 'Gloves 2', 110.00, 'pink', 'Sport Gloves', 'Vice', 'high-risk');
+                createSmartCase('glowing-stone', 'Glowing Stone', 150.00, 'yellow-400', 'Karambit', 'Gamma Doppler', 'high-risk');
+                createSmartCase('gold-nova', 'Gold Nova', 1.00, 'yellow-400', 'AK-47', 'Bloodsport', 'cheap');
+                createSmartCase('golderra', 'Golderra', 26.00, 'yellow-400', 'Sport Gloves', 'Amphibious', 'premium');
+                createSmartCase('guard', 'Guard', 12.00, 'blue', 'Glock-18', 'Gold Toof', 'regular');
+                createSmartCase('gummy-love', 'Gummy Love', 0.80, 'pink', 'AWP', 'Wildfire', 'cheap');
+                createSmartCase('happy-cake-2', 'Happy Cake 2', 2.50, 'purple', 'Shadow Daggers', 'Gamma Doppler', 'cheap');
+                createSmartCase('hellfire-new', 'Hellfire New', 0.70, 'red', 'M4A4', 'Hellfire', 'cheap');
+                createSmartCase('hltv-v1', 'HLTV V1', 15.00, 'yellow-400', 'Shadow Daggers', 'Fade', 'regular');
+                createSmartCase('hltv-v2', 'HLTV V2', 25.00, 'blue', 'M9 Bayonet', 'Gamma Doppler', 'premium');
+                createSmartCase('horus', 'Horus', 50.00, 'yellow-400', 'M4A4', 'Eye of Horus', 'premium');
+                createSmartCase('hot-ice-2', 'Hot Ice 2', 15.00, 'blue', 'Huntsman Knife', 'Marble Fade', 'regular');
+                createSmartCase('howl-4', 'Howl 4', 300.00, 'red', 'M4A4', 'Howl', 'high-risk');
+                createSmartCase('hydra-2', 'Hydra 2', 15.00, 'blue', 'AK-47', 'Legion of Anubis', 'regular');
+                createSmartCase('champion-1', 'Champion 1', 5.00, 'yellow-400', 'Desert Eagle', 'Cobalt Disruption', 'cheap');
+                createSmartCase('chinatown', 'Chinatown', 97.50, 'red', 'Specialist Gloves', 'Crimson Kimono', 'premium');
+                createSmartCase('insector', 'Insector', 2.50, 'blue', 'Flip Knife', 'Autotronic', 'cheap');
+                createSmartCase('isamu-v1-v3', 'Isamu V1 V3', 5.00, 'red', 'AK-47', 'Redline', 'cheap');
+                createSmartCase('isamu-v2', 'Isamu V2', 45.00, 'red', 'M4A4', 'Howl', 'premium');
+                createSmartCase('isamu-v3-v2', 'Isamu V3 V2', 85.00, 'red', 'Butterfly Knife', 'Gamma Doppler', 'premium');
+                createSmartCase('jason-play-2', 'Jason Play 2', 10.00, 'yellow-400', 'M9 Bayonet', 'Lore', 'regular');
+                createSmartCase('kaeryka', 'Kaeryka', 7.50, 'yellow-400', 'AWP', 'Fade', 'cheap');
+                createSmartCase('kingdom-1', 'Kingdom 1', 46.50, 'red', 'Butterfly Knife', 'Gamma Doppler', 'premium');
+                createSmartCase('knife-2', 'Knife 2', 180.00, 'yellow-400', 'Karambit', 'Doppler', 'high-risk');
+                createSmartCase('lab', 'Lab', 150.00, 'red', 'Specialist Gloves', 'Emerald Web', 'high-risk');
+                createSmartCase('lord', 'Lord', 125.00, 'yellow-400', 'Butterfly Knife', 'Lore', 'high-risk');
+                createSmartCase('lucky-teddy-new', 'Lucky Teddy New', 3.00, 'purple', 'AK-47', 'Nightwish', 'cheap');
+                createSmartCase('m4a4-2', 'M4A4 2', 3.50, 'purple', 'M4A4', 'Howl', 'cheap', { weapon: 'M4A4' });
+                createSmartCase('nightmare-1', 'Nightmare 1', 25.00, 'purple', 'Flip Knife', 'Doppler', 'premium');
+                createSmartCase('nitro-v1', 'Nitro V1', 15.00, 'yellow-400', 'Karambit', 'Tiger Tooth', 'regular');
+                createSmartCase('nitro-v2', 'Nitro V2', 18.00, 'purple', 'Glock-18', 'Gamma Doppler', 'regular');
+                createSmartCase('nitro-v3', 'Nitro V3', 65.00, 'red', 'M4A4', 'Howl', 'premium');
+                createSmartCase('organic', 'Organic', 0.30, 'blue', 'M4A1-S', 'Player Two', 'cheap');
+                createSmartCase('p90', 'P90', 1.80, 'blue', 'P90', 'Death by Kitty', 'cheap', { weapon: 'P90' });
+                createSmartCase('painkiller', 'Painkiller', 15.00, 'red', 'USP-S', 'Kill Confirmed', 'regular');
+                createSmartCase('pompa-team', 'Pompa Team', 12.00, 'red', 'M4A1-S', 'Hot Rod', 'regular');
+                createSmartCase('printstream', 'Printstream', 25.00, 'red', 'M4A1-S', 'Printstream', 'premium');
+                createSmartCase('quantum', 'Quantum', 358.00, 'yellow-400', 'AWP', 'Gungnir', 'high-risk');
+                createSmartCase('rarity-classified', 'Rarity Classified', 8.00, 'pink', 'M4A4', 'Hellfire', 'regular', { rarity: 'pink' });
+                createSmartCase('rarity-covert', 'Rarity Covert', 20.00, 'red', 'Desert Eagle', 'Code Red', 'premium', { rarity: 'red' });
+                createSmartCase('rarity-mil-spec', 'Rarity Mil-Spec', 0.35, 'blue', 'M4A1-S', 'Night Terror', 'cheap', { rarity: 'blue' });
+                createSmartCase('rarity-restricted', 'Rarity Restricted', 2.00, 'purple', 'Glock-18', 'Water Elemental', 'cheap', { rarity: 'purple' });
+                createSmartCase('redstone', 'Redstone', 65.00, 'red', 'Sport Gloves', 'Slingshot', 'premium');
+                createSmartCase('retro', 'Retro', 11.50, 'purple', 'M9 Bayonet', 'Lore', 'regular');
+                createSmartCase('risky', 'Risky', 40.00, 'red', 'Karambit', 'Doppler', 'premium');
+                createSmartCase('ritual', 'Ritual', 0.80, 'purple', 'Survival Knife', 'Case Hardened', 'cheap');
+                createSmartCase('royal', 'Royal', 150.00, 'yellow-400', 'AWP', 'Dragon Lore', 'high-risk');
+                createSmartCase('savage', 'Savage', 25.00, 'red', 'Karambit', 'Tiger Tooth', 'premium');
+                createSmartCase('savanna', 'Savanna', 2.00, 'blue', 'M4A1-S', "Chantico's Fire", 'cheap');
+                createSmartCase('shadow-daggers', 'Shadow Daggers', 62.50, 'yellow-400', 'Shadow Daggers', 'Tiger Tooth', 'premium', { weapon: 'Shadow Daggers' });
+                createSmartCase('snake', 'Snake', 85.00, 'blue', 'Butterfly Knife', 'Gamma Doppler', 'premium');
+                createSmartCase('spajkk', 'Spajkk', 12.00, 'blue', 'M4A1-S', 'Blue Phosphor', 'regular');
+                createSmartCase('straty', 'Straty', 10.00, 'red', 'Karambit', 'Lore', 'regular');
+                createSmartCase('taxi', 'Taxi', 12.00, 'yellow-400', 'AK-47', 'Fuel Injector', 'regular');
+                createSmartCase('tiger', 'Tiger', 3.80, 'purple', 'M9 Bayonet', 'Tiger Tooth', 'cheap');
+                createSmartCase('titan', 'Titan', 14.50, 'blue', 'AWP', 'Medusa', 'regular');
+                createSmartCase('toxic', 'Toxic', 2.60, 'purple', 'AWP', 'Containment Breach', 'cheap');
+                createSmartCase('tung-tung', 'Tung Tung', 5.00, 'blue', 'AK-47', 'Wasteland Rebel', 'cheap');
+                createSmartCase('turbo-win', 'Turbo Win', 45.00, 'red', 'Karambit', 'Crimson Web', 'premium');
+                createSmartCase('usp', 'USP', 4.00, 'purple', 'USP-S', 'Kill Confirmed', 'cheap', { weapon: 'USP-S' });
+                createSmartCase('vac-attack', 'Vac Attack', 85.00, 'red', 'Karambit', 'Fade', 'premium');
+                createSmartCase('war-god', 'War God', 180.00, 'pink', 'Sport Gloves', 'Vice', 'high-risk');
+                createSmartCase('warzone', 'Warzone', 75.00, 'red', 'M9 Bayonet', 'Autotronic', 'premium');
+                createSmartCase('wild-west', 'Wild West', 2.00, 'purple', 'Karambit', 'Lore', 'cheap');
+                createSmartCase('wild-shots', 'Wild Shots', 8.00, 'purple', 'Gut Knife', 'Lore', 'regular');
 
-    // 7. DESERT EAGLE
-    setManualCaseContents('wpn-deagle', [
-        ['Desert Eagle', 'Corinthian', 65.0],
-        ['Desert Eagle', 'Oxide Blaze', 25.0],
-        ['Desert Eagle', 'Conspiracy', 9.5],
-        ['Desert Eagle', 'Fennec Fox', 0.5] // Obrázek
-    ], { name: 'DESERT EAGLE', price: 3.50, color: 'purple', img: 'https://cdn.casehug.com/cases/DESERT_EAGLE.png?width=640&quality=85', category: 'cheap' });
-
-    // 8. AK-47
-    setManualCaseContents('wpn-ak47', [
-        ['AK-47', 'Uncharted', 75.0],
-        ['AK-47', 'Safari Mesh', 20.0],
-        ['AK-47', 'Elite Build', 4.8],
-        ['AK-47', 'Fuel Injector', 0.2] // Obrázek
-    ], { name: 'AK-47', price: 6.00, color: 'pink', img: 'https://cdn.casehug.com/cases/AK_47_3.png?width=640&quality=85', category: 'cheap' });
-
-    // 9. COVERT DREAMS (Pouze červené skiny)
-    setManualCaseContents('covert', [
-        ['M4A4', 'Desert-Strike', 80.0], 
-        ['AK-47', 'Legion of Anubis', 15.0],
-        ['P90', 'Asiimov', 4.5],
-        ['Desert Eagle', 'Code Red', 0.5] // Obrázek
-    ], { name: 'Covert Dreams', price: 20.00, color: 'red', img: findSkin('Desert Eagle', 'Code Red').img, category: 'premium' });
-
-    // 10. 20 JUICE
-    setManualCaseContents('juice-20', [
-        ['P250', 'Sand Dune', 50.0],
-        ['Glock-18', 'Water Elemental', 30.0],
-        ['Desert Eagle', 'Fennec Fox', 20.0] // PŘESNĚ 20%
-    ], { name: '20 JUICE', price: 150.00, color: 'blue', img: 'https://cdn.casehug.com/cases/20_JUICE.png?width=640&quality=85', category: 'premium' });
-
-    // 11. PLANT B
-    setManualCaseContents('plant-b', [
-        ['UMP-45', 'Primal Saber', 80.0],
-        ['MAC-10', 'Neon Rider', 15.0],
-        ['M4A4', 'Hellfire', 4.5],
-        ['M4A1-S', 'Hot Rod', 0.5] // Obrázek
-    ], { name: 'PLANT B', price: 36.00, color: 'red', img: 'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85', category: 'premium' });
-
-    // 12. ELECTRONIC
-    setManualCaseContents('electronic', [
-        ['MAC-10', 'Disco Tech', 70.0],
-        ['UMP-45', 'Scaffold', 20.0],
-        ['M4A1-S', 'Icarus Fell', 9.5],
-        ['M9 Bayonet', 'Autotronic', 0.5] // Obrázek
-    ], { name: 'ELECTRONIC', price: 33.00, color: 'purple', img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85', category: 'premium' });
-
-    // 13. VAC ATTACK
-    setManualCaseContents('vac-attack', [
-        ['AWP', 'Atheris', 60.0],
-        ['M4A4', 'Hellfire', 30.0],
-        ['AK-47', 'Bloodsport', 9.5],
-        ['Karambit', 'Fade', 0.5] // Obrázek
-    ], { name: 'VAC ATTACK', price: 85.00, color: 'red', img: 'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85', category: 'premium' });
-
-    // Zruš volání jakýchkoliv rebalančních funkcí! Ponech pouze toto:
-    renderCases();
-}, 100);
+                // Po sestavení beden načteme UI
+                renderCases();
+            }, 200);
         }, 50);
 
             function renderCaseSelectorModal() {
@@ -2770,6 +2889,7 @@ setTimeout(() => {
         function renderCaseSelector() { renderCaseSelectorModal(); }
         function renderCBBuilderQueue() { renderCreateBattleQueue(); }
 function openCaseBattleBuilder() {
+    if (!requireAuthAction()) return; // TENTO ŘÁDEK OPRAVÍ BUG
     const modal = document.getElementById('cb-builder-modal');
     if (!modal) return;
     modal.classList.remove('hidden');
@@ -3461,6 +3581,7 @@ function closeCaseSelectorModal() {
                 { key: 'featured', label: 'FEATURED' },
                 { key: 'cheap', label: 'CHEAP & WEAPONS' }, // TOTO ZDE CHYBĚLO!
                 { key: 'regular', label: 'REGULAR' },
+                { key: 'cheap', label: 'CHEAP & WEAPONS' },
                 { key: 'premium', label: 'PREMIUM' },
                 { key: 'high-risk', label: 'HIGH RISK' }
             ];
