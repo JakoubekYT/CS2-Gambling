@@ -5080,11 +5080,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                 const items = filtered.filter((c) => normalizeCategory(c) === group.key);
                 if (!items.length) return '';
                 const cards = items.map((c) => `
-                    <div onclick="openCaseView('${c.id}')" class="relative bg-[#161a24] hover:bg-[#1a1e29] border border-white/5 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
-                        <div class="absolute top-3 right-3 bg-white text-black font-black text-[11px] px-2 py-1 rounded-md shadow-md z-20">${formatMoney(c.price)}</div>
+                    <div onclick="openCaseView('${c.id}')" class="relative bg-[#161a24] hover:bg-[#1a1e29] border border-white/5 rounded-xl p-4 min-h-[280px] xl:min-h-[320px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
+                        <div class="absolute top-3 right-3 bg-white text-black font-black text-xs px-3 py-1.5 rounded-md shadow-md z-20">${formatMoney(c.price)}</div>
                         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${rarityGlow(c.color)} to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 rounded-xl"></div>
-                        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-32 object-contain relative z-10 drop-shadow-[0_10px_15px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-500">
-                        <div class="mt-4 text-xs font-black uppercase text-gray-300 group-hover:text-white tracking-widest relative z-10 text-center">${c.name}</div>
+                        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-48 xl:h-56 w-full object-contain mx-auto relative z-10 drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-500 ease-out">
+                        <div class="mt-4 text-sm font-black uppercase text-gray-300 group-hover:text-white tracking-widest relative z-10 text-center">${c.name}</div>
                     </div>
                 `).join('');
 
@@ -5098,7 +5098,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 `;
             }).join('');
 
-            grid.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-6">${sectionHtml || '<div class="col-span-full text-center py-16 text-gray-500 font-black uppercase">No cases for selected filter.</div>'}</div>`;
+            grid.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6">${sectionHtml || '<div class=\"col-span-full text-center py-16 text-gray-500 font-black uppercase\">No cases for selected filter.</div>'}</div>`;
             lucide.createIcons();
         }
 
