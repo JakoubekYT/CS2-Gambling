@@ -314,46 +314,46 @@
                 </div>
                 <div id="cases-grid"></div>
             </section>
+            <section id="page-case-view" class="page hidden fade-in max-w-7xl mx-auto space-y-8">
+                <div class="flex items-center">
+                    <button onclick="switchPage('cases')" class="text-gray-400 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to cases
+                    </button>
+                </div>
 
-            <section id="page-case-view" class="page hidden fade-in max-w-6xl mx-auto space-y-8">
-                <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Zpět na bedny
-                </button>
-
-                <div class="bg-[#14171c] rounded-3xl border border-white/5 p-8 shadow-2xl text-center">
-                    <div>
-                        <h2 id="view-case-name" class="text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-xl">Bedna</h2>
-                        <div id="view-case-price" class="text-yellow-400 font-bold text-xl mt-2 mb-8">0.00 EUR</div>
+                <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 md:p-8 space-y-8">
+                    <div class="text-center flex flex-col items-center gap-4">
+                        <h2 id="view-case-name" class="text-3xl font-black uppercase tracking-widest text-white drop-shadow-md">CASE NAME</h2>
+                        <div id="view-case-price" class="bg-white/10 border border-white/20 rounded-md px-3 py-1 text-xs font-bold text-gray-300">$0.00</div>
+                        <img id="view-case-image" src="" alt="Case" onerror="handleImgError(this)" class="h-48 object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:scale-105 transition-transform" />
                     </div>
 
-                    <div id="spinner-stack" class="space-y-4 mb-8">
-                        <div class="spinner-container relative" data-spin-row="0">
-                            <div class="blur-edges blur-left"></div>
-                            <div class="blur-edges blur-right"></div>
-                            <div class="spinner-selector"></div>
-                            <div id="spinner-track-0" class="spinner-track"></div>
+                    <div id="spinner-stack" class="space-y-3"></div>
+
+                    <div id="case-view-controls" class="bg-[#12161f] border border-white/5 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 mt-6">
+                        <div id="case-open-count-buttons" class="flex items-center gap-2">
+                            <button type="button" data-open-count="1" onclick="ensureSpinnerRows(1)" class="w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#c0f20c] text-black shadow-[0_0_15px_rgba(192,242,12,0.3)]">1</button>
+                            <button type="button" data-open-count="2" onclick="ensureSpinnerRows(2)" class="w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#1a1e29] text-gray-400 hover:bg-white/10">2</button>
+                            <button type="button" data-open-count="3" onclick="ensureSpinnerRows(3)" class="w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#1a1e29] text-gray-400 hover:bg-white/10">3</button>
+                            <button type="button" data-open-count="4" onclick="ensureSpinnerRows(4)" class="w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#1a1e29] text-gray-400 hover:bg-white/10">4</button>
+                            <button type="button" data-open-count="5" onclick="ensureSpinnerRows(5)" class="w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#1a1e29] text-gray-400 hover:bg-white/10">5</button>
                         </div>
-                    </div>
-                    <div id="spin-results" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"></div>
-
-                    <div class="flex flex-wrap gap-3 justify-center items-center">
-                        <label for="open-count" class="text-xs font-black uppercase tracking-widest text-purple-300">Počet spinů</label>
-                        <select id="open-count" class="bg-[#0b0d11] border border-purple-500/40 text-white rounded-xl px-4 py-3 font-black">
-                            <option value="1">1x</option>
-                            <option value="2">2x</option>
-                            <option value="3">3x</option>
-                            <option value="4">4x</option>
-                            <option value="5">5x</option>
-                        </select>
-                        <button id="btn-open-case" class="bg-yellow-400 hover:bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black uppercase italic transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(250,204,21,0.3)] text-2xl tracking-tighter">
-                            OTEVŘÍT BEDNU
-                        </button>
+                        <button id="btn-open-case" type="button" class="bg-green-500 hover:bg-green-400 text-black font-black uppercase text-lg px-12 py-3 rounded-lg shadow-[0_0_25px_rgba(34,197,94,0.3)] transition-all transform hover:scale-105 active:scale-95">OPEN FOR $0.00</button>
+                        <div class="flex items-center gap-2">
+                            <button id="case-fast-open-toggle" type="button" class="bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                                <i data-lucide="zap" class="w-4 h-4"></i>
+                            </button>
+                            <button id="case-sound-toggle" type="button" class="bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center text-white transition-colors">
+                                <i data-lucide="volume-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="text-xl font-black uppercase italic tracking-tighter text-white mb-4 border-b border-white/10 pb-2">Obsah bedny a šance</h3>
-                    <div id="view-case-contents" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+                <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6">
+                    <h3 class="text-sm font-black text-gray-400 uppercase mb-4 tracking-widest">SKINS IN THIS CASE</h3>
+                    <div id="view-case-contents" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3"></div>
                 </div>
             </section>
 
@@ -4402,8 +4402,18 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbSelectedCases = new Map();
 
         function cbSetPanels(inRoom) {
-            document.getElementById('cb-create-panel')?.classList.toggle('hidden', inRoom);
-            document.getElementById('cb-room-panel')?.classList.toggle('hidden', !inRoom);
+            const createPanel = document.getElementById('cb-create-panel');
+            const roomPanel = document.getElementById('cb-room-panel');
+            
+            if (inRoom) {
+                if (createPanel) createPanel.classList.add('hidden');
+                if (roomPanel) roomPanel.classList.remove('hidden');
+                if (roomPanel) roomPanel.classList.add('flex');
+            } else {
+                if (createPanel) createPanel.classList.remove('hidden');
+                if (roomPanel) roomPanel.classList.add('hidden');
+                if (roomPanel) roomPanel.classList.remove('flex');
+            }
         }
         function cbSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
         function cbAddLog(text) { const log = document.getElementById('cb-log'); if (!log) return; const row = document.createElement('div'); row.className='mb-1 text-gray-200'; row.textContent=text; log.appendChild(row); log.scrollTop=log.scrollHeight; }
@@ -4557,16 +4567,33 @@ Zeus x27|Charged Up|8.50|#8847ff
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {
-            if (!cbSelectedCases.size) return null;
+            if (!cbSelectedCases || cbSelectedCases.size === 0) return null;
             const queue = [];
+            let totalCost = 0;
+            let totalRounds = 0;
+
             cbSelectedCases.forEach((count, id) => {
-                const c = casesDB.find((x) => x.id === id); if (!c) return;
-                queue.push({ caseId: c.id, caseName: c.name, casePrice: Number(c.price||0), caseImg: c.img || '', count, contents: (c.contents || []).map((it)=>({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) })) });
+                const c = casesDB.find((x) => x.id === id); 
+                if (!c) return;
+                queue.push({ 
+                    caseId: c.id, 
+                    caseName: c.name, 
+                    casePrice: Number(c.price || 0), 
+                    caseImg: c.img || '', 
+                    count: Number(count) 
+                });
+                totalRounds += Number(count);
+                totalCost += (Number(c.price || 0) * Number(count));
             });
-            if (!queue.length) return null;
-            const rounds = queue.reduce((a,q)=>a+Number(q.count||0),0);
-            const total = queue.reduce((a,q)=>a+Number(q.casePrice||0)*Number(q.count||0),0);
-            return { caseId: queue[0].caseId, caseName: queue[0].caseName, casePrice: rounds? total/rounds:0, rounds, caseQueue: queue, contents: queue[0].contents };
+
+            if (queue.length === 0) return null;
+            return { 
+                caseId: queue[0].caseId, 
+                caseName: queue[0].caseName, 
+                casePrice: totalRounds ? (totalCost / totalRounds) : 0, 
+                rounds: totalRounds, 
+                caseQueue: queue 
+            };
         }
 
         function getCaseByRoom(room) { return casesDB.find((x) => x.id === room?.caseId) || casesDB.find((x) => x.name === room?.caseName) || null; }
@@ -4624,18 +4651,49 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
+            
             const payload = selectedCasePayload();
-            if (!payload) return showToast('Nejdřív přidej caseky.', true);
-            const mode = cbBuilderState.mode;
+            if (!payload) {
+                return showToast('Please select at least one case first!', true);
+            }
+
+            const mode = cbBuilderState.mode || '1v1';
             const rounds = Number(payload.rounds || 1);
+            
+            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+            const originalText = btn ? btn.textContent : 'CREATE BATTLE';
+            if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
+
             try {
-                const data = await apiRequest('/api/case-battle/create', 'POST', { mode, rounds, fillWithBots: false, teamFormat: cbBuilderState.teamFormat, gameMode: cbBuilderState.gameMode, privacy: cbBuilderState.privacy, ...payload });
+                console.log('Sending Create Battle Request...', { mode, rounds, ...payload });
+                
+                const data = await apiRequest('/api/case-battle/create', 'POST', { 
+                    mode, 
+                    rounds, 
+                    fillWithBots: false, 
+                    teamFormat: cbBuilderState.teamFormat || '1v1', 
+                    gameMode: cbBuilderState.gameMode || 'classic', 
+                    privacy: cbBuilderState.privacy || 'public', 
+                    ...payload 
+                });
+
+                console.log('Battle Created Successfully:', data);
+
                 cbActiveRoomId = data.room?.id || null;
-                cbSetPanels(true);
                 closeCaseBattleBuilder();
-                cbAddLog(`Room vytvořena: ${cbActiveRoomId}`);
-                renderCaseBattleRoom(data.room, true);
-            } catch (err) { showToast(err.message, true); }
+                cbSetPanels(true);
+                
+                cbAddLog(`Battle Room Created: ${cbActiveRoomId}`);
+                
+                renderCaseBattleRoom(data.room, false);
+                showToast('Battle created successfully!');
+                
+            } catch (err) { 
+                console.error('Create Battle Error:', err);
+                showToast(err.message || 'Failed to create battle', true); 
+            } finally {
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+            }
         }
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
@@ -5135,180 +5193,232 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
             track.innerHTML = html;
         }
+        let caseViewSelectedCount = 1;
+        let caseViewFastOpen = false;
+        let caseViewSoundOn = true;
 
         function ensureSpinnerRows(count, caseObj = null) {
+            const normalizedCount = Math.max(1, Math.min(5, Number(count) || 1));
+            caseViewSelectedCount = normalizedCount;
+            const resolvedCase = caseObj || casesDB.find(x => x.id === activeCaseId) || null;
             const stack = document.getElementById('spinner-stack');
-            if(!stack) return [];
-            if(stack.children.length !== count) {
-                stack.innerHTML = Array.from({ length: count }, (_, i) => `
-                    <div class="spinner-container relative" data-spin-row="${i}">
-                        <div class="blur-edges blur-left"></div>
-                        <div class="blur-edges blur-right"></div>
-                        <div class="spinner-selector"></div>
-                        <div id="spinner-track-${i}" class="spinner-track"></div>
-                    </div>
-                `).join('');
-            }
-            const tracks = Array.from(stack.querySelectorAll('.spinner-track'));
-            tracks.forEach(track => {
-                track.style.transition = 'none';
-                track.style.transform = 'translateX(0px)';
-                if(caseObj) fillTrackWithCaseSkins(track, caseObj);
+            const openButton = document.getElementById('btn-open-case');
+            const countButtons = Array.from(document.querySelectorAll('#case-open-count-buttons [data-open-count]'));
+
+            countButtons.forEach(btn => {
+                const value = Number(btn.dataset.openCount || '1');
+                if (value === normalizedCount) {
+                    btn.className = 'w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#c0f20c] text-black shadow-[0_0_15px_rgba(192,242,12,0.3)]';
+                } else {
+                    btn.className = 'w-10 h-10 flex items-center justify-center rounded-md font-black text-sm transition-all bg-[#1a1e29] text-gray-400 hover:bg-white/10';
+                }
             });
-            return tracks;
+
+            if (openButton && resolvedCase) {
+                openButton.textContent = `OPEN FOR ${formatMoney((resolvedCase.price || 0) * normalizedCount)}`;
+            }
+
+            if (!stack) return [];
+            const skinsPool = resolvedCase && Array.isArray(resolvedCase.contents) ? resolvedCase.contents.map(item => item.skin).filter(Boolean) : [];
+            const rowsHtml = Array.from({ length: normalizedCount }, (_, rowIndex) => {
+                const prefillItems = Array.from({ length: 60 }, () => {
+                    const skin = skinsPool.length ? skinsPool[Math.floor(Math.random() * skinsPool.length)] : { name: 'Unknown', img: FALLBACK_IMG, color: '#4b69ff' };
+                    return `<div class="flex-shrink-0 w-[130px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent" style="border-color:${skin.color || '#4b69ff'}"><img src="${skin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md"><div class="text-[10px] text-gray-300 font-bold uppercase truncate w-full text-center mt-2">${skin.name || 'Unknown'}</div></div>`;
+                }).join('');
+                return `<div class="spinner-container h-32 bg-[#0d1017] border border-white/5 rounded-xl relative overflow-hidden shadow-inner" data-spin-row="${rowIndex}"><div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-1 bg-[#c0f20c] z-30 shadow-[0_0_15px_rgba(192,242,12,0.8)]"></div><div class="absolute left-0 top-0 h-full flex items-center will-change-transform z-20" id="spinner-track-${rowIndex}">${prefillItems}</div></div>`;
+            }).join('');
+
+            stack.innerHTML = rowsHtml;
+            lucide.createIcons();
+            return Array.from(stack.querySelectorAll('[id^="spinner-track-"]'));
         }
 
-        function spinCase(caseObj, count = 1) {
-            if(isSpinning) return;
+        async function spinCase(caseObj, count = 1) {
+            if (isSpinning || !caseObj) return;
+            if (!requireAuthAction()) return;
             initAudio();
-            if(!requireAuthAction()) return;
-            const totalCost = caseObj.price * count;
-            if(balanceBase < totalCost) return showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
+            const normalizedCount = Math.max(1, Math.min(5, Number(count) || 1));
+            const totalCost = (caseObj.price || 0) * normalizedCount;
+            if (balanceBase < totalCost) {
+                showToast(`Nemáš dostatek peněz (${formatMoney(totalCost)})`, true);
+                return;
+            }
 
+            isSpinning = true;
             balanceBase -= totalCost;
             updateUI();
-            isSpinning = true;
 
-            const btn = document.getElementById('btn-open-case');
-            const countSel = document.getElementById('open-count');
-            const results = document.getElementById('spin-results');
-            if(results) results.innerHTML = '';
-
-            if(btn) {
-                btn.disabled = true;
-                btn.classList.add('opacity-50');
-                btn.textContent = count > 1 ? `Točí se ${count}x...` : 'Točí se...';
-            }
-            if(countSel) countSel.disabled = true;
-
-            const tracks = ensureSpinnerRows(count);
+            const controlsPanel = document.getElementById('case-view-controls');
+            const actionButton = document.getElementById('btn-open-case');
+            const countButtons = Array.from(document.querySelectorAll('#case-open-count-buttons [data-open-count]'));
+            const fastButton = document.getElementById('case-fast-open-toggle');
+            const soundButton = document.getElementById('case-sound-toggle');
+            const tracks = ensureSpinnerRows(normalizedCount, caseObj);
+            const winningSkins = [];
             const rowMeta = [];
-            const winningIndex = 50;
-            const itemWidth = 148;
+            const itemWidth = 130;
 
-            for(let i = 0; i < count; i++) {
+            if (controlsPanel) controlsPanel.classList.add('opacity-60');
+            if (actionButton) {
+                actionButton.disabled = true;
+                actionButton.textContent = normalizedCount > 1 ? `OPENING ${normalizedCount} CASES...` : 'OPENING CASE...';
+            }
+            countButtons.forEach(btn => { btn.disabled = true; });
+            if (fastButton) fastButton.disabled = true;
+            if (soundButton) soundButton.disabled = true;
+
+            for (let rowIndex = 0; rowIndex < normalizedCount; rowIndex++) {
+                const track = tracks[rowIndex];
+                if (!track) continue;
                 const winningSkin = rollCaseSkin(caseObj);
-                const track = tracks[i];
-                if(!track) continue;
-                fillTrackWithCaseSkins(track, caseObj, winningSkin);
-                rowMeta.push({ track, row: track.parentElement, winningSkin });
+                winningSkins.push(winningSkin);
+                const tape = Array.from({ length: 60 }, (_, itemIndex) => {
+                    const skin = itemIndex === 50 ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
+                    return `<div class="flex-shrink-0 w-[130px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent transition-all" style="border-color:${skin.color || '#4b69ff'}"><img src="${skin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md"><div class="text-[10px] text-gray-300 font-bold uppercase truncate w-full text-center mt-2">${skin.name || 'Unknown'}</div></div>`;
+                }).join('');
+
+                track.style.transition = 'none';
+                track.style.transform = 'translate3d(0px, 0, 0)';
+                track.innerHTML = tape;
+                void track.offsetWidth;
+
+                const containerWidth = track.parentElement ? track.parentElement.clientWidth : 0;
+                const randomOffset = Math.random() * 40 - 20;
+                const stopOffset = (50 * itemWidth) - (containerWidth / 2) + 65 + randomOffset;
+                track.style.transition = caseViewFastOpen ? 'transform 0.2s linear' : 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
+                track.style.transform = `translate3d(-${stopOffset}px, 0, 0)`;
+                rowMeta.push({ track, stopOffset });
             }
 
-            let tickAnimFrame = null;
-            const stopTickLoop = () => { if (tickAnimFrame) { cancelAnimationFrame(tickAnimFrame); tickAnimFrame = null; } };
-
-            const spinGuard = setTimeout(() => {
-                isSpinning = false;
-                if (btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
-                if (countSel) countSel.disabled = false;
-                stopTickLoop();
-            }, 12000);
-
-            setTimeout(() => {
-                try {
-                    rowMeta.forEach((m) => { m.track.dataset.lastX = '0'; });
-                    const containerWidth0 = rowMeta[0]?.row?.clientWidth || 0;
-                    const finalOffset0 = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth0 / 2);
-                    let lastTickStep = -1;
-                    const spinDuration = 6000;
-                    const spinStart = performance.now();
-                    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-                    const tickLoop = (ts) => {
-                        const p = Math.max(0, Math.min(1, (ts - spinStart) / spinDuration));
-                        const x = easeOutCubic(p) * finalOffset0;
-                        const step = Math.floor(Math.abs(x) / itemWidth);
-                        if (step !== lastTickStep) {
-                            lastTickStep = step;
-                            SoundEngine.playTick();
-                        }
-                        if (p < 1 && isSpinning) tickAnimFrame = requestAnimationFrame(tickLoop);
-                    };
-                    tickAnimFrame = requestAnimationFrame(tickLoop);
-                    rowMeta.forEach((m) => {
-                        const containerWidth = m.row.clientWidth;
-                        const finalOffset = (winningIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
-                        m.track.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)';
-                        m.track.style.transform = `translateX(-${finalOffset}px)`;
-                    });
-
-                    setTimeout(() => {
-                        stopTickLoop();
-                        let totalWin = 0;
-                        rowMeta.forEach(m => {
-                            addToInventory(m.winningSkin);
-                            totalWin += m.winningSkin.price;
-                            if(results) results.insertAdjacentHTML('beforeend', renderMultiResultCard(m.winningSkin));
-                        });
-                        if(count === 1 && rowMeta[0]) showWinModal(rowMeta[0].winningSkin);
-                        else showToast(`Hotovo: ${count} skinů (${formatMoney(totalWin)})`);
-                        isSpinning = false;
-                        clearTimeout(spinGuard);
-                        if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
-                        if(countSel) countSel.disabled = false;
-                    }, 6500);
-                } catch (err) {
-                    console.error('spinCase failed', err);
-                    isSpinning = false;
-                    clearTimeout(spinGuard);
-                    stopTickLoop();
-                    if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); btn.textContent = 'HRÁT ZNOVU'; }
-                    if(countSel) countSel.disabled = false;
-                    showToast('Točení selhalo, zkus to znovu.', true);
+            let rafId = null;
+            let lastStep = -1;
+            const shouldPlaySound = caseViewSoundOn;
+            const readTranslateX = (element) => {
+                const t = getComputedStyle(element).transform;
+                if (!t || t === 'none') return 0;
+                const matrix3d = t.match(/^matrix3d\((.+)\)$/);
+                if (matrix3d) {
+                    const parts = matrix3d[1].split(',').map(v => Number(v.trim()));
+                    return Number.isFinite(parts[12]) ? parts[12] : 0;
                 }
-            }, 50);
+                const matrix = t.match(/^matrix\((.+)\)$/);
+                if (matrix) {
+                    const parts = matrix[1].split(',').map(v => Number(v.trim()));
+                    return Number.isFinite(parts[4]) ? parts[4] : 0;
+                }
+                return 0;
+            };
+
+            const tickLoop = () => {
+                if (!rowMeta.length || !shouldPlaySound || caseViewFastOpen) return;
+                const leadTrack = rowMeta[0].track;
+                const currentX = Math.abs(readTranslateX(leadTrack));
+                const currentStep = Math.floor(currentX / itemWidth);
+                if (currentStep > lastStep) {
+                    lastStep = currentStep;
+                    SoundEngine.playTick();
+                }
+                rafId = requestAnimationFrame(tickLoop);
+            };
+
+            if (!caseViewFastOpen) {
+                rafId = requestAnimationFrame(tickLoop);
+                await new Promise(r => setTimeout(r, 6800));
+            } else {
+                await new Promise(r => setTimeout(r, 260));
+            }
+
+            if (rafId) cancelAnimationFrame(rafId);
+
+            try {
+                if (normalizedCount === 1 && winningSkins[0]) {
+                    showWinModal(winningSkins[0]);
+                } else {
+                    let totalWin = 0;
+                    winningSkins.forEach(skin => {
+                        addToInventory(skin);
+                        totalWin += skin.price || 0;
+                    });
+                    if (caseViewSoundOn) SoundEngine.playWin('milspec');
+                    showToast(`Opened ${normalizedCount} cases • Total win ${formatMoney(totalWin)}`);
+                }
+            } finally {
+                isSpinning = false;
+                if (controlsPanel) controlsPanel.classList.remove('opacity-60');
+                if (actionButton) {
+                    actionButton.disabled = false;
+                    actionButton.textContent = `OPEN FOR ${formatMoney((caseObj.price || 0) * caseViewSelectedCount)}`;
+                }
+                countButtons.forEach(btn => { btn.disabled = false; });
+                if (fastButton) fastButton.disabled = false;
+                if (soundButton) soundButton.disabled = false;
+            }
         }
 
         function openCaseView(id) {
             activeCaseId = id;
-            const c = casesDB.find(x => x.id === id);
-            if(!c) { showToast('Bedna nebyla nalezena', true); return; }
-            
-            document.getElementById('view-case-name').textContent = c.name;
-            document.getElementById('view-case-price').textContent = `${formatMoney(c.price)}`;
-            document.getElementById('view-case-name').style.color = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${c.color === 'yellow-400' ? 'gold' : c.color}`);
-
-            const changer = document.getElementById('case-changer');
-            if(changer) {
-                changer.innerHTML = '<option value="">🎁 Změnit bednu</option>';
-                casesDB.forEach(caseItem => {
-                    const opt = document.createElement('option');
-                    opt.value = caseItem.id;
-                    opt.textContent = `${caseItem.name} - ${formatMoney(caseItem.price)}`;
-                    opt.selected = caseItem.id === id;
-                    changer.appendChild(opt);
-                });
+            const caseObj = casesDB.find(c => c.id === id);
+            if (!caseObj) {
+                showToast('Bedna nebyla nalezena', true);
+                return;
             }
 
-            const countSel = document.getElementById('open-count');
-            const selectedCount = () => getOpenCount();
-            ensureSpinnerRows(selectedCount(), c);
-            const results = document.getElementById('spin-results');
-            if(results) results.innerHTML = '';
-            
-            document.getElementById('view-case-contents').innerHTML = c.contents.map(item => `
-                <div class="relative bg-gray-900/50 p-3 rounded-xl border-b-2 flex flex-col items-center text-center" style="border-color: ${item.skin.color}">
-                    <div class="absolute top-1 right-1 text-[9px] bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded">${formatMoney(item.skin.price || 0)}</div>
-                    <img src="${item.skin.img}" data-alts="${(item.skin.imgAlts||[]).join('|')}" onerror="handleImgError(this)" class="h-16 object-contain mb-2 drop-shadow-md">
-                    <div class="text-[9px] font-bold text-gray-400 uppercase truncate w-full">${item.skin.name}</div>
-                    <div class="text-[10px] font-black text-white">${formatChancePercent(item.chance)}</div>
-                </div>
-            `).join('');
+            const nameEl = document.getElementById('view-case-name');
+            const priceEl = document.getElementById('view-case-price');
+            const imageEl = document.getElementById('view-case-image');
+            const contentsEl = document.getElementById('view-case-contents');
+            const openBtn = document.getElementById('btn-open-case');
+            const fastButton = document.getElementById('case-fast-open-toggle');
+            const soundButton = document.getElementById('case-sound-toggle');
 
-            const btn = document.getElementById('btn-open-case');
-            btn.onclick = () => spinCase(c, selectedCount());
-            if(countSel) {
-                countSel.onchange = () => {
-                    ensureSpinnerRows(selectedCount(), c);
-                    if(results) results.innerHTML = '';
+            if (nameEl) nameEl.textContent = caseObj.name || 'CASE';
+            if (priceEl) priceEl.textContent = formatMoney(caseObj.price || 0);
+            if (imageEl) {
+                imageEl.src = caseObj.img || FALLBACK_IMG;
+                imageEl.alt = caseObj.name || 'Case';
+            }
+
+            const sortedContents = [...(caseObj.contents || [])].sort((a, b) => (b.skin?.price || 0) - (a.skin?.price || 0));
+            if (contentsEl) {
+                contentsEl.innerHTML = sortedContents.map(item => {
+                    const skin = item.skin || {};
+                    const chanceValue = Number(item.chance || 0);
+                    const chanceText = chanceValue < 1 ? `${chanceValue.toFixed(3)}%` : `${chanceValue.toFixed(2)}%`;
+                    return `<div class="bg-[#161a24] border-t-2 rounded-lg p-3 relative flex flex-col items-center group transition-all hover:-translate-y-1" style="border-top-color:${skin.color || '#4b69ff'}"><div class="absolute top-2 left-2 text-[9px] font-bold text-gray-500">${chanceText}</div><img src="${skin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-16 object-contain drop-shadow-md mt-3"><div class="text-[10px] text-gray-300 font-black uppercase text-center mt-2 leading-tight">${skin.weapon || ''} ${skin.skin || ''}</div><div class="text-[11px] font-black mt-2" style="color:${skin.color || '#facc15'}">${formatMoney(skin.price || 0)}</div></div>`;
+                }).join('');
+            }
+
+            caseViewSelectedCount = 1;
+            ensureSpinnerRows(1, caseObj);
+
+            if (openBtn) {
+                openBtn.disabled = false;
+                openBtn.textContent = `OPEN FOR ${formatMoney(caseObj.price || 0)}`;
+                openBtn.onclick = () => spinCase(caseObj, caseViewSelectedCount);
+            }
+
+            if (fastButton) {
+                fastButton.className = `bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center transition-colors ${caseViewFastOpen ? 'text-[#c0f20c]' : 'text-gray-400 hover:text-white'}`;
+                fastButton.onclick = () => {
+                    caseViewFastOpen = !caseViewFastOpen;
+                    fastButton.className = `bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center transition-colors ${caseViewFastOpen ? 'text-[#c0f20c]' : 'text-gray-400 hover:text-white'}`;
                 };
-                countSel.disabled = false;
             }
-            btn.textContent = "OTEVŘÍT BEDNU";
-            btn.disabled = false;
-            btn.classList.remove('opacity-50');
+
+            if (soundButton) {
+                soundButton.className = `bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center transition-colors ${caseViewSoundOn ? 'text-white' : 'text-gray-500'}`;
+                soundButton.innerHTML = caseViewSoundOn ? '<i data-lucide="volume-2" class="w-4 h-4"></i>' : '<i data-lucide="volume-x" class="w-4 h-4"></i>';
+                soundButton.onclick = () => {
+                    caseViewSoundOn = !caseViewSoundOn;
+                    soundButton.className = `bg-[#1a1e29] w-10 h-10 rounded-md flex items-center justify-center transition-colors ${caseViewSoundOn ? 'text-white' : 'text-gray-500'}`;
+                    soundButton.innerHTML = caseViewSoundOn ? '<i data-lucide="volume-2" class="w-4 h-4"></i>' : '<i data-lucide="volume-x" class="w-4 h-4"></i>';
+                    lucide.createIcons();
+                };
+            }
 
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-case-view').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function startSpinner(caseObj) { spinCase(caseObj, 1); }
