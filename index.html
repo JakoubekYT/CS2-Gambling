@@ -211,6 +211,11 @@
         .cb-filter-chip.active { border-color: rgba(250,204,21,0.6); color: #fde68a; box-shadow: 0 0 16px rgba(250,204,21,0.2); }
         .cb-lobby-row { display:grid; grid-template-columns: 80px 1fr 100px 150px 120px; gap: 10px; align-items:center; padding: 10px; border: 1px solid rgba(250,204,21,0.2); border-radius: 12px; background: linear-gradient(135deg, rgba(0,0,0,0.25), rgba(18,22,32,0.9)); }
         .cb-rounds-badge { clip-path: polygon(16% 0,84% 0,100% 50%,84% 100%,16% 100%,0 50%); border: 1px solid rgba(250,204,21,0.8); color:#fde047; font-weight:900; text-align:center; padding:.6rem .2rem; background: rgba(250,204,21,0.12); box-shadow: 0 0 16px rgba(250,204,21,0.25); }
+        .cb-case-pick-card { position: relative; background: linear-gradient(180deg, #171b25, #111723); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 8px; transition: all .2s ease; overflow: hidden; }
+        .cb-case-pick-card:hover { border-color: rgba(250,204,21,0.55); transform: translateY(-2px); box-shadow: 0 8px 26px rgba(0,0,0,0.35); }
+        .cb-case-pick-controls { position: absolute; inset: auto 8px 8px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; opacity:0; transform: translateY(8px); transition: all .18s ease; }
+        .cb-case-pick-card:hover .cb-case-pick-controls, .cb-case-pick-card.selected .cb-case-pick-controls { opacity:1; transform: translateY(0); }
+        .cb-case-picked-count { position:absolute; top:8px; left:8px; min-width:30px; height:30px; border-radius:9999px; display:grid; place-items:center; font-size:12px; font-weight:900; background: rgba(250,204,21,0.9); color:#111; box-shadow:0 0 16px rgba(250,204,21,0.45); }
 
     </style>
 </head>
@@ -520,8 +525,10 @@
                         <div class="bg-black/30 border border-dashed border-yellow-400/40 rounded-xl p-3 mb-3">
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <div class="text-xs text-gray-300">Battle Scenario Queue</div>
-                                <button onclick="openCaseSelectorModal()" class="bg-yellow-400/20 border border-yellow-300/40 text-yellow-200 rounded-lg px-3 py-2 text-xs font-black uppercase">Přidat caseky do battleu</button>
                             </div>
+                            <button onclick="openCaseSelectorModal()" class="mt-2 w-full h-16 rounded-xl border border-dashed border-yellow-300/45 bg-[#161a24] hover:bg-[#1a1e29] transition-all flex items-center justify-center gap-2 text-yellow-200 font-black uppercase">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Add case
+                            </button>
                             <div id="cb-builder-queue" class="mt-2 flex gap-2 overflow-x-auto pb-1"></div>
                             <div class="mt-2 flex items-center justify-between text-xs"><div>Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black">0</span></div><div>Total: <span id="cb-builder-total" class="text-yellow-300 font-black">0.00 EUR</span></div></div>
                         </div>
@@ -532,33 +539,35 @@
                     </div>
                 </div>
 
-                <div id="cb-case-selector-modal" class="hidden fixed inset-0 z-[160] bg-black/90 backdrop-blur-md p-4">
-                    <div class="max-w-5xl mx-auto bg-[#111623] border border-yellow-400/30 rounded-2xl p-4 h-full flex flex-col">
-                        <div class="flex items-center justify-between gap-3 mb-3"><div class="font-black text-yellow-300 uppercase">Select Cases</div><button onclick="closeCaseSelectorModal()" class="bg-white/10 rounded-lg px-3 py-1 text-xs font-black">Close</button></div>
-                        <div class="text-[11px] text-gray-400 mb-2">Vyber caseky klikáním na + / - (bez psaní názvu)</div>
-                        <div id="cb-selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-y-auto pr-1"></div>
-                        <div class="mt-3 bg-black/40 border border-yellow-400/25 rounded-xl p-3 flex items-center justify-between text-sm">
-                            <div>Your balance: <span id="cb-balance" class="font-black text-yellow-300">0.00 EUR</span></div>
-                            <button onclick="applyCaseBattleBuilder()" class="bg-yellow-400 text-black rounded-lg px-5 py-2 font-black">Ready <span id="cb-ready-total">0.00 EUR</span></button>
-                            <div>Rounds: <span id="cb-ready-rounds" class="font-black text-yellow-300">0</span></div>
-                        </div>
-                    </div>
-                </div>
+                
 
-                <div id="cb-room-panel" class="hidden bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
-                    <div class="flex items-center justify-between gap-2">
-                        <div id="cb-current-room" class="text-xs text-yellow-300 font-bold">Čeká se na hráče...</div>
-                        <div class="flex gap-2">
-                            <button onclick="startCaseBattleRoom()" class="bg-red-500 text-white font-black rounded-lg px-3 py-2 text-sm">Spustit s botem</button>
-                            <button onclick="leaveCaseBattleRoom()" class="bg-gray-700 text-white font-black rounded-lg px-3 py-2 text-sm">Odejít</button>
+                <div id="cb-room-panel" class="hidden flex flex-col bg-[#0b0d11] rounded-2xl overflow-hidden border border-white/10">
+                    <div class="px-4 py-3 bg-[#12161f] border-b border-white/10 flex items-center gap-3">
+                        <div class="shrink-0 px-3 py-2 rounded-xl border border-yellow-400 text-yellow-300 bg-black/30 shadow-[0_0_14px_rgba(250,204,21,0.25)]">
+                            <div class="text-[10px] uppercase font-black">Battle Rounds</div>
+                            <div id="cb-round-counter" class="text-lg font-black leading-none">1 of 1</div>
+                        </div>
+                        <div id="cb-case-queue" class="flex-1 overflow-x-auto whitespace-nowrap flex gap-2 pb-1"></div>
+                        <div class="text-right shrink-0">
+                            <div class="text-[10px] uppercase text-gray-500 font-black">Battle Value</div>
+                            <div id="cb-total-value" class="text-yellow-400 font-black text-2xl drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">0.00 EUR</div>
                         </div>
                     </div>
-                    <div class="bg-[#12161f] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-                        <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10 bg-[#161a24]"><div class="flex items-center gap-3 md:gap-4 min-w-0"><div class="bg-yellow-400/20 text-yellow-300 font-black rounded-lg px-3 py-2 border border-yellow-400/30 shrink-0"><div class="text-[10px] uppercase">Battle Rounds</div><div class="text-lg leading-none" id="cb-round-counter">1 of 1</div></div><div id="cb-case-queue" class="flex gap-2 overflow-x-auto pb-1"></div></div><div class="text-right shrink-0"><div class="text-[10px] uppercase text-gray-400 font-bold">Battle Value</div><div class="text-yellow-400 font-black text-xl" id="cb-total-value">0.00 EUR</div></div></div>
-                        <div class="grid grid-cols-[1fr_auto_1fr] items-center bg-[#0d1017] border-b border-white/10"><div class="p-3 flex justify-between items-center border-r border-[#1a1e29]"><div class="text-blue-400 font-black flex items-center gap-2 uppercase text-xs"><i data-lucide="shield" class="w-4 h-4"></i>Counter-Terrorist</div><div class="text-green-400 font-black" id="cb-team1-score">0.00 EUR</div></div><div class="px-3"><div class="w-10 h-10 rounded-xl bg-[#1a1e29] border border-white/10 grid place-items-center text-yellow-300 font-black text-xs">VS</div></div><div class="p-3 flex justify-between items-center border-l border-[#1a1e29]"><div class="text-orange-400 font-black flex items-center gap-2 uppercase text-xs"><i data-lucide="swords" class="w-4 h-4"></i>Terrorist</div><div class="text-green-400 font-black" id="cb-team2-score">0.00 EUR</div></div></div>
-                        <div id="cb-stage" class="grid grid-cols-1 md:grid-cols-2 gap-[2px] bg-[#1a1e29]"></div>
+
+                    <div class="grid grid-cols-2 bg-[#0d1017] border-b border-white/5 relative">
+                        <div id="cb-team-left-head" class="p-3 border-r border-[#1a1e29] flex items-center justify-between">
+                            <div class="text-blue-300 font-black uppercase text-xs flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i>COUNTER-TERRORIST <span id="cb-team1-lead" class="hidden text-green-400">↑</span></div>
+                            <div id="cb-team1-score" class="font-black text-gray-300">0.00 EUR</div>
+                        </div>
+                        <div id="cb-team-right-head" class="p-3 flex items-center justify-between">
+                            <div class="text-orange-300 font-black uppercase text-xs flex items-center gap-2"><i data-lucide="swords" class="w-4 h-4"></i>TERRORIST <span id="cb-team2-lead" class="hidden text-green-400">↑</span></div>
+                            <div id="cb-team2-score" class="font-black text-gray-300">0.00 EUR</div>
+                        </div>
+                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-black/80 ring-2 ring-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)] grid place-items-center text-xs font-black text-green-300">VS</div>
                     </div>
-                    <div id="cb-log" class="bg-black/30 border border-yellow-400/10 rounded-xl p-3 h-44 overflow-y-auto text-sm"></div>
+
+                    <div id="cb-stage" class="grid grid-cols-2 gap-[2px] bg-[#1a1e29] p-[2px]"></div>
+                    <div id="cb-log" class="bg-black/40 border-t border-white/5 p-3 h-40 overflow-y-auto text-sm"></div>
                 </div>
             </section>
 
@@ -4453,6 +4462,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         const CB_WIN_INDEX = 50;
         const CB_BOT_AVATAR = 'Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png';
         const cbBuilderState = { mode: '1v1', teamFormat: '1v1', gameMode: 'classic', privacy: 'public', selected: new Map() };
+        let cbSelectedCases = new Map();
 
         function cbSetPanels(inRoom) {
             document.getElementById('cb-create-panel')?.classList.toggle('hidden', inRoom);
@@ -4499,43 +4509,50 @@ Zeus x27|Charged Up|8.50|#8847ff
                     if (g === 'teamFormat' && v === '2v2') cbBuilderState.mode = '1v1v1v1';
                 };
             });
-            renderCBBuilderQueue();
+            renderCreateBattleQueue();
             renderCaseSelectorGrid();
+        }
+        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function setCBBuilderCaseCount(caseId, value) {
+            const next = Math.max(0, Math.min(30, Number(value || 0)));
+            if (next <= 0) cbSelectedCases.delete(caseId);
+            else cbSelectedCases.set(caseId, next);
+            cbBuilderState.selected = new Map(cbSelectedCases);
+            renderCreateBattleQueue();
+            updateSelectorBottomBar();
         }
         function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
         function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
         function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
-        function setCBBuilderCaseCount(caseId, value) {
-            const next = Math.max(0, Math.min(30, Number(value || 0)));
-            if (next <= 0) cbBuilderState.selected.delete(caseId);
-            else cbBuilderState.selected.set(caseId, next);
-            renderCBBuilderQueue();
+        function updateCbCaseCount(caseId, delta) {
+            const cur = Number(cbSelectedCases.get(caseId) || 0);
+            setCBBuilderCaseCount(caseId, cur + Number(delta || 0));
+            renderCaseSelectorModal();
         }
         function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
         function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
         function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function changeCBBuilderCase(caseId, delta) {
-            const cur = Number(cbBuilderState.selected.get(caseId) || 0);
-            setCBBuilderCaseCount(caseId, cur + Number(delta || 0));
+            updateCbCaseCount(caseId, delta);
         }
 
         function cbBuilderSummary() {
             let rounds = 0; let total = 0;
-            cbBuilderState.selected.forEach((cnt, id) => {
+            cbSelectedCases.forEach((cnt, id) => {
                 const c = casesDB.find((x) => x.id === id); if (!c) return;
                 rounds += cnt; total += Number(c.price || 0) * cnt;
             });
             return { rounds, total };
         }
 
-        function renderCBBuilderQueue() {
+        function renderCreateBattleQueue() {
             const wrap = document.getElementById('cb-builder-queue');
             const { rounds, total } = cbBuilderSummary();
             if (wrap) {
                 const items = [];
-                cbBuilderState.selected.forEach((cnt, id) => {
+                cbSelectedCases.forEach((cnt, id) => {
                     const c = casesDB.find((x) => x.id === id); if (!c) return;
                     items.push(`<div class="cb-case-pill rounded-lg px-2 py-1 min-w-[120px]"><div class="text-[10px] font-black truncate">${c.name}</div><div class="text-[10px] text-yellow-200">x${cnt} • ${formatMoney(Number(c.price||0)*cnt)}</div></div>`);
                 });
@@ -4543,28 +4560,75 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
             const r = document.getElementById('cb-builder-rounds'); if (r) r.textContent = String(rounds);
             const t = document.getElementById('cb-builder-total'); if (t) t.textContent = formatMoney(total);
+            const b = document.getElementById('cb-balance'); if (b) b.textContent = formatMoney(balanceBase || 0);
+            const ready = document.getElementById('cb-selector-ready'); if (ready) ready.textContent = `Ready ${formatMoney(total)}`;
             const rr = document.getElementById('cb-ready-rounds'); if (rr) rr.textContent = String(rounds);
             const rt = document.getElementById('cb-ready-total'); if (rt) rt.textContent = formatMoney(total);
+        }
+
+        function cbCaseSelectorCategory(c) {
+            const n = String(c.name || '').toLowerCase();
+            const p = Number(c.price || 0);
+            if (/event|halloween|xmas|christmas|limited/i.test(n)) return 'EVENT';
+            if (p >= 120) return 'HIGH RISK';
+            if (p >= 35) return 'PREMIUM';
+            if (p >= 10) return 'BESTSELLERS';
+            return 'CLASSIC';
+        }
+
+        function updateSelectorBottomBar() {
+            const { rounds, total } = cbBuilderSummary();
+            const rr = document.getElementById('cb-ready-rounds'); if (rr) rr.textContent = String(rounds);
+            const ready = document.getElementById('cb-selector-ready'); if (ready) ready.textContent = `Ready ${formatMoney(total)}`;
             const b = document.getElementById('cb-balance'); if (b) b.textContent = formatMoney(balanceBase || 0);
         }
 
-        function renderCaseSelectorGrid() {
+        function renderCaseSelectorModal() {
             const grid = document.getElementById('cb-selector-grid');
             if (!grid) return;
-            const list = (casesDB || []).slice(0, 220);
-            grid.innerHTML = list.map((c) => {
-                const count = Number(cbBuilderState.selected.get(c.id) || 0);
-                return `<div class="bg-gradient-to-b from-[#171b25] to-[#111723] border border-white/10 rounded-xl p-2 hover:border-yellow-300/45 transition-all"><div class="relative"><div class="absolute top-1 right-1 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black">${formatMoney(c.price)}</div><img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-16 w-full object-contain"></div><div class="text-[10px] font-black text-gray-200 truncate mt-1">${c.name}</div><div class="mt-2 flex items-center justify-between"><button onclick="changeCBBuilderCase('${c.id}',-1)" class="w-7 h-7 rounded bg-white/10 text-white font-black">-</button><span class="text-xs font-black text-yellow-300 min-w-[22px] text-center">${count}</span><button onclick="changeCBBuilderCase('${c.id}',1)" class="w-7 h-7 rounded bg-yellow-400 text-black font-black">+</button></div></div>`;
-            }).join('') || '<div class="col-span-full text-center text-gray-500 p-4">Žádné caseky.</div>';
-            renderCBBuilderQueue();
+            if (!Array.isArray(casesDB) || casesDB.length === 0) {
+                grid.innerHTML = '<div class="text-center text-gray-500 p-6">Načítám caseky…</div>';
+                setTimeout(() => renderCaseSelectorModal(), 400);
+                return;
+            }
+            const q = (document.getElementById('cb-selector-search')?.value || '').toLowerCase().trim();
+            const all = [...casesDB].filter((c) => !q || String(c.name || '').toLowerCase().includes(q));
+            const groups = new Map();
+            all.forEach((c) => {
+                const key = cbCaseSelectorCategory(c);
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(c);
+            });
+            const order = ['EVENT', 'HIGH RISK', 'PREMIUM', 'BESTSELLERS', 'CLASSIC'];
+            grid.innerHTML = order.filter((k) => groups.has(k)).map((k) => {
+                const cards = groups.get(k).map((c) => {
+                    const count = Number(cbSelectedCases.get(c.id) || 0);
+                    const selected = count > 0;
+                    return `<div class="cb-case-pick-card ${selected ? 'ring-2 ring-[#c0f20c] selected' : ''}">
+                        <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded-tl-md rounded-br-md font-black">${formatMoney(c.price)}</div>
+                        ${selected ? '<div class="absolute top-2 left-2 w-6 h-6 rounded-full bg-[#c0f20c] grid place-items-center text-black"><i data-lucide="check" class="w-4 h-4"></i></div>' : ''}
+                        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] mb-2 mt-2">
+                        <div class="text-[11px] font-black text-gray-100 uppercase truncate mb-2">${c.name}</div>
+                        ${selected ? `<div class="cb-case-pick-controls !opacity-100 !translate-y-0 bg-[#0f131d]/80 border border-white/10 rounded-lg px-2 py-1"><button onclick="updateCbCaseCount('${c.id}',-1)" class="w-7 h-7 rounded bg-white/10">-</button><div class="text-base font-black text-[#c0f20c]">${count}</div><button onclick="updateCbCaseCount('${c.id}',1)" class="w-7 h-7 rounded bg-[#c0f20c] text-black">+</button></div>` : `<div class="cb-case-pick-controls"><button onclick="updateCbCaseCount('${c.id}',-1)" class="w-7 h-7 rounded bg-white/10">-</button><div class="text-sm font-black text-[#c0f20c]">0</div><button onclick="updateCbCaseCount('${c.id}',1)" class="w-7 h-7 rounded bg-[#c0f20c] text-black">+</button></div>`}
+                    </div>`;
+                }).join('');
+                return `<div class="mb-5"><div class="flex items-center gap-2 text-[11px] text-gray-400 font-black mb-2"><span class="text-yellow-300">///</span><span>${k}</span></div><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">${cards}</div></div>`;
+            }).join('') || '<div class="text-center text-gray-500 py-8">Žádné caseky pro filtr.</div>';
+            updateSelectorBottomBar();
+            lucide.createIcons();
         }
 
-        function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCBBuilderQueue(); showToast('Queue připravena.'); }
+        function renderCaseSelectorGrid() { renderCaseSelectorModal(); }
+        function renderCaseSelector() { renderCaseSelectorModal(); }
+        function renderCBBuilderQueue() { renderCreateBattleQueue(); }
+        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorModal(); }
+        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {
-            if (!cbBuilderState.selected.size) return null;
+            if (!cbSelectedCases.size) return null;
             const queue = [];
-            cbBuilderState.selected.forEach((count, id) => {
+            cbSelectedCases.forEach((count, id) => {
                 const c = casesDB.find((x) => x.id === id); if (!c) return;
                 queue.push({ caseId: c.id, caseName: c.name, casePrice: Number(c.price||0), caseImg: c.img || '', count, contents: (c.contents || []).map((it)=>({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) })) });
             });
@@ -4630,25 +4694,104 @@ Zeus x27|Charged Up|8.50|#8847ff
         function cbRoomSignature(room) { return `${room?.id || ''}:${room?.status || ''}:${(room?.players || []).map((p) => (p.drops || []).length).join(',')}:${room?.winnerId || ''}`; }
 
         function cbBuildSpinnerTrack(caseContents, winningSkin) {
-            const all = Array.isArray(caseContents) && caseContents.length ? caseContents : Object.values(skinsDB || {});
+            const base = Array.isArray(caseContents) && caseContents.length ? caseContents.map((it) => it.skin ? it.skin : it) : Object.values(skinsDB || {});
             const tape = Array.from({ length: 60 }).map(() => {
-                const it = all[Math.floor(Math.random() * all.length)] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
-                return it.skin ? { name: it.skin.name, img: it.skin.img, color: it.skin.color, price: it.skin.price } : it;
+                const pick = base[Math.floor(Math.random() * base.length)] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
+                return { name: pick.name || 'Skin', img: pick.img || FALLBACK_IMG, color: pick.color || '#4b69ff', price: Number(pick.price || 0) };
             });
-            tape[CB_WIN_INDEX] = winningSkin || tape[CB_WIN_INDEX];
+            tape[50] = winningSkin || tape[50];
             return tape;
         }
 
-        function cbAnimateTrack(track, viewport, tape) {
-            track.innerHTML = tape.map((it) => `<div class="w-32 h-full shrink-0 bg-black/25 border border-white/10 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it?.name || 'Skin'}</div></div>`).join('');
-            track.style.transition = 'none';
-            track.style.transform = 'translate3d(0,0,0)';
-            const randomOffset = Math.floor(Math.random() * 40) - 20;
-            const stopOffset = (CB_WIN_INDEX * CB_ITEM_WIDTH) + (CB_ITEM_WIDTH / 2) - (viewport.clientWidth / 2) + randomOffset;
-            requestAnimationFrame(() => {
-                track.style.transition = 'transform 6.5s cubic-bezier(0.15, 0.05, 0.1, 1)';
-                track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px,0,0)`;
+        function cbParseTranslateX(transform) {
+            if (!transform || transform === 'none') return 0;
+            const m3 = transform.match(/matrix3d\(([^)]+)\)/);
+            if (m3) {
+                const vals = m3[1].split(',').map((x) => Number(x.trim()));
+                return Number(vals[12] || 0);
+            }
+            const m2 = transform.match(/matrix\(([^)]+)\)/);
+            if (m2) {
+                const vals = m2[1].split(',').map((x) => Number(x.trim()));
+                return Number(vals[4] || 0);
+            }
+            return 0;
+        }
+
+        function cbWearTag() {
+            const tags = ['FN', 'MW', 'FT', 'WW', 'BS'];
+            return tags[Math.floor(Math.random() * tags.length)];
+        }
+
+        function cbHistoryCard(drop, rIdx) {
+            const color = drop?.color || '#4b69ff';
+            return `<div class="bg-[#1a1e29] border border-white/5 rounded-md p-2 relative text-center group transition-all duration-300 border-t-2" style="border-top-color:${color}">
+                <div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${cbWearTag()}</div>
+                <img src="${drop?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 object-contain mx-auto mt-2">
+                <div class="text-[9px] mt-1 text-gray-300 truncate">${drop?.name || '-'}</div>
+                <div class="text-yellow-400 font-bold text-[10px]">${formatMoney(drop?.price || 0)}</div>
+            </div>`;
+        }
+
+        function patchCaseBattleRoom(room) {
+            const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
+            const totalValueEl = document.getElementById('cb-total-value');
+            if (totalValueEl) totalValueEl.textContent = formatMoney(Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || 1)));
+            const players = room.players || [];
+            const half = Math.ceil(players.length / 2);
+            const team1 = players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const team2 = players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0);
+            const t1 = document.getElementById('cb-team1-score');
+            const t2 = document.getElementById('cb-team2-score');
+            const l1 = document.getElementById('cb-team1-lead');
+            const l2 = document.getElementById('cb-team2-lead');
+            if (t1) t1.textContent = formatMoney(team1);
+            if (t2) t2.textContent = formatMoney(team2);
+            if (l1) l1.classList.toggle('hidden', team1 <= team2);
+            if (l2) l2.classList.toggle('hidden', team2 <= team1);
+            document.getElementById('cb-team-left-head')?.classList.toggle('from-blue-900/20', team1 > team2);
+            document.getElementById('cb-team-left-head')?.classList.toggle('bg-gradient-to-r', team1 > team2);
+            document.getElementById('cb-team-right-head')?.classList.toggle('from-orange-900/20', team2 > team1);
+            document.getElementById('cb-team-right-head')?.classList.toggle('bg-gradient-to-l', team2 > team1);
+        }
+
+        function applyCaseBattleLeaderStylesByScores(scores) {
+            const top = Math.max(...scores, 0);
+            scores.forEach((score, idx) => {
+                const crown = document.getElementById(`cb-leader-crown-${idx}`);
+                const scoreEl = document.getElementById(`cb-score-${idx}`);
+                const card = document.getElementById(`cb-player-${idx}`);
+                const leader = score >= top && top > 0;
+                if (crown) crown.classList.toggle('hidden', !leader);
+                if (scoreEl) {
+                    scoreEl.classList.toggle('text-green-400', leader);
+                    scoreEl.classList.toggle('text-gray-400', !leader);
+                }
+                if (card) {
+                    card.classList.toggle('ring-1', leader);
+                    card.classList.toggle('ring-yellow-300/50', leader);
+                }
             });
+        }
+
+        function triggerEndgameSequence(room, finalScores) {
+            const winnerId = String(room?.winnerId || '');
+            (room.players || []).forEach((pl, idx) => {
+                const overlay = document.getElementById(`cb-endgame-${idx}`);
+                if (!overlay) return;
+                const won = winnerId ? String(pl.userId) === winnerId : Number(finalScores[idx] || 0) >= Math.max(...finalScores, 0);
+                if (won) {
+                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-t from-green-900/60 to-transparent backdrop-blur-sm';
+                    overlay.innerHTML = `<div class="text-center"><div class="text-[11px] uppercase text-green-200 font-black mb-1">Winner</div><div class="text-3xl font-black text-green-300 drop-shadow-[0_0_14px_rgba(34,197,94,0.55)]">${formatMoney(finalScores[idx] || 0)}</div></div>`;
+                } else {
+                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md';
+                    overlay.innerHTML = `<div class="text-center"><i data-lucide="thumbs-down" class="w-20 h-20 text-red-500/30 mx-auto"></i><div class="text-red-400 font-black text-sm mt-1">You Lost</div></div>`;
+                }
+                overlay.classList.remove('hidden');
+            });
+            const rc = document.getElementById('cb-round-counter');
+            if (rc) rc.textContent = 'Battle Finished';
+            lucide.createIcons();
         }
 
         async function animateCaseBattleRounds(room) {
@@ -4656,53 +4799,82 @@ Zeus x27|Charged Up|8.50|#8847ff
             cbAnimationLock = true;
             const sessionId = ++cbAnimationSession;
             const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
-            const caseQueue = Array.isArray(room?.caseQueue) ? room.caseQueue : [];
+            const players = room.players || [];
+            const liveScores = players.map(() => 0);
+
             for (let round = 0; round < rounds; round += 1) {
-                if (sessionId !== cbAnimationSession) break;
+                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
                 const rc = document.getElementById('cb-round-counter');
                 if (rc) rc.textContent = `${round + 1} of ${rounds}`;
-                cbAddLog(`Round ${round + 1}/${rounds}...`);
 
-                const spinPromises = (room.players || []).map(async (pl, idx) => {
+                players.forEach((pl, idx) => {
                     const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
                     const track = document.getElementById(`cb-spin-track-${idx}`);
                     if (!viewport || !track) return;
                     const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
-                    const srcCase = caseQueue[round];
-                    cbAnimateTrack(track, viewport, cbBuildSpinnerTrack(srcCase?.contents || room?.contents, drop));
+                    const srcCase = (room.caseQueue || [])[round];
+                    const tape = cbBuildSpinnerTrack(srcCase?.contents || room.contents, drop);
+                    track.innerHTML = tape.map((it) => `<div class="w-[140px] h-full flex-shrink-0 px-2"><div class="h-full bg-[#1a1e29] border border-white/5 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it.name}</div></div></div>`).join('');
+                    track.style.transition = 'none';
+                    track.style.transform = 'translate3d(0px,0,0)';
+                    void track.offsetWidth;
+                    const containerWidth = viewport.clientWidth || 520;
+                    const stopOffset = (50 * 140) - (containerWidth / 2) + 70 + (Math.random() * 60 - 30);
+                    track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
+                    track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px,0,0)`;
                 });
                 await Promise.all(spinPromises);
 
-                let lastTick = -1;
-                const started = performance.now();
-                const tickDuration = 6500;
+                const lastStep = players.map(() => -1);
+                let rafId = 0;
                 const tickLoop = () => {
-                    if (sessionId !== cbAnimationSession) return;
-                    const elapsed = performance.now() - started;
-                    const p = Math.min(1, elapsed / tickDuration);
-                    const step = Math.floor(p * CB_WIN_INDEX);
-                    if (step > lastTick) { lastTick = step; SoundEngine.playTick(); }
-                    if (p < 1) requestAnimationFrame(tickLoop);
+                    players.forEach((_, idx) => {
+                        const track = document.getElementById(`cb-spin-track-${idx}`);
+                        if (!track) return;
+                        const x = Math.abs(cbParseTranslateX(getComputedStyle(track).transform));
+                        const step = Math.floor(x / 140);
+                        if (step !== lastStep[idx]) {
+                            lastStep[idx] = step;
+                            SoundEngine.playTick();
+                        }
+                    });
+                    rafId = requestAnimationFrame(tickLoop);
                 };
-                requestAnimationFrame(tickLoop);
+                rafId = requestAnimationFrame(tickLoop);
 
-                await cbSleep(7000);
-                (room.players || []).forEach((pl, idx) => {
+                await new Promise((r) => setTimeout(r, 7000));
+                cancelAnimationFrame(rafId);
+
+                players.forEach((pl, idx) => {
                     const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
-                    const hist = document.getElementById(`cb-history-${idx}`);
-                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                    liveScores[idx] += Number(drop?.price || 0);
                     const scoreEl = document.getElementById(`cb-score-${idx}`);
-                    if (nameEl) nameEl.textContent = drop?.name || 'Čeká se na drop...';
+                    if (scoreEl) scoreEl.textContent = formatMoney(liveScores[idx]);
+                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
+                    if (nameEl) nameEl.textContent = drop?.name || '-';
+                    const hist = document.getElementById(`cb-history-${idx}`);
                     if (hist && drop) {
-                        hist.insertAdjacentHTML('afterbegin', cbRenderHistoryCard(drop, round));
-                        while (hist.children.length > 12) hist.removeChild(hist.lastChild);
+                        hist.insertAdjacentHTML('afterbegin', cbHistoryCard(drop, round));
+                        while (hist.children.length > 9) hist.removeChild(hist.lastChild);
                     }
-                    if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
                 });
-                applyCaseBattleLeaderStyles(room);
-                await cbSleep(500);
+
+                applyCaseBattleLeaderStylesByScores(liveScores);
+                const half = Math.ceil(players.length / 2);
+                const team1 = liveScores.slice(0, half).reduce((a, b) => a + b, 0);
+                const team2 = liveScores.slice(half).reduce((a, b) => a + b, 0);
+                const t1 = document.getElementById('cb-team1-score');
+                const t2 = document.getElementById('cb-team2-score');
+                if (t1) t1.textContent = formatMoney(team1);
+                if (t2) t2.textContent = formatMoney(team2);
+                document.getElementById('cb-team1-lead')?.classList.toggle('hidden', team1 <= team2);
+                document.getElementById('cb-team2-lead')?.classList.toggle('hidden', team2 <= team1);
+                SoundEngine.playWin();
+
+                await new Promise((r) => setTimeout(r, 1500));
             }
-            SoundEngine.playWin();
+
+            triggerEndgameSequence(room, liveScores);
             cbAnimationLock = false;
         }
 
@@ -4727,62 +4899,65 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function renderCaseBattleRoom(room, animate = false) {
-            const info = document.getElementById('cb-current-room');
             const stage = document.getElementById('cb-stage');
-            const totalValueEl = document.getElementById('cb-total-value');
-            const roundCounter = document.getElementById('cb-round-counter');
             const queueEl = document.getElementById('cb-case-queue');
-            if (!room || !info || !stage) return;
+            const info = document.getElementById('cb-current-room');
+            if (!stage || !queueEl || !room) return;
+
             const rounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
             const caseObj = getCaseByRoom(room);
-            const caseName = room?.caseName || caseObj?.name || 'Case';
             const battleValue = Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || room.players?.length || 1));
-            info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity} • ${caseName}` : `Battle probíhá • ${room.players.length} hráčů • ${caseName}`;
-            if (totalValueEl) totalValueEl.textContent = formatMoney(battleValue);
-            if (roundCounter) roundCounter.textContent = room.status === 'done' ? `Battle Finished` : `1 of ${rounds}`;
+            const totalEl = document.getElementById('cb-total-value');
+            if (totalEl) totalEl.textContent = formatMoney(battleValue);
+            if (info) info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity}` : `Battle běží • ${room.players.length} hráčů`;
 
-            const queue = Array.isArray(room.caseQueue) && room.caseQueue.length ? room.caseQueue : [{ caseName, caseImg: caseObj?.img || FALLBACK_IMG, count: rounds }];
-            if (queueEl) queueEl.innerHTML = queue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => `<div class="cb-case-pill rounded-lg px-2 py-1 min-w-[110px]"><img src="${q.caseImg || caseObj?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-8 h-8 object-contain mx-auto"><div class="text-[9px] text-center truncate">${q.caseName || q.caseId || 'Case'}</div></div>`)).join('');
+            const queue = Array.isArray(room.caseQueue) && room.caseQueue.length ? room.caseQueue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => q)) : Array.from({ length: rounds }).map(() => ({ caseName: room.caseName || caseObj?.name || 'Case', caseImg: caseObj?.img || FALLBACK_IMG, casePrice: room.casePrice || 0 }));
+            queueEl.innerHTML = queue.map((q, idx) => `<div class="w-12 shrink-0 text-center opacity-70"><img src="${q.caseImg || caseObj?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-12 h-12 object-contain rounded bg-black/30"><div class="text-[9px] text-yellow-300">${formatMoney(q.casePrice || room.casePrice || 0)}</div></div>`).join('');
 
             const playersForView = [...(room.players || [])];
             while (playersForView.length < Number(room.capacity || playersForView.length || 0)) playersForView.push(null);
             stage.innerHTML = playersForView.map((pl, idx) => {
-                if (!pl) return `<div class="bg-[#12161f] p-4 flex flex-col border border-white/10 items-center justify-center min-h-[290px]"><div class="text-sm text-gray-400 font-black uppercase">Waiting for player</div><div class="mt-3 w-10 h-10 rounded-full border border-yellow-300/30 border-dashed"></div><div class="mt-4 flex gap-2"><button onclick="fillCaseBattleBotSlot(${idx})" class="bg-yellow-400/20 border border-yellow-300/40 text-yellow-300 text-xs font-black uppercase px-3 py-2 rounded-lg">Play with random bot</button></div></div>`;
+                if (!pl) {
+                    return `<div class="bg-[#12161f] flex flex-col min-h-[420px]"><div class="px-3 py-2 border-b border-white/5 flex items-center justify-between"><div class="text-sm font-black text-gray-400">Waiting for Player</div><button onclick="fillCaseBattleBotSlot(${idx})" class="text-[10px] bg-yellow-400/20 border border-yellow-300/40 text-yellow-200 px-2 py-1 rounded">Play with random bot</button></div><div class="flex-1 grid place-items-center text-gray-500 text-sm">Waiting slot</div></div>`;
+                }
                 const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                const sideBlue = idx % 2 === 0;
-                return `<div id="cb-player-${idx}" class="cb-player-card p-4 flex flex-col border border-white/10"><div class="flex items-center gap-3 w-full mb-4"><img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-full border-2 ${sideBlue ? 'border-blue-400/80' : 'border-orange-400/80'} object-cover bg-black/30"><div class="font-black text-sm text-white truncate">${pl.nickname}${pl.bot ? ' (BOT)' : ''}</div><i data-lucide="crown" class="w-5 h-5 text-yellow-400 ml-auto hidden" id="cb-leader-crown-${idx}"></i></div><div class="w-full h-44 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${sideBlue ? 'from-blue-900/20 border-blue-500/20' : 'from-orange-900/20 border-orange-500/20'} to-transparent border rounded-xl relative overflow-hidden mb-3 shadow-[0_0_25px_rgba(59,130,246,0.08)]"><div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-yellow-300/70 z-20 shadow-[0_0_15px_#facc15]"></div><div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden px-2 py-3"><div id="cb-spin-track-${idx}" class="h-full flex items-center gap-2 will-change-transform"></div></div><div id="cb-spin-name-${idx}" class="absolute bottom-2 left-2 right-2 text-xs text-gray-200 font-bold truncate bg-black/40 rounded px-2 py-1">Čeká se na drop...</div></div><div class="flex items-center justify-between mb-2"><div class="text-[10px] text-gray-400 uppercase font-bold">Skóre</div><div id="cb-score-${idx}" class="text-sm font-black text-gray-300">${formatMoney(room.status==='done' ? (pl.score||0) : 0)}</div></div><div id="cb-history-${idx}" class="w-full grid grid-cols-2 lg:grid-cols-3 gap-2">${room.status==='done' ? (pl.drops || []).map((d, rIdx) => cbRenderHistoryCard(d, rIdx)).join('') : '<div class="text-[10px] text-gray-500 col-span-full">Zatím nic</div>'}</div></div>`;
+                return `<div id="cb-player-${idx}" class="bg-[#12161f] flex flex-col relative min-h-[420px]">
+                    <div class="px-3 py-2 border-b border-white/5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 min-w-0"><img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-full border border-white/20"><div class="font-black text-sm truncate">${pl.nickname}${pl.bot ? ' <span class="text-[10px] text-yellow-300">BOT</span>' : ''}</div><i data-lucide="crown" id="cb-leader-crown-${idx}" class="w-4 h-4 text-yellow-400 hidden"></i></div>
+                        <div id="cb-score-${idx}" class="font-black text-gray-400">0.00 EUR</div>
+                    </div>
+                    <div class="h-48 overflow-hidden relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/30 to-[#12161f]">
+                        <div class="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-yellow-400 z-30 shadow-[0_0_15px_#facc15]"></div>
+                        <div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden">
+                            <div id="cb-spin-track-${idx}" class="absolute left-0 h-full flex items-center will-change-transform z-20"></div>
+                        </div>
+                        <div id="cb-endgame-${idx}" class="hidden absolute inset-0 z-50 flex items-center justify-center"></div>
+                    </div>
+                    <div id="cb-spin-name-${idx}" class="px-3 py-2 text-xs font-bold text-gray-300 truncate border-b border-white/5">Čeká se na drop...</div>
+                    <div id="cb-history-${idx}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 p-3 mt-auto h-full items-start"></div>
+                </div>`;
             }).join('');
 
             patchCaseBattleRoom(room);
             const signature = cbRoomSignature(room);
             const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
-            if (shouldAnimate) { cbLastAnimatedSignature = signature; animateCaseBattleRounds(room).then(() => { applyCaseBattleResultStyles(room); }); }
+            if (shouldAnimate) {
+                cbLastAnimatedSignature = signature;
+                animateCaseBattleRounds(room);
+            }
             lucide.createIcons();
         }
 
         function applyCaseBattleLeaderStyles(room) {
-            const players = room?.players || []; if (!players.length) return;
-            const topScore = Math.max(...players.map((p) => Number(p.score || 0)));
-            players.forEach((pl, idx) => {
-                const crown = document.getElementById(`cb-leader-crown-${idx}`);
-                const scoreEl = document.getElementById(`cb-score-${idx}`);
-                const card = document.getElementById(`cb-player-${idx}`);
-                const isLeader = Number(pl.score || 0) >= topScore && topScore > 0;
-                if (crown) crown.classList.toggle('hidden', !isLeader);
-                if (scoreEl) { scoreEl.classList.toggle('text-green-400', isLeader); scoreEl.classList.toggle('text-gray-300', !isLeader); }
-                if (card) { card.classList.toggle('ring-1', isLeader); card.classList.toggle('ring-yellow-300/40', isLeader); }
-            });
-        }
-        function applyCaseBattleResultStyles(room) {
-            if (room?.status !== 'done' || !room?.winnerId) return;
-            (room.players || []).forEach((pl, idx) => {
-                const card = document.getElementById(`cb-player-${idx}`); if (!card) return;
-                const won = String(pl.userId) === String(room.winnerId);
-                card.classList.toggle('winner', won);
-                card.classList.toggle('loser', !won);
-            });
+            const scores = (room.players || []).map((p) => Number(p.score || 0));
+            applyCaseBattleLeaderStylesByScores(scores);
         }
 
+        function applyCaseBattleResultStyles(room) {
+            if (room?.status !== 'done') return;
+            const scores = (room.players || []).map((p) => Number(p.score || 0));
+            triggerEndgameSequence(room, scores);
+        }
 
         function socialLogin(provider) {
             if (provider !== 'steam' && provider !== 'google') return;
@@ -5748,5 +5923,40 @@ Zeus x27|Charged Up|8.50|#8847ff
             showToast('FREE bedna dostupná!');
         }
     </script>
+<div id="cb-case-selector-modal" class="hidden fixed inset-0 z-[999] bg-[#0b0d11]/95 backdrop-blur-md flex items-center justify-center p-4">
+                    <div class="w-full max-w-5xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+                        <div class="px-5 pt-4 pb-3 border-b border-white/10">
+                            <div class="flex items-center justify-between">
+                                <div class="text-xl font-black text-white">Select cases</div>
+                                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                            </div>
+                            <div class="mt-3 flex flex-wrap items-center gap-3">
+                                <button class="px-3 py-1.5 rounded-md bg-gray-200 text-black text-xs font-black uppercase">Classic</button>
+                                <button class="px-3 py-1.5 rounded-md bg-[#1a1e29] text-purple-300 text-xs font-black uppercase flex items-center gap-1"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Joker</button>
+                                <div class="ml-2 flex items-center gap-2 min-w-[230px]">
+                                    <span class="text-[10px] text-gray-400">0 USD</span>
+                                    <div class="relative flex-1 h-[2px] bg-white/15 rounded-full"><div class="absolute inset-y-0 left-[10%] right-[8%] bg-pink-400/80 rounded-full"></div></div>
+                                    <span class="text-[10px] text-gray-400">3613.23 USD</span>
+                                </div>
+                                <button class="ml-auto bg-[#1a1e29] border border-white/10 rounded-lg px-3 py-2 text-xs font-black text-gray-200">Price -</button>
+                                <input id="cb-selector-search" type="text" placeholder="Search case" oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-3 py-2 text-xs text-white min-w-[180px]">
+                            </div>
+                        </div>
+                        <div id="cb-selector-grid" class="flex-1 min-h-0 overflow-y-auto px-5 py-4 custom-scroll"></div>
+                        <div class="mt-auto border-t border-white/5 bg-[#0d1017] p-4">
+                            <div class="grid grid-cols-3 items-center gap-3">
+                                <div>
+                                    <div class="text-[11px] text-gray-500">Your balance:</div>
+                                    <div id="cb-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
+                                </div>
+                                <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="justify-self-center bg-[#c0f20c] text-black font-black uppercase rounded-lg px-8 py-3 shadow-[0_0_22px_rgba(192,242,12,0.45)]">Ready 0.00 EUR</button>
+                                <div class="text-right">
+                                    <div class="text-[11px] text-gray-500">Rounds</div>
+                                    <div id="cb-ready-rounds" class="text-yellow-300 font-black text-lg">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 </body>
 </html>
