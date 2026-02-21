@@ -3998,6 +3998,15 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
+        function socialLogin(provider) {
+            if (provider !== 'steam' && provider !== 'google') return;
+            if (authProviderStateLoaded && !authProviders[provider]) {
+                showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není plně nakonfigurovaný. Zkouším přesměrovat…`, true);
+            }
+            // Přesměrování na backend routu
+            window.location.href = `/auth/${provider}`; 
+        }
+
         async function saveLocalProfile() {
             if (!currentUser) return showToast('Nejdřív se přihlas.', true);
             const nickname = (document.getElementById('profile-nickname')?.value || '').trim();
