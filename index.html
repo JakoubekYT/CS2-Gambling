@@ -22,58 +22,19 @@
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: #e2e8f0; overflow-x: hidden; overflow-y: auto; background-image: radial-gradient(circle at 15% -20%, rgba(250,204,21,0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244,114,182,0.13), transparent 35%); }
         .nav-link.active { color: var(--accent); border-bottom: 3px solid var(--accent); text-shadow: 0 0 14px rgba(250,204,21,0.7); }
-        .live-drop-scroll { display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; min-height: 100%; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
-        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        
+        .live-drop-scroll { display: flex; align-items: center; gap: 0.5rem; min-height: 100%; width: 100%; }
+        @keyframes dropIn {
+            0% { transform: translateY(-30px) scale(0.9); opacity: 0; margin-left: -100px; }
+            50% { margin-left: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; margin-left: 0; }
+        }
+        .animate-drop-in {
+            animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
         .live-drop-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            padding: 0.35rem 0.45rem 0.3rem;
-            background: #1a1a24;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.06);
-            min-width: 98px;
-            width: 98px;
-            height: 76px;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
         }
-        .live-drop-tooltip {
-            position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px);
-            background: rgba(10,12,18,0.72);
-            border: 1px solid rgba(250,204,21,0.35); padding: 6px 8px; border-radius: 9999px; min-width: 0; text-align: center; z-index: 200;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4); display: none; pointer-events: none; backdrop-filter: blur(2px);
-        }
-        .live-drop-tooltip.visible { display: block; }
-        .live-drop-tooltip .tp-row { display:flex; gap:8px; align-items:center; }
-        .live-drop-tooltip .tp-avatar { width:48px; height:48px; border-radius:9999px; overflow:hidden; border:2px solid rgba(255,255,255,0.04); }
-        .live-drop-tooltip .tp-name { font-weight:800; color:#facc15; font-size:13px; }
-        .live-drop-tooltip .tp-when { font-size:12px; color:#cbd5e1; }
-        .live-drop-item::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 3px;
-            background: var(--drop-rarity-color, var(--rarity-blue));
-            box-shadow: 0 -4px 12px color-mix(in srgb, var(--drop-rarity-color, var(--rarity-blue)) 50%, transparent);
-        }
-        .live-drop-item:hover {
-            transform: translateY(-1px);
-            border-color: rgba(255,255,255,0.2);
-            background: #1f2230;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.45);
-        }
-        .live-drop-item img { max-height: 34px; max-width: 82px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.55)); }
-        .live-drop-item-name { font-size: 10px; font-weight: 600; color: #b8bfcb; text-align: center; line-height: 1.1; max-width: 88px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
+
         @keyframes dropPulse {
             0%, 100% { opacity: 0.92; }
             50% { opacity: 1; }
@@ -242,80 +203,71 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-20 bg-gradient-to-r from-[#111722] via-[#151a27] to-[#111722] border-b border-yellow-400/20 flex items-stretch overflow-visible z-40">
-        <div class="flex-shrink-0 text-yellow-400 px-4 h-full flex items-center font-black text-[11px] uppercase mr-2 tracking-[0.22em]">
-            <span class="inline-flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_12px_rgba(250,204,21,0.9)]"></span>LIVE</span>
-        </div>
-        <div class="flex-1 overflow-hidden py-0">
-            <div class="flex items-center gap-2 live-drop-scroll" id="live-drops"></div>
-        </div>
-        <!-- Live chat -->
-        <div id="live-chat" class="fixed right-6 bottom-6 z-[90] w-80 h-56 bg-[#0b0d11]/90 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl hidden lg:flex flex-col">
-            <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
-            <div class="flex gap-2">
-                <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
-                <button id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+    <div class="h-16 bg-[#0b0d11] border-b border-white/5 flex items-stretch z-40 relative shadow-md overflow-hidden">
+        <div class="flex-shrink-0 bg-[#12161f] border-r border-white/5 px-6 flex flex-col justify-center relative z-10 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_#facc15]"></div>
+                <span class="text-yellow-400 font-black text-[10px] uppercase tracking-[0.2em]">Live Drops</span>
             </div>
+            <div class="flex items-center gap-1.5">
+                <span class="relative flex h-1.5 w-1.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                </span>
+                <span id="live-online-counter" class="text-gray-400 font-bold text-[9px] uppercase tracking-wider">1,687 Online</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-hidden relative flex items-center">
+            <div id="live-drops" class="flex items-center gap-2 px-4 w-full h-full"></div>
         </div>
     </div>
 
-    <header class="h-20 md:h-24 bg-gradient-to-r from-[#16191f] via-[#1a1f2e] to-[#16191f] backdrop-blur-md border-b border-yellow-400/30 flex items-center justify-between px-3 md:px-6 z-30 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-        <div class="flex items-center gap-8">
-            <div class="flex items-center gap-2 md:gap-4 cursor-pointer group" onclick="switchPage('cases')">
-                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 md:w-20 md:h-20 object-contain drop-shadow-[0_0_34px_rgba(250,204,21,0.72)]">
-                <div class="flex flex-col leading-tight">
-                    <span class="text-2xl md:text-5xl font-black italic tracking-tighter">OTO<span class="text-yellow-400">DROP</span></span>
-                    <span class="text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.25em] text-green-400 font-black flex items-center gap-2"><span class="inline-flex h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-green-400 animate-ping"></span><span class="inline-flex h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-green-400 -ml-4"></span><span id="online-count">0</span> online</span>
-                </div>
-            </div>
-
-            <nav class="hidden xl:flex items-center gap-5">
-                <button onclick="switchPage('cases')" class="nav-link active py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="box" class="w-4 h-4"></i> Bedny</button>
-                <button onclick="switchPage('inventory')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="layout-grid" class="w-4 h-4"></i> Inventář</button>
-                <button onclick="switchPage('giveaways')" class="nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="trophy" class="w-4 h-4"></i> Giveaways</button>
-                <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden nav-link py-2 px-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all hover:text-white hover:scale-105"><i data-lucide="shield-check" class="w-4 h-4"></i> Admin</button>
-            </nav>
+    <header class="h-20 bg-[#12161f] border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-50">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('cases')">
+            <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 object-contain">
+            <div class="text-2xl font-black italic tracking-tight text-white">OTO<span class="text-yellow-400">DROP</span></div>
         </div>
-
-        <div class="flex items-center gap-2 md:gap-3">
-            <div class="hidden md:flex bg-gradient-to-r from-gray-900/80 to-gray-800/80 px-5 py-2.5 rounded-2xl border border-yellow-400/30 items-center gap-4 shadow-[0_0_20px_rgba(250,204,21,0.2)] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all">
-                <div class="text-right flex items-center gap-3">
-                    <div>
-                        <div id="balance" class="font-black text-yellow-400 text-xl leading-none">0.00</div>
-                        <div id="balance-currency-label" class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-1">Zůstatek (EUR)</div>
-                    </div>
-                    <select id="currency-select" class="bg-[#0b0d11] border border-yellow-400/20 text-sm text-gray-300 rounded-md px-2 py-1" title="Změnit měnu">
-                        <option value="EUR">EUR</option>
-                        <option value="USD">USD</option>
-                        <option value="CZK">CZK</option>
-                        <option value="PLN">PLN</option>
-                        <option value="RUB">RUB</option>
-                    </select>
-                </div>
-                <div class="w-10 h-10 bg-yellow-400/20 rounded-xl flex items-center justify-center text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
-                    <i data-lucide="coins" class="w-6 h-6"></i>
-                </div>
-            </div>
-
-            <button onclick="addFreeMoney()" id="free-money-btn" class="hidden md:block bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-95 hover:scale-105">
-                💰 + PENÍZE ZDARMA
+        <nav class="hidden lg:flex items-center gap-6">
+            <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
+            <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
+            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Free Cases</button>
+            <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
+        </nav>
+        <div class="flex items-center gap-3">
+            <button class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg font-black flex items-center gap-2">
+                <span id="balance">0.00 EUR</span>
+                <span class="bg-green-500/20 px-1.5 rounded">+</span>
             </button>
-            <button onclick="toggleTradeInbox()" id="trade-bell-btn" class="relative bg-black/40 hover:bg-black/60 text-yellow-300 px-3 py-3 rounded-xl border border-yellow-400/30"><i data-lucide="bell" class="w-4 h-4"></i><span id="trade-bell-count" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full min-w-4 h-4 px-1 text-center leading-4">0</span></button>
-            <button onclick="switchPage('profile')" id="profile-open-btn" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-blue-300/30 shadow-[0_0_20px_rgba(59,130,246,0.2)] active:scale-95 hover:scale-105 flex items-center gap-2"><i data-lucide="user-cog" class="w-4 h-4"></i><span>Profil</span></button>
-            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black px-4 py-3 rounded-xl font-black transition-all uppercase text-xs border border-yellow-200/60 shadow-[0_0_26px_rgba(250,204,21,0.42)] active:scale-95 hover:scale-105 flex items-center gap-2">
-                <i data-lucide="user-round" class="w-4 h-4"></i>
-                <span id="auth-open-label">Přihlásit</span>
-            </button>
-            <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden items-center gap-2 bg-black/35 border border-yellow-300/25 rounded-xl px-3 py-2 cursor-pointer hover:bg-black/55 transition-colors">
-                <img id="profile-pill-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover border border-yellow-300/40">
+            <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
+                <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
+                    <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
+                </div>
                 <div class="leading-tight">
-                  <div id="profile-pill-name" class="text-xs text-white font-black"></div>
-                    <div id="profile-pill-nick" class="text-[10px] text-yellow-300 font-bold"></div>
+                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
+                    <div id="profile-pill-nick" class="text-[10px] text-gray-400 font-bold"></div>
                 </div>
             </div>
-            <button onclick="toggleMobileMenu()" class="md:hidden bg-black/40 hover:bg-black/60 text-yellow-300 px-3 py-2 rounded-xl border border-yellow-400/30"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-[#161a24] border border-white/10 text-gray-200 hover:text-white px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide">Sign In</button>
+            <button onclick="toggleMobileMenu()" class="md:hidden bg-[#0d1017] hover:bg-[#161a24] text-gray-300 px-3 py-2 rounded-lg border border-white/10"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
     </header>
+
+    <button id="live-chat-toggle" onclick="toggleLiveChat()" class="hidden lg:flex fixed right-6 bottom-6 z-[90] w-12 h-12 rounded-lg bg-[#12161f] border border-yellow-400/40 text-yellow-300 items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:bg-[#1a1e29] hover:text-yellow-200 transition-all">
+        <i data-lucide="message-square" class="w-5 h-5"></i>
+    </button>
+
+    <div id="live-chat" class="hidden fixed right-6 bottom-20 z-[95] w-80 h-56 bg-[#0b0d11]/95 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl lg:flex-col">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] uppercase tracking-widest text-yellow-300 font-black">Live Chat</div>
+            <button type="button" id="live-chat-close" onclick="toggleLiveChat(false)" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center">✕</button>
+        </div>
+        <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
+        <div class="flex gap-2">
+            <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
+            <button type="button" id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+        </div>
+    </div>
 
     <div id="mobile-menu" class="hidden md:hidden fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm">
         <div class="absolute right-0 top-0 h-full w-80 max-w-[88vw] bg-[#131824] border-l border-yellow-400/30 p-4 space-y-3">
@@ -341,63 +293,28 @@
 
     <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-y-auto bg-[#0b0d11] relative p-3 md:p-8">
-            <section id="page-cases" class="page fade-in max-w-7xl mx-auto space-y-10">
-                <div class="relative h-[250px] rounded-[32px] overflow-hidden bg-gradient-to-r from-[#181c26] via-[#121722] to-[#0b0d11] border border-yellow-400/20 shadow-[0_0_50px_rgba(250,204,21,0.08)] flex items-center px-12 mb-8">
-                    <div class="absolute inset-0" style="background: radial-gradient(900px 260px at 12% 50%, rgba(250,204,21,0.12), transparent 60%), radial-gradient(700px 220px at 90% 50%, rgba(56,189,248,0.10), transparent 62%);"></div>
-                    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"></div>
-                    <div class="relative z-10 max-w-2xl space-y-4">
-                        <div class="inline-block px-4 py-1.5 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full italic drop-shadow-lg">ROZŠÍŘENÁ DATABÁZE</div>
-                        <h1 class="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight drop-shadow-lg">VÍTEJ NA <span class="text-yellow-400">OTODROP</span></h1>
-                        <p class="text-gray-400 text-md font-medium leading-relaxed drop-shadow-md">Otevři bedny se zvukem asmr tikání, hrej mini-hry nebo použij 3-slotový Upgrader a získej svůj vysněný knife! 💎</p>
+            <section id="page-cases" class="page fade-in max-w-[1700px] mx-auto">
+                <div class="bg-[#0d1017] border border-white/5 rounded-xl px-6 py-4 flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div id="cases-category-tabs" class="flex flex-wrap items-center gap-2">
+                        <button id="tab-all" onclick="setCasesCategoryFilter('all')" class="px-3 py-2 text-xs font-black rounded-md bg-white/10 text-white">All</button>
+                        <button id="tab-featured" onclick="setCasesCategoryFilter('featured')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Featured</button>
+                        <button id="tab-regular" onclick="setCasesCategoryFilter('regular')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Regular</button>
+                        <button id="tab-creators" onclick="setCasesCategoryFilter('creators')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Our Creators</button>
+                        <button id="tab-cheap" onclick="setCasesCategoryFilter('cheap')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Cheap</button>
+                        <button id="tab-premium" onclick="setCasesCategoryFilter('premium')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">Premium</button>
+                        <button id="tab-high-risk" onclick="setCasesCategoryFilter('high-risk')" class="px-3 py-2 text-xs font-black rounded-md text-gray-500 hover:text-gray-300">High Risk</button>
                     </div>
-                    <i data-lucide="boxes" class="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 text-yellow-400/10 animate-pulse"></i><i data-lucide="coins" class="absolute right-20 top-10 w-10 h-10 text-yellow-300/70 drop-shadow-[0_0_14px_rgba(250,204,21,0.8)] animate-bounce"></i><i data-lucide="gem" class="absolute right-36 bottom-10 w-9 h-9 text-pink-400/80 drop-shadow-[0_0_14px_rgba(244,114,182,0.8)]"></i>
-                </div>
-                <div class="bg-[#14171c]/90 border border-yellow-400/30 rounded-2xl p-4 mb-4 flex flex-wrap items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.1)]">
-                    <button onclick="switchPage('upgrade')" class="bg-purple-500/30 hover:bg-purple-500/45 border border-purple-300/40 text-purple-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Upgrade</button>
-                    <button onclick="openFreeCase()" class="bg-green-500/30 hover:bg-green-500/45 border border-green-300/40 text-green-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="gift" class="w-5 h-5"></i> Free Cases</button>
-                    <button onclick="switchPage('case-battle')" class="bg-red-500/30 hover:bg-red-500/45 border border-red-300/40 text-red-100 rounded-xl px-5 py-3 text-sm font-black uppercase flex items-center gap-2 hover:scale-105 transition-all"><i data-lucide="swords" class="w-5 h-5"></i> Case Battle</button>
-                </div>
-                <div class="rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-[#201a0b] via-[#1b1525] to-[#0f1624] p-5 shadow-[0_0_35px_rgba(255,215,0,0.15)] shine-sweep">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                            <div class="text-[10px] uppercase tracking-[0.25em] text-yellow-300 font-black">Promo Event</div>
-                            <div class="text-2xl font-black italic">+25% DEPOSIT BONUS <span class="text-yellow-300">DOPAMINE25</span></div>
-                            <div class="text-xs text-gray-300">Použij promo kód a získej extra balance do case openingu.</div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input id="cases-search" type="text" oninput="renderCases()" placeholder="Search cases" class="bg-[#161a24] border border-white/10 rounded-md pl-9 pr-3 py-2 text-xs text-gray-200 outline-none focus:border-white/20">
                         </div>
-                        <button class="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black uppercase text-sm shadow-[0_0_24px_rgba(255,215,0,0.45)] transition-all hover:scale-105">Claim Bonus</button>
+                        <button id="cases-affordable-toggle" onclick="setCasesAffordableOnly(!casesAffordableOnly)" class="px-3 py-2 text-xs font-black rounded-md bg-[#161a24] border border-white/10 text-gray-300">Affordable</button>
+                        <button id="cases-sort-toggle" onclick="toggleCasesSortOrder()" class="px-3 py-2 text-xs font-black rounded-md bg-[#161a24] border border-white/10 text-gray-300">Price ↑</button>
                     </div>
                 </div>
-
-                <div class="bg-[#121722]/90 border border-white/10 rounded-2xl p-3 flex flex-wrap items-center gap-2" id="cases-category-tabs">
-                    <button id="tab-all" onclick="setCasesCategoryFilter('all')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-yellow-300/40 bg-yellow-400/20 text-yellow-200">All</button>
-                    <button id="tab-featured" onclick="setCasesCategoryFilter('featured')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Featured <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/30 text-pink-200 pulse-soft">Hot</span></button>
-                    <button id="tab-regular" onclick="setCasesCategoryFilter('regular')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Regular</button>
-                    <button id="tab-premium" onclick="setCasesCategoryFilter('premium')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">Premium</button>
-                    <button id="tab-high-risk" onclick="setCasesCategoryFilter('high-risk')" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wide border border-white/20 bg-white/5 text-gray-300">High Risk</button>
-                </div>
-
-                <div class="space-y-8" id="cases-grid"></div>
-
-                <section class="grid xl:grid-cols-3 gap-5">
-                    <div class="xl:col-span-2 bg-[#121722] border border-purple-400/25 rounded-2xl p-4">
-                        <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-black uppercase tracking-widest text-purple-300">Live Case Battles</h3><button onclick="switchPage('case-battle')" class="bg-gradient-to-r from-purple-600 to-pink-500 px-3 py-1.5 rounded-lg text-xs font-black uppercase">Join Battle</button></div>
-                        <div class="space-y-2 text-xs">
-                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">3x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/NEON_FLORA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/TIGER.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/FROSTY.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$124</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=A" class="w-7 h-7 rounded-full border-2 border-green-400/70"><div class="w-7 h-7 rounded-full border-2 border-dashed border-yellow-300/70 flex items-center justify-center text-yellow-300 pulse-soft">+</div></div></div>
-                            <div class="bg-black/25 border border-white/10 rounded-xl p-2.5 flex items-center gap-3"><div class="text-yellow-300 font-black">5x</div><div class="flex -space-x-2"><img src="https://cdn.casehug.com/cases/ARCANA.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"><img src="https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85" class="w-7 h-7 rounded-md object-cover border border-white/20"></div><div class="text-yellow-300 font-black ml-auto">$389</div><div class="flex -space-x-2 ml-2"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=B" class="w-7 h-7 rounded-full border-2 border-cyan-400/70"><img src="https://api.dicebear.com/7.x/thumbs/svg?seed=C" class="w-7 h-7 rounded-full border-2 border-pink-400/70"></div></div>
-                        </div>
-                    </div>
-                    <div class="bg-[#121722] border border-yellow-400/25 rounded-2xl p-4">
-                        <h3 class="text-sm font-black uppercase tracking-widest text-yellow-300 mb-3">Top Wins</h3>
-                        <div class="space-y-2 text-xs">
-                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-yellow-300">#1</div><div class="font-bold">PlayerX</div><div class="ml-auto text-yellow-300 font-black">$2 944</div></div>
-                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-gray-300">#2</div><div class="font-bold">Dopamine</div><div class="ml-auto text-yellow-300 font-black">$1 806</div></div>
-                            <div class="bg-black/25 border border-white/10 rounded-xl p-2 flex items-center gap-2"><div class="w-6 text-center font-black text-amber-600">#3</div><div class="font-bold">KnifeKing</div><div class="ml-auto text-yellow-300 font-black">$1 320</div></div>
-                        </div>
-                    </div>
-                </section>
+                <div id="cases-grid"></div>
             </section>
-
-
 
             <section id="page-case-view" class="page hidden fade-in max-w-6xl mx-auto space-y-8">
                 <button onclick="switchPage('cases')" class="text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs tracking-widest transition-colors">
@@ -494,20 +411,30 @@
                         <section id="page-case-battle" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <h2 class="text-3xl font-black uppercase">Case Battle Online</h2>
-                    <button onclick="openCaseBattleBuilder()" class="bg-green-500 hover:brightness-110 hover:scale-[1.02] transition-all text-black font-black uppercase rounded-xl px-5 py-3 border border-green-300/60">Create Battle</button>
                 </div>
-                <div id="cb-create-panel" class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-4">
-                    <div class="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
-                        <button class="cb-hub-tab active" data-cb-list="active" onclick="setCaseBattleListTab('active')">Active</button>
-                        <button class="cb-hub-tab" data-cb-list="mine" onclick="setCaseBattleListTab('mine')">My Battles</button>
-                        <div class="ml-auto flex flex-wrap gap-2">
-                            <button class="cb-filter-chip active" data-cb-filter="all" onclick="setCaseBattleFilter('all')">All</button>
-                            <button class="cb-filter-chip" data-cb-filter="classic" onclick="setCaseBattleFilter('classic')">🟡 Classic</button>
-                            <button class="cb-filter-chip" data-cb-filter="underdog" onclick="setCaseBattleFilter('underdog')">🟣 Underdog</button>
-                            <button class="cb-filter-chip" data-cb-filter="share" onclick="setCaseBattleFilter('share')">🔵 Share</button>
+                <div id="cb-create-panel" class="space-y-4">
+                    <div id="cb-lobby-panel" class="bg-[#12161f] rounded-xl p-4 mb-4 flex items-center justify-between border border-white/10 gap-4">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <button class="cb-hub-tab active flex items-center gap-2" data-cb-list="active" onclick="setCaseBattleListTab('active')"><i data-lucide="timer" class="w-4 h-4"></i>Active</button>
+                            <button class="cb-hub-tab flex items-center gap-2" data-cb-list="mine" onclick="setCaseBattleListTab('mine')"><i data-lucide="swords" class="w-4 h-4"></i>My Battles</button>
+                            <div class="h-6 border-l border-white/10 mx-1"></div>
+                            <button class="cb-filter-chip active flex items-center gap-1 text-lime-300" data-cb-filter="classic" onclick="setCaseBattleFilter('classic')"><i data-lucide="flame" class="w-3.5 h-3.5"></i>Classic</button>
+                            <button class="cb-filter-chip flex items-center gap-1 text-purple-300" data-cb-filter="underdog" onclick="setCaseBattleFilter('underdog')"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>Underdog</button>
+                            <button class="cb-filter-chip flex items-center gap-1 text-blue-300" data-cb-filter="share" onclick="setCaseBattleFilter('share')"><i data-lucide="share-2" class="w-3.5 h-3.5"></i>Share</button>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button class="bg-[#1a1e29] border border-white/10 text-gray-200 rounded-lg px-4 py-3 text-xs font-black uppercase">Affordable</button>
+                            <button onclick="openCaseSelectorModal()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all"><i data-lucide="plus" class="w-4 h-4"></i>Create Battle</button>
                         </div>
                     </div>
-                    <div id="cb-open-rooms" class="space-y-2"></div>
+                    <div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 px-6 py-2 border-b border-white/5">
+                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">ROUNDS</div>
+                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">BATTLE SCENARIO</div>
+                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">COST</div>
+                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">PLAYERS</div>
+                        <div class="text-[10px] text-gray-500 font-black uppercase tracking-widest">STATUS</div>
+                    </div>
+                    <div id="cb-open-rooms" class="flex flex-col gap-2"></div>
                 </div>
 
                 <div id="cb-builder-modal" class="hidden fixed inset-0 z-[150] bg-black/90 backdrop-blur-md p-4">
@@ -3773,6 +3700,8 @@ Zeus x27|Charged Up|8.50|#8847ff
         let isSpinning = false;
         let spinAnimationId = null;
         let casesCategoryFilter = 'all';
+        let casesAffordableOnly = false;
+        let casesSortDirection = 'asc';
         let userProfile = {
             nickname: '',
             displayName: '',
@@ -4521,18 +4450,12 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCreateBattleQueue();
             updateSelectorBottomBar();
         }
-        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
-        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
-        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function updateCbCaseCount(caseId, delta) {
             const cur = Number(cbSelectedCases.get(caseId) || 0);
             setCBBuilderCaseCount(caseId, cur + Number(delta || 0));
             renderCaseSelectorModal();
         }
-        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
-        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
-        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function changeCBBuilderCase(caseId, delta) {
             updateCbCaseCount(caseId, delta);
@@ -4644,19 +4567,52 @@ Zeus x27|Charged Up|8.50|#8847ff
             const wrap = document.getElementById('cb-open-rooms'); if (!wrap) return;
             try {
                 const data = await apiRequest('/api/case-battle/rooms');
-                const list = (data.rooms || []).filter((r) => {
+                const rooms = (data.rooms || []).filter((r) => {
                     if (cbListTab === 'mine' && String(r.creatorId || '') !== String(currentUser?._id || '')) return false;
                     if (cbModeFilter !== 'all' && String(r.gameMode || 'classic') !== cbModeFilter) return false;
                     return true;
                 });
-                wrap.innerHTML = list.map((r) => {
-                    const scenario = (r.caseQueue || []).slice(0, 5).map((q) => `<div class="w-16 text-center"><img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-10 h-10 mx-auto object-contain"><div class="text-[9px] truncate text-gray-300">${q.caseName || q.caseId || 'Case'}</div></div>`).join('') || '<div class="text-[10px] text-gray-500">No scenario</div>';
-                    const players = Array.from({ length: Number(r.capacity || 2) }).map((_, i) => r.players?.[i] || null);
-                    const avatars = players.map((p, i) => p ? `<div class="relative -ml-2 first:ml-0"><img src="${p.bot ? CB_BOT_AVATAR : (p.avatar || FALLBACK_IMG)}" onerror="handleImgError(this)" class="w-8 h-8 rounded-full border border-white/20 bg-black/40">${i===0?'<span class="absolute -top-2 left-2 text-[10px]">👑</span>':''}</div>` : '<div class="-ml-2 first:ml-0 w-8 h-8 rounded-full border border-dashed border-white/20 grid place-items-center text-gray-500 text-[10px]">+</div>').join('');
-                    return `<div class="cb-lobby-row"><div class="cb-rounds-badge">${r.rounds || r.totalRounds || 1}</div><div class="overflow-hidden"><div class="text-xs font-black text-yellow-300 uppercase mb-1 truncate">${r.caseName || 'Battle'}</div><div class="flex gap-1 overflow-hidden">${scenario}</div></div><div class="text-green-400 font-black drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">${formatMoney((r.casePrice || 0) * (r.rounds || 1))}</div><div class="flex items-center space-x-0">${avatars}</div><div><button onclick="joinCaseBattleRoom('${r.id}')" class="border border-yellow-300/70 text-yellow-200 px-3 py-1 rounded-lg font-black text-xs">View Battle</button></div></div>`;
-                }).join('') || '<div class="text-gray-500 text-xs">Žádné otevřené místnosti.</div>';
-            } catch (err) { wrap.innerHTML = `<div class="text-red-400 text-xs">${err.message}</div>`; }
+
+                wrap.innerHTML = rooms.map((r) => {
+                    const rounds = Math.max(1, Number(r.rounds || r.totalRounds || 1));
+                    const scenarioCases = Array.isArray(r.caseQueue) && r.caseQueue.length
+                        ? r.caseQueue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => q))
+                        : [{ caseName: r.caseName || 'Case', casePrice: Number(r.casePrice || 0), caseImg: getCaseByRoom(r)?.img || FALLBACK_IMG }];
+
+                    const scenarioHtml = scenarioCases.slice(0, 5).map((q) => {
+                        const casePrice = Number(q.casePrice || r.casePrice || 0);
+                        const rarityBorder = casePrice >= 120 ? '#facc15' : casePrice >= 35 ? '#ef4444' : casePrice >= 10 ? '#a855f7' : '#4b69ff';
+                        return `<div class="bg-[#1a1e29] border-t-2 rounded p-1 w-12 flex flex-col items-center" style="border-top-color:${rarityBorder}"><img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-8 object-contain"><div class="text-[8px] text-yellow-300">${formatMoney(casePrice)}</div></div>`;
+                    }).join('');
+
+                    const hiddenCount = Math.max(0, scenarioCases.length - 5);
+                    const entryCost = Number(r.casePrice || 0) * rounds;
+
+                    const capacity = Math.max(2, Number(r.capacity || 2));
+                    const slots = Array.from({ length: capacity }).map((_, idx) => r.players?.[idx] || null);
+                    const avatarsHtml = slots.map((pl, idx) => {
+                        if (!pl) {
+                            return '<div class="w-8 h-8 rounded-full border-2 border-[#1a1e29] bg-[#0d1017]"></div>';
+                        }
+                        const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
+                        return `<div class="relative"><img src="${avatar}" onerror="handleImgError(this)" class="w-8 h-8 rounded-full border-2 border-[#12161f] object-cover">${idx === 0 ? '<i data-lucide="crown" class="w-3 h-3 text-yellow-400 absolute -top-1 -right-1"></i>' : ''}</div>`;
+                    }).join('');
+
+                    return `<div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 items-center bg-[#12161f] hover:bg-[#161a24] border border-white/5 hover:border-white/10 rounded-xl px-6 py-4 transition-all">
+                        <div class="flex justify-center"><div class="w-12 h-12 transform rotate-45 border-2 border-[#c0f20c] rounded-lg shadow-[0_0_15px_rgba(192,242,12,0.15)] flex items-center justify-center overflow-hidden"><div class="-rotate-45 text-white font-black text-lg">${rounds}</div></div></div>
+                        <div class="flex flex-wrap gap-2 items-center">${scenarioHtml}${hiddenCount > 0 ? `<div class="text-xs font-black text-gray-300">+${hiddenCount}</div>` : ''}</div>
+                        <div class="text-green-400 font-black text-sm drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]">${formatMoney(entryCost)}</div>
+                        <div class="flex items-center -space-x-3">${avatarsHtml}<div class="text-gray-400 text-xs font-bold ml-4">${(r.players || []).length} / ${capacity}</div></div>
+                        <div><button onclick="joinCaseBattleRoom('${r.id}')" class="border border-[#c0f20c] text-[#c0f20c] hover:bg-[#c0f20c] hover:text-black font-black uppercase text-xs px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all w-full"><i data-lucide="eye" class="w-4 h-4"></i> View Battle</button></div>
+                    </div>`;
+                }).join('') || '<div class="text-gray-500 text-xs px-6 py-8">Žádné otevřené místnosti.</div>';
+
+                lucide.createIcons();
+            } catch (err) {
+                wrap.innerHTML = `<div class="text-red-400 text-xs px-6 py-6">${err.message}</div>`;
+            }
         }
+
 
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
@@ -4797,189 +4753,134 @@ Zeus x27|Charged Up|8.50|#8847ff
         async function animateCaseBattleRounds(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
-            const sessionId = ++cbAnimationSession;
-            const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
-            const players = room.players || [];
-            const liveScores = players.map(() => 0);
+            const rounds = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
+            const players = Array.isArray(room?.players) ? room.players : [];
+            const liveScores = players.map((p) => Number(p?.score || 0));
+            const wearPool = ['FN', 'MW', 'FT', 'WW', 'BS'];
+            let tickInterval = null;
 
-            for (let round = 0; round < rounds; round += 1) {
-                if (sessionId !== cbAnimationSession) { cbAnimationLock = false; return; }
-                const rc = document.getElementById('cb-round-counter');
-                if (rc) rc.textContent = `${round + 1} of ${rounds}`;
+            try {
+                for (let round = 0; round < rounds; round += 1) {
+                    const roundCounter = document.getElementById('cb-round-counter');
+                    if (roundCounter) roundCounter.textContent = `Round ${round + 1} of ${rounds}`;
 
-                players.forEach((pl, idx) => {
-                    const viewport = document.getElementById(`cb-spin-viewport-${idx}`);
-                    const track = document.getElementById(`cb-spin-track-${idx}`);
-                    if (!viewport || !track) return;
-                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
-                    const srcCase = (room.caseQueue || [])[round];
-                    const tape = cbBuildSpinnerTrack(srcCase?.contents || room.contents, drop);
-                    track.innerHTML = tape.map((it) => `<div class="w-[140px] h-full flex-shrink-0 px-2"><div class="h-full bg-[#1a1e29] border border-white/5 rounded-lg p-2 flex flex-col items-center justify-center"><img src="${it.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 object-contain"><div class="text-[9px] text-gray-300 truncate w-full text-center">${it.name}</div></div></div>`).join('');
-                    track.style.transition = 'none';
-                    track.style.transform = 'translate3d(0px,0,0)';
-                    void track.offsetWidth;
-                    const containerWidth = viewport.clientWidth || 520;
-                    const stopOffset = (50 * 140) - (containerWidth / 2) + 70 + (Math.random() * 60 - 30);
-                    track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
-                    track.style.transform = `translate3d(-${Math.max(0, stopOffset)}px,0,0)`;
-                });
-                await Promise.all(spinPromises);
+                    const queueEntry = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
+                    const queuedCase = queueEntry?.caseId ? getCaseById(queueEntry.caseId) : null;
+                    const currentCase = queuedCase || getCaseByRoom(room) || casesDB[0] || { contents: [] };
+                    const caseSkinsPool = Array.isArray(currentCase.contents) && currentCase.contents.length
+                        ? currentCase.contents.map((entry) => entry.skin).filter(Boolean)
+                        : [{ img: FALLBACK_IMG, name: 'Fallback Skin', price: 0, color: '#4b69ff' }];
 
-                const lastStep = players.map(() => -1);
-                let rafId = 0;
-                const tickLoop = () => {
-                    players.forEach((_, idx) => {
+                    players.forEach((pl, idx) => {
                         const track = document.getElementById(`cb-spin-track-${idx}`);
                         if (!track) return;
-                        const x = Math.abs(cbParseTranslateX(getComputedStyle(track).transform));
-                        const step = Math.floor(x / 140);
-                        if (step !== lastStep[idx]) {
-                            lastStep[idx] = step;
+                        const winDrop = pl?.drops?.[round] || pl?.drops?.[pl?.drops?.length - 1] || caseSkinsPool[Math.floor(Math.random() * caseSkinsPool.length)] || { img: FALLBACK_IMG, name: 'Skin', price: 0, color: '#4b69ff' };
+                        let tapeHtml = '';
+
+                        for (let i = 0; i < 60; i += 1) {
+                            const item = i === 50
+                                ? winDrop
+                                : caseSkinsPool[Math.floor(Math.random() * caseSkinsPool.length)] || caseSkinsPool[0];
+                            tapeHtml += `
+                                <div class="flex-shrink-0 w-[140px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent transition-all" style="border-color: ${item.color || '#4b69ff'}">
+                                    <img src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]">
+                                    <div class="text-[10px] text-gray-300 font-bold uppercase truncate w-full text-center mt-3">${item.name || 'Skin'}</div>
+                                </div>
+                            `;
+                        }
+
+                        track.innerHTML = tapeHtml;
+                        track.style.transition = 'none';
+                        track.style.transform = 'translate3d(0px, 0, 0)';
+                        void track.offsetWidth;
+                        const stopOffset = (50 * 140) - (track.parentElement.clientWidth / 2) + 70 + (Math.random() * 40 - 20);
+                        track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
+                        track.style.transform = `translate3d(-${stopOffset}px, 0, 0)`;
+                    });
+
+                    let lastStep = -1;
+                    tickInterval = setInterval(() => {
+                        const sampleTrack = document.getElementById('cb-spin-track-0');
+                        if (!sampleTrack) return;
+                        const currentX = Math.abs(cbParseTranslateX(getComputedStyle(sampleTrack).transform));
+                        const currentStep = Math.floor(currentX / 140);
+                        if (currentStep !== lastStep) {
+                            lastStep = currentStep;
                             SoundEngine.playTick();
                         }
-                    });
-                    rafId = requestAnimationFrame(tickLoop);
-                };
-                rafId = requestAnimationFrame(tickLoop);
+                    }, 60);
 
-                await new Promise((r) => setTimeout(r, 7000));
-                cancelAnimationFrame(rafId);
+                    await new Promise((r) => setTimeout(r, 6800));
 
-                players.forEach((pl, idx) => {
-                    const drop = pl.drops?.[round] || pl.drops?.[pl.drops.length - 1];
-                    liveScores[idx] += Number(drop?.price || 0);
-                    const scoreEl = document.getElementById(`cb-score-${idx}`);
-                    if (scoreEl) scoreEl.textContent = formatMoney(liveScores[idx]);
-                    const nameEl = document.getElementById(`cb-spin-name-${idx}`);
-                    if (nameEl) nameEl.textContent = drop?.name || '-';
-                    const hist = document.getElementById(`cb-history-${idx}`);
-                    if (hist && drop) {
-                        hist.insertAdjacentHTML('afterbegin', cbHistoryCard(drop, round));
-                        while (hist.children.length > 9) hist.removeChild(hist.lastChild);
+                    if (tickInterval) {
+                        clearInterval(tickInterval);
+                        tickInterval = null;
                     }
-                });
 
-                applyCaseBattleLeaderStylesByScores(liveScores);
-                const half = Math.ceil(players.length / 2);
-                const team1 = liveScores.slice(0, half).reduce((a, b) => a + b, 0);
-                const team2 = liveScores.slice(half).reduce((a, b) => a + b, 0);
-                const t1 = document.getElementById('cb-team1-score');
-                const t2 = document.getElementById('cb-team2-score');
-                if (t1) t1.textContent = formatMoney(team1);
-                if (t2) t2.textContent = formatMoney(team2);
-                document.getElementById('cb-team1-lead')?.classList.toggle('hidden', team1 <= team2);
-                document.getElementById('cb-team2-lead')?.classList.toggle('hidden', team2 <= team1);
-                SoundEngine.playWin();
+                    players.forEach((pl, idx) => {
+                        const drop = pl?.drops?.[round] || pl?.drops?.[pl?.drops?.length - 1];
+                        if (!drop) return;
+                        liveScores[idx] = Number(liveScores[idx] || 0) + Number(drop.price || 0);
+                        const scoreEl = document.getElementById(`cb-score-${idx}`);
+                        if (scoreEl) scoreEl.textContent = formatMoney(liveScores[idx]);
 
-                await new Promise((r) => setTimeout(r, 1500));
-            }
+                        const wear = wearPool[Math.floor(Math.random() * wearPool.length)];
+                        const historyGrid = document.getElementById(`cb-history-${idx}`);
+                        if (historyGrid) {
+                            historyGrid.insertAdjacentHTML('afterbegin', `
+                                <div class="bg-[#1a1e29] border border-white/5 border-t-2 rounded-md p-2 relative text-center group transition-all duration-300" style="border-top-color:${drop.color || '#4b69ff'}">
+                                    <div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${wear}</div>
+                                    <img src="${drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 w-full object-contain mb-1 drop-shadow-[0_8px_12px_rgba(0,0,0,0.45)]">
+                                    <div class="text-[10px] font-black uppercase truncate">${drop.name || 'Skin'}</div>
+                                    <div class="text-yellow-400 font-bold text-[10px]">${formatMoney(drop.price || 0)}</div>
+                                </div>
+                            `);
+                        }
+                    });
 
-            triggerEndgameSequence(room, liveScores);
-            cbAnimationLock = false;
-        }
-
-        function patchCaseBattleRoom(room) {
-            const info = document.getElementById('cb-current-room');
-            const rounds = Math.max(1, Number(room?.rounds || room?.totalRounds || 1));
-            if (info) info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity}` : `Battle probíhá • ${room.players.length} hráčů`;
-            const totalValueEl = document.getElementById('cb-total-value');
-            if (totalValueEl) totalValueEl.textContent = formatMoney(Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || 1)));
-            const t1 = document.getElementById('cb-team1-score');
-            const t2 = document.getElementById('cb-team2-score');
-            const players = room.players || [];
-            const half = Math.ceil(players.length / 2);
-            if (t1) t1.textContent = formatMoney(players.slice(0, half).reduce((a, p) => a + Number(p.score || 0), 0));
-            if (t2) t2.textContent = formatMoney(players.slice(half).reduce((a, p) => a + Number(p.score || 0), 0));
-            players.forEach((pl, idx) => {
-                const scoreEl = document.getElementById(`cb-score-${idx}`);
-                if (scoreEl) scoreEl.textContent = formatMoney(pl.score || 0);
-            });
-            applyCaseBattleLeaderStyles(room);
-            applyCaseBattleResultStyles(room);
-        }
-
-        function renderCaseBattleRoom(room, animate = false) {
-            const stage = document.getElementById('cb-stage');
-            const queueEl = document.getElementById('cb-case-queue');
-            const info = document.getElementById('cb-current-room');
-            if (!stage || !queueEl || !room) return;
-
-            const rounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
-            const caseObj = getCaseByRoom(room);
-            const battleValue = Number(room.casePrice || 0) * rounds * Math.max(1, Number(room.capacity || room.players?.length || 1));
-            const totalEl = document.getElementById('cb-total-value');
-            if (totalEl) totalEl.textContent = formatMoney(battleValue);
-            if (info) info.textContent = room.status === 'waiting' ? `Čeká se na hráče... ${room.players.length}/${room.capacity}` : `Battle běží • ${room.players.length} hráčů`;
-
-            const queue = Array.isArray(room.caseQueue) && room.caseQueue.length ? room.caseQueue.flatMap((q) => Array.from({ length: Math.max(1, Number(q.count || 1)) }).map(() => q)) : Array.from({ length: rounds }).map(() => ({ caseName: room.caseName || caseObj?.name || 'Case', caseImg: caseObj?.img || FALLBACK_IMG, casePrice: room.casePrice || 0 }));
-            queueEl.innerHTML = queue.map((q, idx) => `<div class="w-12 shrink-0 text-center opacity-70"><img src="${q.caseImg || caseObj?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="w-12 h-12 object-contain rounded bg-black/30"><div class="text-[9px] text-yellow-300">${formatMoney(q.casePrice || room.casePrice || 0)}</div></div>`).join('');
-
-            const playersForView = [...(room.players || [])];
-            while (playersForView.length < Number(room.capacity || playersForView.length || 0)) playersForView.push(null);
-            stage.innerHTML = playersForView.map((pl, idx) => {
-                if (!pl) {
-                    return `<div class="bg-[#12161f] flex flex-col min-h-[420px]"><div class="px-3 py-2 border-b border-white/5 flex items-center justify-between"><div class="text-sm font-black text-gray-400">Waiting for Player</div><button onclick="fillCaseBattleBotSlot(${idx})" class="text-[10px] bg-yellow-400/20 border border-yellow-300/40 text-yellow-200 px-2 py-1 rounded">Play with random bot</button></div><div class="flex-1 grid place-items-center text-gray-500 text-sm">Waiting slot</div></div>`;
+                    updateBattleLeaders(room, liveScores);
+                    SoundEngine.playWin('milspec');
+                    await new Promise((resolve) => setTimeout(resolve, 1500));
                 }
-                const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                return `<div id="cb-player-${idx}" class="bg-[#12161f] flex flex-col relative min-h-[420px]">
-                    <div class="px-3 py-2 border-b border-white/5 flex items-center justify-between">
-                        <div class="flex items-center gap-2 min-w-0"><img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-full border border-white/20"><div class="font-black text-sm truncate">${pl.nickname}${pl.bot ? ' <span class="text-[10px] text-yellow-300">BOT</span>' : ''}</div><i data-lucide="crown" id="cb-leader-crown-${idx}" class="w-4 h-4 text-yellow-400 hidden"></i></div>
-                        <div id="cb-score-${idx}" class="font-black text-gray-400">0.00 EUR</div>
-                    </div>
-                    <div class="h-48 overflow-hidden relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/30 to-[#12161f]">
-                        <div class="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-yellow-400 z-30 shadow-[0_0_15px_#facc15]"></div>
-                        <div id="cb-spin-viewport-${idx}" class="absolute inset-0 overflow-hidden">
-                            <div id="cb-spin-track-${idx}" class="absolute left-0 h-full flex items-center will-change-transform z-20"></div>
-                        </div>
-                        <div id="cb-endgame-${idx}" class="hidden absolute inset-0 z-50 flex items-center justify-center"></div>
-                    </div>
-                    <div id="cb-spin-name-${idx}" class="px-3 py-2 text-xs font-bold text-gray-300 truncate border-b border-white/5">Čeká se na drop...</div>
-                    <div id="cb-history-${idx}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 p-3 mt-auto h-full items-start"></div>
-                </div>`;
-            }).join('');
 
-            patchCaseBattleRoom(room);
-            const signature = cbRoomSignature(room);
-            const shouldAnimate = animate || (room.status === 'done' && signature !== cbLastAnimatedSignature);
-            if (shouldAnimate) {
-                cbLastAnimatedSignature = signature;
-                animateCaseBattleRounds(room);
+                triggerEndgameSequence(room, liveScores);
+            } catch (error) {
+                console.error('Case Battle animation failed:', error);
+            } finally {
+                if (tickInterval) clearInterval(tickInterval);
+                cbAnimationLock = false;
             }
-            lucide.createIcons();
-        }
-
-        function applyCaseBattleLeaderStyles(room) {
-            const scores = (room.players || []).map((p) => Number(p.score || 0));
-            applyCaseBattleLeaderStylesByScores(scores);
-        }
-
-        function applyCaseBattleResultStyles(room) {
-            if (room?.status !== 'done') return;
-            const scores = (room.players || []).map((p) => Number(p.score || 0));
-            triggerEndgameSequence(room, scores);
-        }
-
-        function socialLogin(provider) {
-            if (provider !== 'steam' && provider !== 'google') return;
-            if (authProviderStateLoaded && !authProviders[provider]) {
-                showToast(`${provider === 'steam' ? 'Steam' : 'Google'} login není plně nakonfigurovaný. Zkouším přesměrovat…`, true);
-            }
-            window.location.href = `/auth/${provider}`;
         }
 
         function setCasesCategoryFilter(category) {
             casesCategoryFilter = category;
-            ['all','featured','regular','premium','high-risk'].forEach((key) => {
+            ['all','featured','regular','creators','cheap','premium','high-risk'].forEach((key) => {
                 const el = document.getElementById(`tab-${key}`);
                 if (!el) return;
                 const active = key === category;
-                el.classList.toggle('bg-yellow-400/20', active);
-                el.classList.toggle('text-yellow-200', active);
-                el.classList.toggle('border-yellow-300/40', active);
-                el.classList.toggle('bg-white/5', !active);
-                el.classList.toggle('text-gray-300', !active);
-                el.classList.toggle('border-white/20', !active);
+                el.classList.toggle('bg-white/10', active);
+                el.classList.toggle('text-white', active);
+                el.classList.toggle('text-gray-500', !active);
+                el.classList.toggle('hover:text-gray-300', !active);
             });
+            renderCases();
+        }
+
+        function setCasesAffordableOnly(nextValue) {
+            casesAffordableOnly = !!nextValue;
+            const btn = document.getElementById('cases-affordable-toggle');
+            if (btn) {
+                btn.classList.toggle('bg-white/10', casesAffordableOnly);
+                btn.classList.toggle('text-white', casesAffordableOnly);
+                btn.classList.toggle('border-white/30', casesAffordableOnly);
+            }
+            renderCases();
+        }
+
+        function toggleCasesSortOrder() {
+            casesSortDirection = casesSortDirection === 'asc' ? 'desc' : 'asc';
+            const btn = document.getElementById('cases-sort-toggle');
+            if (btn) btn.textContent = casesSortDirection === 'asc' ? 'Price ↑' : 'Price ↓';
             renderCases();
         }
 
@@ -5105,57 +5006,81 @@ Zeus x27|Charged Up|8.50|#8847ff
         // --- BEDNY ---
         function renderCases() {
             const grid = document.getElementById('cases-grid');
-            if(!grid) return;
-            const groups = [
-                { key: 'budget', title: '💙 BUDGET CASEKY', min: 0, max: 4.99 },
-                { key: 'standard', title: '💜 STANDARD CASEKY', min: 5, max: 24.99 },
-                { key: 'premium', title: '❤️ PREMIUM CASEKY', min: 25, max: 99.99 },
-                { key: 'legendary', title: '💛 LEGENDARY CASEKY', min: 100, max: Infinity }
-            ];
+            if (!grid) return;
 
-            const renderCard = (c, idx) => {
-                let glowClass = '';
-                if(c.color === 'blue') glowClass = 'glow-blue';
-                else if(c.color === 'red') glowClass = 'glow-red';
-                else if(c.color === 'purple') glowClass = 'glow-purple';
-                else if(c.color === 'pink') glowClass = 'glow-pink';
-                else if(c.color === 'yellow-400') glowClass = 'glow-gold';
-
-                return `
-<div onclick="openCaseView('${c.id}')" class="bg-gradient-to-b from-[#171b25] to-[#12161f] px-5 pt-5 pb-6 min-h-[272px] rounded-[24px] border border-white/10 hover:border-yellow-300/55 cursor-pointer transition-all duration-300 group text-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative overflow-hidden item-float dopamine-glow shine-sweep hover:scale-[1.03]" style="animation-delay: ${idx * 60}ms;">
-    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_50%_12%,rgba(250,204,21,0.16),transparent_52%)]"></div>
-    <div class="absolute left-4 right-4 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-    ${(c.price > 120 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-yellow-400/25 border border-yellow-300/45 text-yellow-200 font-black pulse-soft">Premium</div>' : (c.price > 50 ? '<div class="absolute top-2 left-2 z-20 text-[9px] px-2 py-1 rounded-full bg-pink-500/25 border border-pink-300/45 text-pink-200 font-black pulse-soft">Hot</div>' : ''))}
-    <img src="${c.img}" onerror="handleImgError(this)" class="w-full h-40 object-contain group-hover:scale-[1.08] transition-transform duration-300 relative z-10 drop-shadow-[0_14px_26px_rgba(0,0,0,0.55)] mb-4">
-    <div class="font-black text-[14px] uppercase text-gray-100 relative z-10 leading-tight tracking-wide">${c.name}</div>
-    <div class="inline-flex mt-2 px-3 py-1 rounded-full bg-yellow-400/12 border border-yellow-300/30 text-yellow-300 font-black text-[17px] relative z-10">${formatMoney(c.price)}</div>
-</div>
-`;
+            const normalizeCategory = (c) => {
+                const source = String(c.category || '').toLowerCase();
+                if (source.includes('event')) return 'featured';
+                if (source.includes('creator')) return 'creators';
+                if (source.includes('premium')) return 'premium';
+                if (source.includes('risk')) return 'high-risk';
+                if (source.includes('regular')) return 'regular';
+                if (source.includes('cheap')) return 'cheap';
+                const p = Number(c.price || 0);
+                if (p <= 10) return 'cheap';
+                if (p < 35) return 'regular';
+                if (p < 120) return 'premium';
+                return 'high-risk';
             };
 
-            grid.innerHTML = groups.map(g => {
-                let items = casesDB.filter(c => c.price >= g.min && c.price <= g.max);
-                if (casesCategoryFilter !== 'all') {
-                    items = items.filter((c) => {
-                        const p = Number(c.price || 0);
-                        if (casesCategoryFilter === 'featured') return p >= 45 || /legend|arcana|knife|dragon|quantum/i.test(c.name);
-                        if (casesCategoryFilter === 'regular') return p < 20;
-                        if (casesCategoryFilter === 'premium') return p >= 20 && p < 120;
-                        if (casesCategoryFilter === 'high-risk') return p >= 120 || /1%|risk|ultra|legendary/i.test(c.name);
-                        return true;
-                    });
-                }
-                items = items.slice();
-                if(items.length === 0) return '';
+            const searchValue = (document.getElementById('cases-search')?.value || '').trim().toLowerCase();
+            let filtered = casesDB.filter((c) => {
+                const price = Number(c.price || 0);
+                if (searchValue && !String(c.name || '').toLowerCase().includes(searchValue)) return false;
+                if (casesAffordableOnly && price > balanceBase) return false;
+                const normalized = normalizeCategory(c);
+                if (casesCategoryFilter === 'all') return true;
+                if (casesCategoryFilter === 'featured') return normalized === 'featured' || /event|hot|best|limited/i.test(c.name || '');
+                if (casesCategoryFilter === 'creators') return normalized === 'creators' || /creator|stream|klexa|pro/i.test(c.name || '');
+                if (casesCategoryFilter === 'cheap') return normalized === 'cheap';
+                if (casesCategoryFilter === 'regular') return normalized === 'regular';
+                if (casesCategoryFilter === 'premium') return normalized === 'premium';
+                if (casesCategoryFilter === 'high-risk') return normalized === 'high-risk';
+                return true;
+            });
+
+            filtered.sort((a, b) => (casesSortDirection === 'asc' ? Number(a.price || 0) - Number(b.price || 0) : Number(b.price || 0) - Number(a.price || 0)));
+
+            const groups = [
+                { key: 'featured', label: 'FEATURED' },
+                { key: 'regular', label: 'REGULAR' },
+                { key: 'premium', label: 'PREMIUM' },
+                { key: 'high-risk', label: 'HIGH RISK' }
+            ];
+
+            const rarityGlow = (color) => {
+                const c = String(color || '').toLowerCase();
+                if (c.includes('ebca44') || c.includes('yellow') || c.includes('gold')) return 'from-yellow-400/25';
+                if (c.includes('eb4b4b') || c.includes('red')) return 'from-red-500/25';
+                if (c.includes('d32ce6') || c.includes('purple')) return 'from-purple-500/25';
+                if (c.includes('pink')) return 'from-pink-500/25';
+                return 'from-blue-500/25';
+            };
+
+            const sectionHtml = groups.map((group) => {
+                const items = filtered.filter((c) => normalizeCategory(c) === group.key);
+                if (!items.length) return '';
+                const cards = items.map((c) => `
+                    <div onclick="openCaseView('${c.id}')" class="relative bg-[#161a24] hover:bg-[#1a1e29] border border-white/5 rounded-xl p-4 min-h-[280px] xl:min-h-[320px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
+                        <div class="absolute top-3 right-3 bg-white text-black font-black text-xs px-3 py-1.5 rounded-md shadow-md z-20">${formatMoney(c.price)}</div>
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${rarityGlow(c.color)} to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 rounded-xl"></div>
+                        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-48 xl:h-56 w-full object-contain mx-auto relative z-10 drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-500 ease-out">
+                        <div class="mt-4 text-sm font-black uppercase text-gray-300 group-hover:text-white tracking-widest relative z-10 text-center">${c.name}</div>
+                    </div>
+                `).join('');
+
                 return `
-                    <section>
-                        <h3 class="text-lg font-black uppercase tracking-widest text-yellow-300 mb-4 border-b border-yellow-400/20 pb-2">${g.title}</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            ${items.map((c, idx) => renderCard(c, idx)).join('')}
-                        </div>
-                    </section>
+                    <div class="col-span-full flex items-center justify-center gap-4 my-8">
+                        <div class="h-px bg-white/10 flex-1"></div>
+                        <div class="text-sm font-black text-gray-500 uppercase tracking-widest">/// ${group.label} ///</div>
+                        <div class="h-px bg-white/10 flex-1"></div>
+                    </div>
+                    ${cards}
                 `;
-            }).join('') || '<div class="text-center py-12 text-gray-500 font-black uppercase">Žádné bedny pro tento filtr.</div>';
+            }).join('');
+
+            grid.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6">${sectionHtml || '<div class=\"col-span-full text-center py-16 text-gray-500 font-black uppercase\">No cases for selected filter.</div>'}</div>`;
+            lucide.createIcons();
         }
 
         // Vlož pod funkci renderCases (kolem řádku 815)
@@ -5677,123 +5602,99 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
+        let liveDropsAddTimer = null;
+        let liveDropsOnlineTimer = null;
+        let liveDropsSkinsPool = [];
+
+        function addRandomDrop() {
+            const dropsContainer = document.getElementById('live-drops');
+            if (!dropsContainer || !liveDropsSkinsPool.length) return;
+
+            const randomSkin = liveDropsSkinsPool[Math.floor(Math.random() * liveDropsSkinsPool.length)];
+            const item = document.createElement('div');
+            item.className = 'live-drop-item animate-drop-in flex-shrink-0 w-32 h-[85%] rounded-lg border border-white/5 relative overflow-hidden group cursor-pointer hover:-translate-y-1 hover:border-white/20';
+            item.style.background = `radial-gradient(circle at top, ${(randomSkin.color || '#4b69ff')}33 0%, #12161f 80%)`;
+            item.style.borderBottom = `2px solid ${randomSkin.color || '#4b69ff'}`;
+
+            item.innerHTML = `
+                <div class="absolute top-1 right-1 text-[8px] font-black text-white/50 z-10">${formatMoney(randomSkin.price || 0)}</div>
+                <div class="h-full flex flex-col items-center justify-center p-2 relative z-20">
+                    <img src="${randomSkin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform">
+                    <div class="text-[9px] text-gray-300 font-bold uppercase truncate w-full text-center mt-1">${randomSkin.name || 'Skin'}</div>
+                </div>
+            `;
+
+            const matchingCase = casesDB.find((c) => (c.contents || []).some((x) => String(x.skin?.id || '') === String(randomSkin.id || '')));
+            if (matchingCase?.id) {
+                item.addEventListener('click', () => openCaseView(matchingCase.id));
+            }
+
+            dropsContainer.prepend(item);
+            while (dropsContainer.children.length > 25) {
+                dropsContainer.lastChild.remove();
+            }
+        }
+
         function initializeLiveDrops() {
             const dropsContainer = document.getElementById('live-drops');
-            if(!dropsContainer) return;
-            dropsContainer.style.animation = 'none';
-            const tickerWrap = dropsContainer.parentElement;
-            const skinList = Object.values(skinsDB);
-            const cheapPool = skinList.filter(s => s.price <= 15);
-            const midPool = skinList.filter(s => s.price > 15 && s.price <= 120);
-            const expensivePool = skinList.filter(s => s.price > 120 && s.price <= 700);
-            const ultraPool = skinList.filter(s => s.price > 700 || KNIFE_TYPES.includes(s.weapon) || GLOVE_TYPES.includes(s.weapon));
+            if (!dropsContainer) return;
 
-            function pickWeightedLiveSkin() {
-                const roll = Math.random() * 100;
-                let pool = cheapPool;
-                // Realističtější feed: drtivá většina dropů je levná, drahé/nože jsou vzácné
-                if(roll < 82) pool = cheapPool;
-                else if(roll < 95) pool = midPool.length ? midPool : cheapPool;
-                else if(roll < 99.2) pool = expensivePool.length ? expensivePool : (midPool.length ? midPool : cheapPool);
-                else pool = ultraPool.length ? ultraPool : (expensivePool.length ? expensivePool : cheapPool);
-                return pool[Math.floor(Math.random() * pool.length)] || skinList[Math.floor(Math.random() * skinList.length)];
+            if (liveDropsAddTimer) {
+                clearInterval(liveDropsAddTimer);
+                liveDropsAddTimer = null;
             }
-            let lastSkinId = null;
-            let offsetX = 0;
-            let paused = false;
+            if (liveDropsOnlineTimer) {
+                clearInterval(liveDropsOnlineTimer);
+                liveDropsOnlineTimer = null;
+            }
 
-            function addRandomDrop() {
-                if(skinList.length === 0) return;
-                let attempts = 0;
-                let randomSkin = pickWeightedLiveSkin();
-                while(randomSkin.id === lastSkinId && attempts < 8 && skinList.length > 1) {
-                    randomSkin = pickWeightedLiveSkin();
-                    attempts++;
+            dropsContainer.innerHTML = '';
+            liveDropsSkinsPool = [];
+            for (const c of casesDB) {
+                for (const it of (c.contents || [])) {
+                    if (it?.skin) liveDropsSkinsPool.push(it.skin);
                 }
-                lastSkinId = randomSkin.id;
-
-                const matchingCases = casesDB.filter((c) => (c.contents || []).some((x) => x.skin?.id === randomSkin.id));
-                const sourceCase = matchingCases.length ? matchingCases[Math.floor(Math.random() * matchingCases.length)] : null;
-                const item = document.createElement('div');
-                item.className = 'live-drop-item';
-                item.style.setProperty('--drop-rarity-color', randomSkin.color || '#4b69ff');
-                item.title = `${randomSkin.name} • ${sourceCase?.name || 'Upgrade'}`;
-
-                const img = document.createElement('img');
-                img.loading = 'eager';
-                img.decoding = 'async';
-                img.src = randomSkin.img;
-                img.alt = randomSkin.name;
-                if(randomSkin.imgAlts) img.dataset.alts = randomSkin.imgAlts.join('|');
-                img.onerror = handleImgError;
-
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'live-drop-item-name';
-                nameDiv.textContent = randomSkin.name;
-
-                const tooltip = document.createElement('div');
-                tooltip.className = 'live-drop-tooltip';
-                tooltip.innerHTML = `<div class="text-[11px] text-yellow-300 font-black uppercase tracking-wide">→ ${sourceCase?.name ? 'Otevřít bednu' : 'Do upgraderu'}</div>`;
-
-                item.appendChild(img);
-                item.appendChild(nameDiv);
-                item.appendChild(tooltip);
-
-                item.addEventListener('mouseenter', () => { tooltip.classList.add('visible'); item.style.zIndex = '100'; });
-                item.addEventListener('click', () => { if(sourceCase?.id) openCaseView(sourceCase.id); else { switchPage('upgrade'); showToast('Skin není v bedně, otevřen upgrade.'); } });
-                item.addEventListener('mouseleave', () => { tooltip.classList.remove('visible'); item.style.zIndex = '1'; });
-
-                dropsContainer.appendChild(item);
-                if(dropsContainer.children.length > 140) dropsContainer.removeChild(dropsContainer.lastChild);
             }
 
-            for(let i=0;i<26;i++) addRandomDrop();
-            setTimeout(() => { for(let i=0;i<10;i++) addRandomDrop(); }, 300);
-            setInterval(addRandomDrop, 1200);
-            setInterval(() => {
-                if(dropsContainer.children.length < 6) {
-                    for(let i=0;i<12;i++) addRandomDrop();
-                }
-            }, 4000);
-
-            let lastTs = performance.now();
-            const speed = 28;
-            const gapPx = (() => { const g = parseFloat(getComputedStyle(dropsContainer).gap || getComputedStyle(dropsContainer).columnGap || "12"); return Number.isFinite(g) ? g : 12; })();
-            function getItemWidth(el) {
-                if(!el) return 0;
-                return (el.offsetWidth || el.getBoundingClientRect().width || 0) + gapPx;
-            }
-            function animate(ts) {
-                const dt = Math.min(0.05, (ts - lastTs) / 1000);
-                lastTs = ts;
-                if(!paused) {
-                    offsetX -= speed * dt;
-                    let first = dropsContainer.firstElementChild;
-                    let firstWidth = getItemWidth(first);
-                    let moveCount = 0;
-                    const rotate = [];
-                    while(first && firstWidth > 0 && -offsetX >= firstWidth && moveCount < 5) {
-                        offsetX += firstWidth;
-                        rotate.push(first);
-                        first = first.nextElementSibling;
-                        firstWidth = getItemWidth(first);
-                        moveCount += 1;
-                    }
-                    if (rotate.length) {
-                        const frag = document.createDocumentFragment();
-                        rotate.forEach((el) => frag.appendChild(el));
-                        dropsContainer.appendChild(frag);
-                    }
-                    dropsContainer.style.transform = `translate3d(${offsetX}px,0,0)`;
-                }
-                requestAnimationFrame(animate);
+            if (!liveDropsSkinsPool.length) {
+                liveDropsSkinsPool = [{
+                    id: 'fallback-live-skin',
+                    name: 'Fallback Skin',
+                    img: FALLBACK_IMG,
+                    price: 0,
+                    color: '#4b69ff'
+                }];
             }
 
-            if (tickerWrap) {
-                tickerWrap.addEventListener('mouseenter', () => { paused = true; });
-                tickerWrap.addEventListener('mouseleave', () => { paused = false; });
+            for (let i = 0; i < 12; i += 1) {
+                addRandomDrop();
             }
-            requestAnimationFrame(animate);
+
+            const onlineCounter = document.getElementById('live-online-counter');
+            let online = Number((document.getElementById('online-count')?.textContent || '1687').replace(/\D/g, '')) || 1687;
+            if (onlineCounter) onlineCounter.textContent = `${online.toLocaleString('en-US')} Online`;
+
+            liveDropsAddTimer = setInterval(() => {
+                addRandomDrop();
+            }, 2300);
+
+            liveDropsOnlineTimer = setInterval(() => {
+                const delta = Math.floor(Math.random() * 25) - 12;
+                online = Math.max(1200, online + delta);
+                if (onlineCounter) onlineCounter.textContent = `${online.toLocaleString('en-US')} Online`;
+            }, 5000);
+        }
+
+        let liveChatPollTimer = null;
+
+        function toggleLiveChat(force) {
+            const panel = document.getElementById('live-chat');
+            const toggle = document.getElementById('live-chat-toggle');
+            if (!panel) return;
+            const shouldOpen = typeof force === 'boolean' ? force : panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !shouldOpen);
+            panel.classList.toggle('flex', shouldOpen);
+            if (toggle) toggle.classList.toggle('hidden', shouldOpen);
         }
 
         function renderChatMessage(container, msg, mine = false) {
@@ -5811,10 +5712,14 @@ Zeus x27|Charged Up|8.50|#8847ff
             const container = document.getElementById('live-chat-messages');
             const input = document.getElementById('live-chat-input');
             const sendBtn = document.getElementById('live-chat-send');
-            if(!container || !input || !sendBtn) return;
+            const panel = document.getElementById('live-chat');
+            if (!container || !input || !sendBtn || !panel) return;
 
             const loadMessages = async () => {
-                if (!currentUser) return;
+                if (!currentUser) {
+                    container.innerHTML = '<div class="text-[11px] text-gray-500">Přihlas se pro psaní do chatu.</div>';
+                    return;
+                }
                 try {
                     const data = await apiRequest('/api/chat/messages');
                     container.innerHTML = '';
@@ -5827,21 +5732,27 @@ Zeus x27|Charged Up|8.50|#8847ff
             const sendUserMessage = async () => {
                 if (!requireAuthAction()) return;
                 const text = input.value.trim();
-                if(!text) return;
+                if (!text) return;
                 input.value = '';
+                sendBtn.disabled = true;
+                sendBtn.classList.add('opacity-70');
                 try {
                     await apiRequest('/api/chat/messages', 'POST', { text });
                     await loadMessages();
                 } catch (err) {
                     showToast(err.message, true);
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.classList.remove('opacity-70');
                 }
             };
 
             sendBtn.onclick = sendUserMessage;
-            input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
+            input.onkeydown = (e) => { if (e.key === 'Enter') sendUserMessage(); };
 
             await loadMessages();
-            setInterval(loadMessages, 1000);
+            if (liveChatPollTimer) clearInterval(liveChatPollTimer);
+            liveChatPollTimer = setInterval(loadMessages, 2000);
         }
 
         // --- FREE CASE SYSTEM ---
