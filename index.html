@@ -441,51 +441,7 @@
     </div>
 </section>
 
-<div id="cb-builder-modal" class="fixed inset-0 z-[150] bg-black/90 backdrop-blur-sm p-4 hidden items-center justify-center">
-    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
-        <div class="flex items-center justify-between mb-4">
-            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
-            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
-            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
-        </div>
-        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
-            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
-            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
-        </div>
-        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
-            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
-            <div class="flex items-center gap-6">
-                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
-                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105 active:scale-95">Create Battle</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div id="cb-case-selector-modal" class="fixed inset-0 z-[200] bg-[#0b0d11]/95 backdrop-blur-md hidden items-center justify-center p-4">
-    <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)]">
-        <div class="px-6 pt-5 pb-4 border-b border-white/10 bg-[#0d1017]">
-            <div class="flex items-center justify-between mb-4">
-                <div class="text-2xl font-black text-white uppercase tracking-widest">Select cases</div>
-                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <input id="cb-selector-search" type="text" placeholder="Search for cases..." oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white w-full max-w-sm outline-none focus:border-yellow-400/50">
-            </div>
-        </div>
-        <div id="cb-selector-grid" class="flex-1 overflow-y-auto px-6 py-6 bg-[#0b0d11] custom-scroll"></div>
-        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5 flex items-center justify-between">
-            <div><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div><div id="cb-balance" class="text-yellow-300 font-black text-xl">0.00 EUR</div></div>
-            <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-xl rounded-xl px-20 py-4 shadow-[0_0_30px_rgba(192,242,12,0.3)] transform hover:scale-105 transition-all">Ready 0.00 EUR</button>
-            <div class="text-right"><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div><div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl">0</div></div>
-        </div>
-    </div>
-</div>
 <section id="page-inventory" class="page hidden max-w-7xl mx-auto space-y-8 fade-in">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6">
                     <div>
@@ -618,7 +574,54 @@
         Akce úspěšná!
     </div>
 
-    <script>
+    <div id="cb-builder-modal" class="fixed inset-0 z-[9990] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
+            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
+        </div>
+        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
+            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
+            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
+        </div>
+        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
+            <div class="flex items-center gap-6">
+                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
+                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105 active:scale-95">Create Battle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cb-case-selector-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#0b0d11]/95 backdrop-blur-md p-4">
+    <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)]">
+        <div class="px-6 pt-5 pb-4 border-b border-white/10 bg-[#0d1017]">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-2xl font-black text-white uppercase tracking-widest">Select cases</div>
+                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white bg-white/5 p-2 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <input id="cb-selector-search" type="text" placeholder="Search for cases..." oninput="renderCaseSelectorModal()" class="bg-[#1a1e29] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white w-full max-w-sm outline-none focus:border-yellow-400/50">
+            </div>
+        </div>
+        <div id="cb-selector-grid" class="flex-1 overflow-y-auto px-6 py-6 bg-[#0b0d11] custom-scroll"></div>
+        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5 flex items-center justify-between">
+            <div><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div><div id="cb-balance" class="text-yellow-300 font-black text-xl">0.00 EUR</div></div>
+            <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-xl rounded-xl px-20 py-4 shadow-[0_0_30px_rgba(192,242,12,0.3)] transform hover:scale-105 transition-all">Ready 0.00 EUR</button>
+            <div class="text-right"><div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div><div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl">0</div></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
         const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%2314181c\"/><path d=\"M12 46L46 12M46 12H26M46 12V32\" stroke=\"%23facc15\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>');
 
@@ -3291,6 +3294,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                 // Keep original case identity/variety (1% knife, jackpots, budget, premium...),
                 // only do light sanitation so each case still has both losing and winning outcomes.
                 casesDB.forEach((c) => {
+    // TENTO ŘÁDEK ZABRÁNÍ BOTŮM ZNIČIT NAŠE BEDNY
+    if (manualCaseIds.has(c.id)) return;
+
                     // Pokud je bedna na seznamu manuálně definovaných nebo tematických, IGNORUJ JI a neměň její obsah!
                     if (manualCaseIds.has(c.id) || c.id.startsWith('wpn-') || c.id.startsWith('rarity-') || c.id === 'trash-or-knife' || c.id === 'vac-attack' || c.id === 'bank-heist') {
                         return;
@@ -4455,23 +4461,29 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function openCaseBattleBuilder() {
-            const modal = document.getElementById('cb-builder-modal');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-            modal.querySelectorAll('.cb-builder-opt').forEach((btn) => {
-                btn.onclick = () => {
-                    const g = btn.dataset.cbGroup;
-                    const v = btn.dataset.cbVal;
-                    modal.querySelectorAll(`.cb-builder-opt[data-cb-group="${g}"]`).forEach((x) => x.classList.remove('active'));
-                    btn.classList.add('active');
-                    cbBuilderState[g] = v;
-                    if (g === 'teamFormat' && v === '2v2') cbBuilderState.mode = '1v1v1v1';
-                };
-            });
-            renderCreateBattleQueue();
-            renderCaseSelectorGrid();
-        }
-        function closeCaseBattleBuilder() { const builder = document.getElementById('cb-builder-modal'); const selector = document.getElementById('cb-case-selector-modal'); if (builder) builder.classList.add('hidden'); if (selector) { selector.classList.add('hidden'); selector.style.display = 'none'; } }
+    const modal = document.getElementById('cb-builder-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex'); // NUTNÉ PRO VYCENTROVÁNÍ
+
+    document.querySelectorAll('.cb-builder-opt').forEach((el) => {
+        el.onclick = () => {
+            const g = el.dataset.cbGroup;
+            const v = el.dataset.cbVal;
+            document.querySelectorAll(`.cb-builder-opt[data-cb-group="${g}"]`).forEach((b) => b.classList.remove('active'));
+            el.classList.add('active');
+            cbBuilderState[g] = v;
+            if (g === 'teamFormat' && v === '2v2') cbBuilderState.mode = '1v1v1v1';
+        };
+    });
+    renderCreateBattleQueue();
+}
+        function closeCaseBattleBuilder() {
+    const builder = document.getElementById('cb-builder-modal');
+    const selector = document.getElementById('cb-case-selector-modal');
+    if (builder) { builder.classList.add('hidden'); builder.classList.remove('flex'); }
+    if (selector) { selector.classList.add('hidden'); selector.classList.remove('flex'); }
+}
         function setCBBuilderCaseCount(caseId, value) {
             const next = Math.max(0, Math.min(30, Number(value || 0)));
             if (next <= 0) cbSelectedCases.delete(caseId);
@@ -4573,16 +4585,16 @@ Zeus x27|Charged Up|8.50|#8847ff
         function renderCBBuilderQueue() { renderCreateBattleQueue(); }
         function openCaseSelectorModal() {
     const modal = document.getElementById('cb-case-selector-modal');
-    if (modal) {
+    if(modal) {
         modal.classList.remove('hidden');
-        modal.classList.add('flex'); // Musí být flex pro vycentrování
+        modal.classList.add('flex'); // NUTNÉ PRO VYCENTROVÁNÍ
         renderCaseSelectorModal();
     }
 }
 
         function closeCaseSelectorModal() {
     const modal = document.getElementById('cb-case-selector-modal');
-    if (modal) {
+    if(modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
