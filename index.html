@@ -4564,8 +4564,7 @@ Zeus x27|Charged Up|8.50|#8847ff
         function getCaseByRoom(room) { return casesDB.find((x) => x.id === room?.caseId) || casesDB.find((x) => x.name === room?.caseName) || null; }
 
         async function loadCaseBattleRooms() {
-            const wrap = document.getElementById('cb-open-rooms');
-            if (!wrap) return;
+            const wrap = document.getElementById('cb-open-rooms'); if (!wrap) return;
             try {
                 const data = await apiRequest('/api/case-battle/rooms');
                 const rooms = (data.rooms || []).filter((r) => {
