@@ -423,7 +423,7 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <button class="bg-[#1a1e29] border border-white/10 text-gray-200 rounded-lg px-4 py-3 text-xs font-black uppercase">Affordable</button>
-                            <button onclick="openCaseSelectorModal()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all"><i data-lucide="plus" class="w-4 h-4"></i>Create Battle</button>
+                            <button onclick="openCaseBattleBuilder()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all"><i data-lucide="plus" class="w-4 h-4"></i>Create Battle</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 px-6 py-2 border-b border-white/5">
@@ -4410,7 +4410,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if (createPanel) createPanel.classList.add('hidden');
                 if (roomPanel) {
                     roomPanel.classList.remove('hidden');
-                    roomPanel.classList.add('flex'); // Důležité pro Tailwind flex-col
+                    roomPanel.classList.add('flex');
                 }
             } else {
                 // Hráč není v bitvě - ukážeme lobby, skryjeme arénu
@@ -4666,9 +4666,13 @@ Zeus x27|Charged Up|8.50|#8847ff
             const mode = cbBuilderState.mode || '1v1';
             const rounds = Number(payload.rounds || 1);
             
+            // Změna textu tlačítka pro feedback
+            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+            const originalText = btn ? btn.textContent : 'Create battle';
+            if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
+
             try {
-                console.log('[CaseBattle] Odesílám požadavek na server...', { mode, rounds, ...payload });
-                showToast('Vytvářím bitvu...');
+                console.log('[CaseBattle] Odesílám na API...', { mode, rounds, ...payload });
                 
                 // Volání API
                 const data = await apiRequest('/api/case-battle/create', 'POST', { 
@@ -4681,22 +4685,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                     ...payload 
                 });
 
-                console.log('[CaseBattle] Bitva úspěšně vytvořena na serveru:', data);
-
-                // Uložení ID a přepnutí UI do Arény
+                // Úspěch - schováme modaly, ukážeme Arénu
                 cbActiveRoomId = data.room?.id || null;
-                closeCaseBattleBuilder(); // Skryje nastavovací panely
-                cbSetPanels(true); // ZOBRAZÍ ARÉNU (#cb-room-panel)
+                closeCaseBattleBuilder(); // Zavře Builder
+                cbSetPanels(true); // Fyzicky zobrazí #cb-room-panel
                 
                 cbAddLog(`Bitva vytvořena (ID: ${cbActiveRoomId})`);
-                
-                // Vykreslíme roomku
                 renderCaseBattleRoom(data.room, false);
                 showToast('Bitva úspěšně vytvořena!');
                 
             } catch (err) { 
-                console.error('[CaseBattle] Chyba při vytváření bitvy:', err);
-                showToast(err.message || 'Nepodařilo se vytvořit bitvu. Zkontroluj konzoli.', true);
+                console.error('[CaseBattle] Error API:', err);
+                showToast(err.message || 'Nepodařilo se vytvořit bitvu.', true);
+            } finally {
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
             }
         }
 
