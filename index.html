@@ -2829,6 +2829,13 @@ Zeus x27|Charged Up|8.50|#8847ff
                 createSmartCase('wild-shots', 'Wild Shots', 8.00, 'purple', 'Gut Knife', 'Lore', 'regular');
 
                 // Po sestavení beden načteme UI
+                for (let i = casesDB.length - 1; i >= 0; i--) {
+                    if (!manualCaseIds.has(casesDB[i].id)) casesDB.splice(i, 1);
+                }
+                casesDB.forEach((c) => {
+                    const mapped = resolveCaseImageUrl(c.id, c.name);
+                    if (mapped) c.img = mapped;
+                });
                 renderCases();
             }, 200);
         }, 50);
