@@ -4406,12 +4406,14 @@ Zeus x27|Charged Up|8.50|#8847ff
             const roomPanel = document.getElementById('cb-room-panel');
             
             if (inRoom) {
+                // Hráč je v bitvě - skryjeme lobby, ukážeme arénu
                 if (createPanel) createPanel.classList.add('hidden');
                 if (roomPanel) {
                     roomPanel.classList.remove('hidden');
                     roomPanel.classList.add('flex');
                 }
             } else {
+                // Hráč není v bitvě - ukážeme lobby, skryjeme arénu
                 if (createPanel) createPanel.classList.remove('hidden');
                 if (roomPanel) {
                     roomPanel.classList.add('hidden');
@@ -4672,6 +4674,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             try {
                 console.log('[CaseBattle] Odesílám na API...', { mode, rounds, ...payload });
                 
+                // Volání API
                 const data = await apiRequest('/api/case-battle/create', 'POST', { 
                     mode, 
                     rounds, 
