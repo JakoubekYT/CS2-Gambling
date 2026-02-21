@@ -4516,6 +4516,9 @@ Zeus x27|Charged Up|8.50|#8847ff
             else cbBuilderState.selected.set(caseId, next);
             renderCBBuilderQueue();
         }
+        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function openCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.remove('hidden'); renderCaseSelectorGrid(); }
+        function closeCaseSelectorModal() { document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
 
         function changeCBBuilderCase(caseId, delta) {
             const cur = Number(cbBuilderState.selected.get(caseId) || 0);
