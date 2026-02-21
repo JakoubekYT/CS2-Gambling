@@ -477,38 +477,40 @@
                     </div>
                 </div>
 
-    <div id="cb-case-selector-modal" class="fixed inset-0 z-[200] hidden bg-[#0b0d11]/95 backdrop-blur-md items-center justify-center p-4" style="display: none;">
-        <div class="w-full max-w-5xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-            <div class="px-5 pt-4 pb-3 border-b border-white/10 bg-[#0d1017]">
-                <div class="flex items-center justify-between">
-                    <div class="text-xl font-black text-white uppercase tracking-wider">Select cases</div>
-                    <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-                </div>
-                <div class="mt-4 flex flex-wrap items-center gap-3">
-                    <button class="px-4 py-2 rounded-lg bg-white/10 text-white text-xs font-black uppercase tracking-widest border border-white/20">All Cases</button>
-                    <input id="cb-selector-search" type="text" placeholder="Search case..." oninput="renderCaseSelectorModal()" class="ml-auto bg-[#161a24] border border-white/10 rounded-lg px-4 py-2 text-xs text-white min-w-[200px] outline-none focus:border-yellow-400/50 transition-colors">
-                </div>
+    <div id="cb-case-selector-modal" class="fixed inset-0 z-[999] bg-[#0b0d11]/95 backdrop-blur-md items-center justify-center p-4 hidden" style="display: none;">
+    <div class="w-full max-w-5xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+
+        <div class="px-5 pt-4 pb-3 border-b border-white/10 bg-[#0d1017]">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-black text-white uppercase tracking-wider">Select cases</div>
+                <button onclick="closeCaseSelectorModal()" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+                <button class="px-4 py-2 rounded-lg bg-white/10 text-white text-xs font-black uppercase tracking-widest border border-white/20">All Cases</button>
+                <input id="cb-selector-search" type="text" placeholder="Search case..." oninput="renderCaseSelectorModal()" class="ml-auto bg-[#161a24] border border-white/10 rounded-lg px-4 py-2 text-xs text-white min-w-[200px] outline-none focus:border-yellow-400/50 transition-colors">
+            </div>
+        </div>
 
-            <div id="cb-selector-grid" class="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#0b0d11]"></div>
+        <div id="cb-selector-grid" class="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#0b0d11] custom-scroll"></div>
 
-            <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div>
-                        <div id="cb-balance" class="text-yellow-300 font-black text-xl drop-shadow-md">0.00 EUR</div>
-                    </div>
-                    <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-lg rounded-xl px-16 py-3 shadow-[0_0_25px_rgba(192,242,12,0.25)] transition-all transform hover:scale-105 active:scale-95">
-                        Ready 0.00 EUR
-                    </button>
-                    <div class="text-right">
-                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div>
-                        <div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl drop-shadow-md">0</div>
-                    </div>
+        <div class="mt-auto border-t border-white/10 bg-[#0d1017] p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Your balance</div>
+                    <div id="cb-balance" class="text-yellow-300 font-black text-xl drop-shadow-md">0.00 EUR</div>
+                </div>
+                <button onclick="applyCaseBattleBuilder()" id="cb-selector-ready" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase text-lg rounded-xl px-16 py-3 shadow-[0_0_25px_rgba(192,242,12,0.25)] transition-all transform hover:scale-105 active:scale-95">
+                    Ready 0.00 EUR
+                </button>
+                <div class="text-right">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rounds</div>
+                    <div id="cb-ready-rounds" class="text-yellow-300 font-black text-xl drop-shadow-md">0</div>
                 </div>
             </div>
         </div>
+
     </div>
+</div>
 </section>
 
 
@@ -4478,7 +4480,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             renderCreateBattleQueue();
             renderCaseSelectorGrid();
         }
-        function closeCaseBattleBuilder() { document.getElementById('cb-builder-modal')?.classList.add('hidden'); document.getElementById('cb-case-selector-modal')?.classList.add('hidden'); }
+        function closeCaseBattleBuilder() { const builder = document.getElementById('cb-builder-modal'); const selector = document.getElementById('cb-case-selector-modal'); if (builder) builder.classList.add('hidden'); if (selector) { selector.classList.add('hidden'); selector.style.display = 'none'; } }
         function setCBBuilderCaseCount(caseId, value) {
             const next = Math.max(0, Math.min(30, Number(value || 0)));
             if (next <= 0) cbSelectedCases.delete(caseId);
@@ -4579,20 +4581,21 @@ Zeus x27|Charged Up|8.50|#8847ff
         function renderCaseSelector() { renderCaseSelectorModal(); }
         function renderCBBuilderQueue() { renderCreateBattleQueue(); }
         function openCaseSelectorModal() {
-    const modal = document.getElementById('cb-case-selector-modal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-        renderCaseSelectorModal();
-    }
-}
+            const modal = document.getElementById('cb-case-selector-modal');
+            if(modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex'; // DŮLEŽITÉ
+                renderCaseSelectorModal();
+            }
+        }
+
         function closeCaseSelectorModal() {
-    const modal = document.getElementById('cb-case-selector-modal');
-    if(modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-    }
-}
+            const modal = document.getElementById('cb-case-selector-modal');
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none'; // DŮLEŽITÉ
+            }
+        }
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {

@@ -885,6 +885,31 @@ function buildTeams(players = [], teamFormat = '1v1') {
   return { CT: players.slice(0, 1), T: players.slice(1, 2) };
 }
 
+function buildSyntheticCaseContents(caseMeta = {}) {
+  const basePrice = Math.max(0.2, Number(caseMeta.casePrice || caseMeta.price || 1));
+  const ranges = [
+    { rarity: 'consumer', color: '#4b69ff', chance: 79.92, min: 0.15, max: 0.65 },
+    { rarity: 'industrial', color: '#5e98d9', chance: 15.98, min: 0.65, max: 1.35 },
+    { rarity: 'milspec', color: '#4b69ff', chance: 3.2, min: 1.35, max: 2.7 },
+    { rarity: 'restricted', color: '#8847ff', chance: 0.64, min: 2.7, max: 6.2 },
+    { rarity: 'classified', color: '#d32ce6', chance: 0.22, min: 6.2, max: 14 },
+    { rarity: 'covert', color: '#eb4b4b', chance: 0.035, min: 14, max: 42 },
+    { rarity: 'knife', color: '#facc15', chance: 0.005, min: 40, max: 160 }
+  ];
+
+  return ranges.map((r, idx) => {
+    const value = toMoney(basePrice * (r.min + Math.random() * (r.max - r.min)));
+    return {
+      name: `${caseMeta.caseName || 'Case'} ${r.rarity.toUpperCase()} #${idx + 1}`,
+      price: Math.max(0.01, value),
+      color: r.color,
+      rarity: r.rarity,
+      chance: r.chance,
+      img: String(caseMeta.caseImg || '')
+    };
+  });
+}
+
 function weightedRoll(contents) {
   const list = Array.isArray(contents) ? contents : [];
   if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '', rarity: 'consumer' };
@@ -1034,7 +1059,10 @@ async function maybeStartCaseBattle(room) {
 
   for (let roundIdx = 0; roundIdx < room.rounds; roundIdx += 1) {
     const roundCase = expandedQueue[roundIdx] || {};
-    const roundContents = Array.isArray(roundCase.contents) ? roundCase.contents : [];
+    const roomContents = Array.isArray(room.contents) ? room.contents : [];
+    const roundContents = Array.isArray(roundCase.contents) && roundCase.contents.length
+      ? roundCase.contents
+      : (roomContents.length ? roomContents : buildSyntheticCaseContents(roundCase));
     for (const pl of activePlayers) {
       const drop = weightedRoll(roundContents);
       pl.drops.push({ round: roundIdx + 1, ...drop });
