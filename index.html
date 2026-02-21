@@ -4402,8 +4402,18 @@ Zeus x27|Charged Up|8.50|#8847ff
         let cbSelectedCases = new Map();
 
         function cbSetPanels(inRoom) {
-            document.getElementById('cb-create-panel')?.classList.toggle('hidden', inRoom);
-            document.getElementById('cb-room-panel')?.classList.toggle('hidden', !inRoom);
+            const createPanel = document.getElementById('cb-create-panel');
+            const roomPanel = document.getElementById('cb-room-panel');
+            
+            if (inRoom) {
+                if (createPanel) createPanel.classList.add('hidden');
+                if (roomPanel) roomPanel.classList.remove('hidden');
+                if (roomPanel) roomPanel.classList.add('flex');
+            } else {
+                if (createPanel) createPanel.classList.remove('hidden');
+                if (roomPanel) roomPanel.classList.add('hidden');
+                if (roomPanel) roomPanel.classList.remove('flex');
+            }
         }
         function cbSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
         function cbAddLog(text) { const log = document.getElementById('cb-log'); if (!log) return; const row = document.createElement('div'); row.className='mb-1 text-gray-200'; row.textContent=text; log.appendChild(row); log.scrollTop=log.scrollHeight; }
@@ -4557,16 +4567,33 @@ Zeus x27|Charged Up|8.50|#8847ff
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
 
         function selectedCasePayload() {
-            if (!cbSelectedCases.size) return null;
+            if (!cbSelectedCases || cbSelectedCases.size === 0) return null;
             const queue = [];
+            let totalCost = 0;
+            let totalRounds = 0;
+
             cbSelectedCases.forEach((count, id) => {
-                const c = casesDB.find((x) => x.id === id); if (!c) return;
-                queue.push({ caseId: c.id, caseName: c.name, casePrice: Number(c.price||0), caseImg: c.img || '', count, contents: (c.contents || []).map((it)=>({ name: it.skin?.name || 'Skin', price: Number(it.skin?.price || 0), color: it.skin?.color || '#4b69ff', img: it.skin?.img || '', chance: Number(it.chance || 0) })) });
+                const c = casesDB.find((x) => x.id === id); 
+                if (!c) return;
+                queue.push({ 
+                    caseId: c.id, 
+                    caseName: c.name, 
+                    casePrice: Number(c.price || 0), 
+                    caseImg: c.img || '', 
+                    count: Number(count) 
+                });
+                totalRounds += Number(count);
+                totalCost += (Number(c.price || 0) * Number(count));
             });
-            if (!queue.length) return null;
-            const rounds = queue.reduce((a,q)=>a+Number(q.count||0),0);
-            const total = queue.reduce((a,q)=>a+Number(q.casePrice||0)*Number(q.count||0),0);
-            return { caseId: queue[0].caseId, caseName: queue[0].caseName, casePrice: rounds? total/rounds:0, rounds, caseQueue: queue, contents: queue[0].contents };
+
+            if (queue.length === 0) return null;
+            return { 
+                caseId: queue[0].caseId, 
+                caseName: queue[0].caseName, 
+                casePrice: totalRounds ? (totalCost / totalRounds) : 0, 
+                rounds: totalRounds, 
+                caseQueue: queue 
+            };
         }
 
         function getCaseByRoom(room) { return casesDB.find((x) => x.id === room?.caseId) || casesDB.find((x) => x.name === room?.caseName) || null; }
@@ -4625,18 +4652,49 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
+            
             const payload = selectedCasePayload();
-            if (!payload) return showToast('Nejdřív přidej caseky.', true);
-            const mode = cbBuilderState.mode;
+            if (!payload) {
+                return showToast('Please select at least one case first!', true);
+            }
+
+            const mode = cbBuilderState.mode || '1v1';
             const rounds = Number(payload.rounds || 1);
+            
+            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+            const originalText = btn ? btn.textContent : 'CREATE BATTLE';
+            if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
+
             try {
-                const data = await apiRequest('/api/case-battle/create', 'POST', { mode, rounds, fillWithBots: false, teamFormat: cbBuilderState.teamFormat, gameMode: cbBuilderState.gameMode, privacy: cbBuilderState.privacy, ...payload });
+                console.log('Sending Create Battle Request...', { mode, rounds, ...payload });
+                
+                const data = await apiRequest('/api/case-battle/create', 'POST', { 
+                    mode, 
+                    rounds, 
+                    fillWithBots: false, 
+                    teamFormat: cbBuilderState.teamFormat || '1v1', 
+                    gameMode: cbBuilderState.gameMode || 'classic', 
+                    privacy: cbBuilderState.privacy || 'public', 
+                    ...payload 
+                });
+
+                console.log('Battle Created Successfully:', data);
+
                 cbActiveRoomId = data.room?.id || null;
-                cbSetPanels(true);
                 closeCaseBattleBuilder();
-                cbAddLog(`Room vytvořena: ${cbActiveRoomId}`);
-                renderCaseBattleRoom(data.room, true);
-            } catch (err) { showToast(err.message, true); }
+                cbSetPanels(true);
+                
+                cbAddLog(`Battle Room Created: ${cbActiveRoomId}`);
+                
+                renderCaseBattleRoom(data.room, false);
+                showToast('Battle created successfully!');
+                
+            } catch (err) { 
+                console.error('Create Battle Error:', err);
+                showToast(err.message || 'Failed to create battle', true); 
+            } finally {
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+            }
         }
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
