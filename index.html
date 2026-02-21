@@ -231,7 +231,7 @@
         <nav class="hidden lg:flex items-center gap-6">
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
-            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Free Cases</button>
+            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
             <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
         </nav>
         <div class="flex items-center gap-3">
@@ -276,7 +276,7 @@
                 <div id="mobile-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
                 <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
             </div>
-            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Bedny</button>
+            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Cases</button>
             <button onclick="switchPage('inventory'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒 Inventář</button>
             <button onclick="switchPage('upgrade'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️ Upgrade</button>
             <button onclick="switchPage('case-battle'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case Battle</button>
@@ -2641,6 +2641,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if (!c) {
                     c = { id, name, price, color, img: (resolveCaseImageUrl(id, name) || cSkin.img), category, contents: [] };
                     casesDB.push(c);
+                } else {
+                    c.name = meta.name || c.name;
+                    c.price = Number(meta.price ?? c.price ?? 1);
+                    c.color = meta.color || c.color || 'blue';
+                    c.img = meta.img || c.img || FALLBACK_IMG;
+                    c.category = meta.category || c.category || '';
                 }
                 
                 // Logika 50/50
@@ -3573,6 +3579,7 @@ function closeCaseSelectorModal() {
 
             const groups = [
                 { key: 'featured', label: 'FEATURED' },
+                { key: 'cheap', label: 'CHEAP & WEAPONS' }, // TOTO ZDE CHYBĚLO!
                 { key: 'regular', label: 'REGULAR' },
                 { key: 'cheap', label: 'CHEAP & WEAPONS' },
                 { key: 'premium', label: 'PREMIUM' },
