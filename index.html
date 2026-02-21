@@ -231,7 +231,7 @@
         <nav class="hidden lg:flex items-center gap-6">
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
-            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Free Cases</button>
+            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
             <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
         </nav>
         <div class="flex items-center gap-3">
@@ -276,7 +276,7 @@
                 <div id="mobile-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
                 <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
             </div>
-            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Bedny</button>
+            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Cases</button>
             <button onclick="switchPage('inventory'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒 Inventář</button>
             <button onclick="switchPage('upgrade'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️ Upgrade</button>
             <button onclick="switchPage('case-battle'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case Battle</button>
@@ -2580,8 +2580,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
             );
 
-            // CaseHug-inspired extra bedny (unikátní, bez duplicit typu GAME ON 1/2/3/4)
-            // Manual tailored loadouts for newly added cases (no generic generator output)
+            // --- TVRDÁ DEFINICE BEDEN (HARDCODED) ---
             const manualCaseIds = new Set();
             const setManualCaseContents = (caseId, rows, meta = {}) => {
                 let c = casesDB.find((x) => x.id === caseId);
@@ -2603,17 +2602,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                     c.img = meta.img || c.img || FALLBACK_IMG;
                     c.category = meta.category || c.category || '';
                 }
-                if (!Array.isArray(rows) || !rows.length) return;
-                const parsed = rows
-                    .map(([w, n, ch]) => ({ skin: findSkin(w, n), chance: Number(ch || 0) }))
-                    .filter((x) => x.skin && x.chance > 0);
-                if (!parsed.length) return;
+                const parsed = rows.map(([w, n, ch]) => ({ skin: findSkin(w, n), chance: Number(ch || 0) })).filter((x) => x.skin && x.chance > 0);
                 const total = parsed.reduce((a, b) => a + b.chance, 0);
-                const scaled = parsed.map((x) => ({ ...x, chance: (x.chance / total) * 100 }));
-                const rounded = scaled.map((x) => ({ ...x, chance: Math.round(x.chance * 100000) / 100000 }));
-                const diff = Math.round((100 - rounded.reduce((a, b) => a + b.chance, 0)) * 100000) / 100000;
-                rounded[rounded.length - 1].chance = Math.max(0.00001, Math.round((rounded[rounded.length - 1].chance + diff) * 100000) / 100000);
-                c.contents = rounded;
+                // Vložení do bedny se zaokrouhlenými %
+                c.contents = parsed.map((x) => ({ ...x, chance: Math.round((x.chance / total) * 100 * 1000) / 1000 }));
                 manualCaseIds.add(caseId);
             };
 
