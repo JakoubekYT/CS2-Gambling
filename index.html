@@ -231,7 +231,7 @@
         <nav class="hidden lg:flex items-center gap-6">
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
-            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Free Cases</button>
+            <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
             <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
         </nav>
         <div class="flex items-center gap-3">
@@ -276,7 +276,7 @@
                 <div id="mobile-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
                 <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
             </div>
-            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Bedny</button>
+            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Cases</button>
             <button onclick="switchPage('inventory'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒 Inventář</button>
             <button onclick="switchPage('upgrade'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️ Upgrade</button>
             <button onclick="switchPage('case-battle'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case Battle</button>
@@ -711,6 +711,24 @@
 
         // --- STAV A DATABÁZE ---
         let balanceBase = 10.00;
+        let currentUser = null;
+        let userInventory = [];
+        let activeCaseId = null;
+        let isSpinning = false;
+        let cbListTab = 'all';
+        const cbSelectedCases = new Map();
+        let caseBattleRooms = [];
+        let chatMessages = [];
+        let chatUsers = {};
+        let pendingCase = null;
+        let openingCount = 1;
+        let openingCaseObj = null;
+        let cbPollTimer = null;
+        let cbAnimationSession = 0;
+        let cbAnimationLock = false;
+        let casesAffordableOnly = false;
+        let casesCategoryFilter = 'all';
+        let casesSortDirection = 'asc';
         const KNIFE_TYPES = [
             "Bayonet", "Bowie Knife", "Butterfly Knife", "Classic Knife", "Falchion Knife", "Flip Knife", "Gut Knife",
             "Huntsman Knife", "Karambit", "M9 Bayonet", "Navaja Knife", "Nomad Knife", "Paracord Knife", "Shadow Daggers",
@@ -2563,7 +2581,31 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             // --- TVRDÁ DEFINICE BEDEN (HARDCODED) ---
             const manualCaseIds = new Set();
-            const setManualCaseContents = (caseId, rows, meta) => {
+            // --- OPRAVENÁ METADATA (REÁLNÉ OBRÁZKY KRABIC) ---
+            const manualCaseMeta = {
+                'coinflip': { name: '50/50 Profit', price: 50.00, color: 'red', img: 'https://cdn.casehug.com/cases/50_RACE.png?width=640&quality=85' },
+                'covert': { name: 'Covert Dreams', price: 13.00, color: 'red', img: 'https://cdn.casehug.com/cases/RARITY_COVERT.png?width=640&quality=85' },
+                'trash-or-knife': { name: '1% KNIFE Risk', price: 25.00, color: 'yellow-400', img: 'https://cdn.casehug.com/cases/SAVAGE.png?width=640&quality=85' },
+                'demolition': { name: 'DEMOLITION', price: 11.00, color: 'red', img: 'https://cdn.casehug.com/cases/DEMOLITION.png?width=640&quality=85' },
+                'vac-attack': { name: 'VAC ATTACK', price: 85.00, color: 'red', img: 'https://cdn.casehug.com/cases/VAC_ATTACK.png?width=640&quality=85' },
+                'electronic': { name: 'ELECTRONIC', price: 33.00, color: 'purple', img: 'https://cdn.casehug.com/cases/ELECTRONIC.png?width=640&quality=85' },
+                'juice-20': { name: '20 JUICE', price: 150.00, color: 'blue', img: 'https://cdn.casehug.com/cases/20_JUICE.png?width=640&quality=85' },
+                'plant-b': { name: 'PLANT B', price: 36.00, color: 'red', img: 'https://cdn.casehug.com/cases/bombsite_b_1.png?width=640&quality=85' },
+                'candy-shop': { name: 'CANDY SHOP', price: 45.00, color: 'red', img: 'https://cdn.casehug.com/cases/CANDY_SHOP.png?width=640&quality=85' },
+                'ferro': { name: 'FERRO', price: 30.00, color: 'red', img: 'https://cdn.casehug.com/cases/FERRO.png?width=640&quality=85' },
+                'kingdom': { name: 'KINGDOM', price: 46.50, color: 'red', img: 'https://cdn.casehug.com/cases/kingdom_1.png?width=640&quality=85' },
+                'bank-heist': { name: 'BANK HEIST', price: 11.00, color: 'red', img: 'https://cdn.casehug.com/cases/BANK_HEIST.png?width=640&quality=85' },
+                'wpn-p90': { name: 'P90', price: 0.90, color: 'blue', img: 'https://cdn.casehug.com/cases/P90_2.png?width=640&quality=85' },
+                'wpn-deagle': { name: 'DESERT EAGLE', price: 1.50, color: 'purple', img: 'https://cdn.casehug.com/cases/DESERT_EAGLE.png?width=640&quality=85' },
+                'wpn-usps': { name: 'USP-S', price: 1.65, color: 'purple', img: 'https://cdn.casehug.com/cases/USP_S_2.png?width=640&quality=85' },
+                'wpn-m4a4': { name: 'M4A4', price: 2.75, color: 'purple', img: 'https://cdn.casehug.com/cases/M4A4_2.png?width=640&quality=85' },
+                'wpn-ak47': { name: 'AK-47', price: 6.00, color: 'pink', img: 'https://cdn.casehug.com/cases/AK_47_3.png?width=640&quality=85' },
+                'wpn-awp': { name: 'AWP', price: 10.00, color: 'red', img: 'https://cdn.casehug.com/cases/AWP.png?width=640&quality=85' },
+                'rarity-covert': { name: 'COVERT', price: 13.00, color: 'red', img: 'https://cdn.casehug.com/cases/RARITY_COVERT.png?width=640&quality=85' },
+                'rarity-classified': { name: 'CLASSIFIED', price: 8.00, color: 'pink', img: 'https://cdn.casehug.com/cases/RARITY_CLASSIFIED.png?width=640&quality=85' }
+            };
+            const setManualCaseContents = (caseId, rows) => {
+                const meta = manualCaseMeta[caseId] || {};
                 let c = casesDB.find((x) => x.id === caseId);
                 if (!c) {
                     c = { id: caseId, name: meta.name || caseId.toUpperCase(), price: Number(meta.price || 1), color: meta.color || 'blue', img: meta.img || FALLBACK_IMG, contents: [] };
@@ -2576,162 +2618,165 @@ Zeus x27|Charged Up|8.50|#8847ff
                 manualCaseIds.add(caseId);
             };
 
-            setTimeout(() => {
-                // 1% KNIFE
-                setManualCaseContents('trash-or-knife', [
-                    ['P250', 'Sand Dune', 50.0],
-                    ['G3SG1', 'Safari Mesh', 49.0],
-                    ['M9 Bayonet', 'Autotronic', 1.0] // 1% přesně, cover image
-                ], { name: '1% KNIFE Risk', price: 25.00, color: 'yellow-400', img: findSkin('M9 Bayonet', 'Autotronic').img });
+            setManualCaseContents('coinflip', [
+                ['P250', 'Sand Dune', 50.0],
+                ['AWP', 'Crakow!', 50.0]
+            ]);
 
-                // COINFLIP (50/50)
-                setManualCaseContents('coinflip', [
-                    ['P250', 'Sand Dune', 50.0],
-                    ['AWP', 'Crakow!', 50.0]
-                ], { name: '50/50 Profit', price: 50.00, color: 'red', img: findSkin('AWP', 'Crakow!').img });
+            setManualCaseContents('covert', [
+                ['AK-47', 'Bloodsport', 60.0],
+                ['M4A4', 'Neo-Noir', 25.0],
+                ['USP-S', 'Kill Confirmed', 10.0],
+                ['AWP', 'Asiimov', 4.5],
+                ['Desert Eagle', 'Code Red', 0.5]
+            ]);
 
-                // DEMOLITION
-                setManualCaseContents('demolition', [
-                    ['Glock-18', 'Catacombs', 45.0],
-                    ['AK-47', 'Redline', 35.0],
-                    ['AWP', 'Asiimov', 19.5],
-                    ['AWP', 'The Prince', 0.5] // Nejdražší, Cover
-                ], { name: 'DEMOLITION', price: 11.00, color: 'red', img: findSkin('AWP', 'The Prince').img });
+            setManualCaseContents('trash-or-knife', [
+                ['P250', 'Sand Dune', 50.0],
+                ['G3SG1', 'Safari Mesh', 49.0],
+                ['M9 Bayonet', 'Autotronic', 1.0]
+            ]);
 
-                // PRINTSTREAM ONLY
-                setManualCaseContents('printstream-only', [
-                    ['Desert Eagle', 'Printstream', 60.0],
-                    ['USP-S', 'Printstream', 35.0],
-                    ['M4A1-S', 'Printstream', 5.0] // Nejdražší, Cover
-                ], { name: 'PRINTSTREAM', price: 25.00, color: 'red', img: findSkin('M4A1-S', 'Printstream').img });
+            setManualCaseContents('demolition', [
+                ['P250', 'Sand Dune', 45.0],
+                ['Glock-18', 'Catacombs', 30.0],
+                ['AK-47', 'Redline', 20.0],
+                ['AWP', 'Asiimov', 4.5],
+                ['AWP', 'The Prince', 0.5]
+            ]);
 
-                // COVERT (Only red)
-                setManualCaseContents('covert', [
-                    ['AK-47', 'Bloodsport', 45.0],
-                    ['M4A4', 'Neo-Noir', 35.0],
-                    ['USP-S', 'Kill Confirmed', 15.0],
-                    ['AWP', 'Asiimov', 4.5],
-                    ['Desert Eagle', 'Code Red', 0.5] // Vše Covert
-                ], { name: 'Covert Dreams', price: 100.00, color: 'red', img: findSkin('Desert Eagle', 'Code Red').img });
+            setManualCaseContents('vac-attack', [
+                ['AWP', 'Atheris', 45.0],
+                ['M4A4', 'Hellfire', 35.0],
+                ['AK-47', 'Bloodsport', 15.0],
+                ['AWP', 'Dragon Lore', 4.5],
+                ['Karambit', 'Fade', 0.5]
+            ]);
 
-                // ELECTRONIC
-                setManualCaseContents('electronic', [
-                    ['MAC-10', 'Disco Tech', 45.0],
-                    ['UMP-45', 'Scaffold', 35.0],
-                    ['M4A1-S', 'Icarus Fell', 19.5],
-                    ['M9 Bayonet', 'Autotronic', 0.5] // Cover image
-                ], { name: 'ELECTRONIC', price: 33.00, color: 'purple', img: findSkin('M9 Bayonet', 'Autotronic').img });
+            setManualCaseContents('electronic', [
+                ['MAC-10', 'Disco Tech', 45.0],
+                ['UMP-45', 'Scaffold', 35.0],
+                ['M4A1-S', 'Icarus Fell', 15.0],
+                ['Karambit', 'Doppler Phase 3', 4.5],
+                ['M9 Bayonet', 'Autotronic', 0.5]
+            ]);
 
-                // PLANT B
-                setManualCaseContents('plant-b', [
-                    ['UMP-45', 'Primal Saber', 50.0],
-                    ['MAC-10', 'Neon Rider', 30.0],
-                    ['M4A4', 'Hellfire', 19.5],
-                    ['M4A1-S', 'Hot Rod', 0.5] // Nejdražší, Cover (žádný Howl)
-                ], { name: 'PLANT B', price: 36.00, color: 'red', img: findSkin('M4A1-S', 'Hot Rod').img });
+            setManualCaseContents('juice-20', [
+                ['P250', 'Sand Dune', 50.0],
+                ['Glock-18', 'Water Elemental', 30.0],
+                ['Desert Eagle', 'Fennec Fox', 20.0]
+            ]);
 
-                // CANDY SHOP
-                setManualCaseContents('candy-shop', [
-                    ['Glock-18', 'Snack Attack', 50.0],
-                    ['Five-SeveN', 'Monkey Business', 35.0],
-                    ['MAC-10', 'Disco Tech', 14.5],
-                    ['Skeleton Knife', 'Marble Fade', 0.5] // Cover Image
-                ], { name: 'CANDY SHOP', price: 45.00, color: 'red', img: findSkin('Skeleton Knife', 'Marble Fade').img });
+            setManualCaseContents('wpn-p90', [
+                ['P90', 'Sand Spray', 45.0],
+                ['P90', 'Off World', 30.0],
+                ['P90', 'Grim', 15.0],
+                ['P90', 'Traction', 8.0],
+                ['P90', 'Asiimov', 1.5],
+                ['P90', 'Death by Kitty', 0.5]
+            ]);
 
-                // FERRO
-                setManualCaseContents('ferro', [
-                    ['AK-47', 'Bloodsport', 50.0],
-                    ['M4A4', 'Temukau', 35.0],
-                    ['Desert Eagle', 'Blaze', 14.5],
-                    ['Butterfly Knife', 'Tiger Tooth', 0.5] // Cover Image, nejvzácnější
-                ], { name: 'FERRO', price: 30.00, color: 'red', img: findSkin('Butterfly Knife', 'Tiger Tooth').img });
+            setManualCaseContents('wpn-deagle', [
+                ['Desert Eagle', 'Conspiracy', 40.0],
+                ['Desert Eagle', 'Mecha Industries', 30.0],
+                ['Desert Eagle', 'Code Red', 20.0],
+                ['Desert Eagle', 'Blaze', 9.5],
+                ['Desert Eagle', 'Fennec Fox', 0.5]
+            ]);
 
-                // KINGDOM
-                setManualCaseContents('kingdom', [
-                    ['AK-47', 'The Empress', 50.0],
-                    ['M4A4', 'The Emperor', 35.0],
-                    ['M9 Bayonet', 'Lore', 14.5],
-                    ['Butterfly Knife', 'Gamma Doppler', 0.5] // Cover Image
-                ], { name: 'KINGDOM', price: 46.50, color: 'red', img: findSkin('Butterfly Knife', 'Gamma Doppler').img });
+            setManualCaseContents('wpn-usps', [
+                ['USP-S', 'Blueprint', 42.0],
+                ['USP-S', 'Cortex', 30.0],
+                ['USP-S', 'Neo-Noir', 20.0],
+                ['USP-S', 'Printstream', 7.5],
+                ['USP-S', 'Kill Confirmed', 0.5]
+            ]);
 
-                // 20 JUICE
-                setManualCaseContents('juice-20', [
-                    ['P250', 'Sand Dune', 50.0],
-                    ['Glock-18', 'Water Elemental', 30.0],
-                    ['Desert Eagle', 'Fennec Fox', 20.0] // PŘESNĚ 20%
-                ], { name: '20 JUICE', price: 150.00, color: 'blue', img: findSkin('Desert Eagle', 'Fennec Fox').img });
+            setManualCaseContents('wpn-m4a4', [
+                ['M4A4', 'Spider Lily', 40.0],
+                ['M4A4', 'Tooth Fairy', 30.0],
+                ['M4A4', 'Neo-Noir', 20.0],
+                ['M4A4', 'The Emperor', 9.5],
+                ['M4A4', 'Howl', 0.5]
+            ]);
 
-                // VAC ATTACK
-                setManualCaseContents('vac-attack', [
-                    ['AWP', 'Atheris', 45.0],
-                    ['M4A4', 'Hellfire', 35.0],
-                    ['AK-47', 'Bloodsport', 19.5],
-                    ['Karambit', 'Fade', 0.5] // Cover image
-                ], { name: 'VAC ATTACK', price: 85.00, color: 'red', img: findSkin('Karambit', 'Fade').img });
+            setManualCaseContents('wpn-ak47', [
+                ['AK-47', 'Slate', 40.0],
+                ['AK-47', 'Redline', 30.0],
+                ['AK-47', 'The Empress', 20.0],
+                ['AK-47', 'Bloodsport', 9.5],
+                ['AK-47', 'Leet Museo', 0.5]
+            ]);
 
-                renderCases();
-            }, 200);
+            setManualCaseContents('wpn-awp', [
+                ['AWP', 'Atheris', 40.0],
+                ['AWP', 'Exoskeleton', 30.0],
+                ['AWP', 'Neo-Noir', 20.0],
+                ['AWP', 'Asiimov', 9.5],
+                ['AWP', 'Dragon Lore', 0.5]
+            ]);
 
-        function openCaseBattleBuilder() {
-            const modal = document.getElementById('cb-builder-modal');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            renderCreateBattleQueue();
-            renderCaseSelectorModal();
-        }
-        function closeCaseBattleBuilder() { 
-            const builder = document.getElementById('cb-builder-modal'); 
-            const selector = document.getElementById('cb-case-selector-modal'); 
-            if (builder) { builder.classList.add('hidden'); builder.classList.remove('flex'); }
-            if (selector) { selector.classList.add('hidden'); selector.style.display = 'none'; } 
-        }
-        function openCaseSelectorModal() {
-            const modal = document.getElementById('cb-case-selector-modal');
-            if(modal) {
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
-                renderCaseSelectorModal();
-            }
-        }
-        function closeCaseSelectorModal() {
-            const modal = document.getElementById('cb-case-selector-modal');
-            if(modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
-            }
-        }
-        function renderCaseSelectorModal() {
-            const grid = document.getElementById('cb-selector-grid');
-            if (!grid) return;
-            if (!Array.isArray(casesDB) || casesDB.length === 0) return;
-            const q = (document.getElementById('cb-selector-search')?.value || '').toLowerCase().trim();
-            
-            // Zabrání pádům při filtrování špatných dat
-            const all = casesDB.filter(c => c && c.contents && c.contents.length > 0 && (!q || String(c.name || '').toLowerCase().includes(q)));
-            
-            let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">';
-            all.forEach(c => {
-                const count = Number(cbSelectedCases.get(c.id) || 0);
-                const selected = count > 0;
-                html += `
-                <div class="relative bg-[#161a24] border-t-2 rounded-xl p-3 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] ${selected ? 'ring-2 ring-[#c0f20c]' : ''}" style="border-top-color: ${c.color || '#4b69ff'}">
-                    <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black z-20">${formatMoney(c.price)}</div>
-                    ${selected ? '<div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#c0f20c] grid place-items-center text-black z-20"><i data-lucide="check" class="w-3 h-3"></i></div>' : ''}
-                    <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md my-2 z-10 ${selected ? 'opacity-50' : ''}">
-                    <div class="text-[11px] font-black text-gray-200 uppercase truncate w-full text-center z-10">${c.name}</div>
-                    <div class="mt-2 w-full flex items-center justify-between bg-[#0b0d11] rounded-lg p-1 z-20">
-                        <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-white">-</button>
-                        <div class="text-xs font-black text-[#c0f20c]">${count}</div>
-                        <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-6 h-6 rounded bg-[#c0f20c] hover:bg-[#a3cc0a] flex items-center justify-center text-black">+</button>
-                    </div>
-                </div>`;
-            });
-            html += '</div>';
-            grid.innerHTML = html;
-            updateSelectorBottomBar();
-            lucide.createIcons();
-        }
+            setManualCaseContents('rarity-covert', [
+                ['AK-47', 'Bloodsport', 60.0],
+                ['M4A4', 'Neo-Noir', 25.0],
+                ['USP-S', 'Kill Confirmed', 10.0],
+                ['AWP', 'Asiimov', 4.5],
+                ['Desert Eagle', 'Code Red', 0.5]
+            ]);
+            renderCases();
+        }, 50);
+
+            function renderCaseSelectorModal() {
+    const grid = document.getElementById('cb-selector-grid');
+    if (!grid) return;
+
+    // Záchrana, pokud neexistují data
+    if (!Array.isArray(casesDB) || casesDB.length === 0) {
+        grid.innerHTML = '<div class="text-center text-gray-500 p-6">Načítám caseky…</div>';
+        return;
+    }
+
+    const q = (document.getElementById('cb-selector-search')?.value || '').toLowerCase().trim();
+    // Odfiltruje bedny, které nemají definovaný obsah nebo nesedí vyhledávání
+    const all = casesDB.filter((c) => {
+        if (!c || !c.contents || c.contents.length === 0) return false;
+        return !q || String(c.name || '').toLowerCase().includes(q);
+    });
+
+    if (all.length === 0) {
+        grid.innerHTML = '<div class="text-center text-gray-500 py-8">Žádné bedny k zobrazení.</div>';
+        return;
+    }
+
+    // Bezpečné vykreslení gridu
+    let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">';
+    all.forEach(c => {
+        const count = Number(cbSelectedCases.get(c.id) || 0);
+        const selected = count > 0;
+        const price = Number(c.price || 0);
+        const color = c.color || '#4b69ff';
+
+        html += `
+        <div class="relative bg-[#161a24] border-t-2 rounded-xl p-3 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] ${selected ? 'ring-2 ring-[#c0f20c]' : ''}" style="border-top-color: ${color}">
+            <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black z-20">${formatMoney(price)}</div>
+            ${selected ? '<div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#c0f20c] grid place-items-center text-black z-20"><i data-lucide="check" class="w-3 h-3"></i></div>' : ''}
+
+            <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md my-2 z-10 ${selected ? 'opacity-50' : ''}">
+            <div class="text-[11px] font-black text-gray-200 uppercase truncate w-full text-center z-10">${c.name || 'Case'}</div>
+
+            <div class="mt-2 w-full flex items-center justify-between bg-[#0b0d11] rounded-lg p-1 z-20">
+                <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-white">-</button>
+                <div class="text-xs font-black text-[#c0f20c]">${count}</div>
+                <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-6 h-6 rounded bg-[#c0f20c] hover:bg-[#a3cc0a] flex items-center justify-center text-black">+</button>
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+
+    grid.innerHTML = html;
+    updateSelectorBottomBar();
+    lucide.createIcons();
+}
 
         function renderCaseSelectorGrid() { renderCaseSelectorModal(); }
         function renderCaseSelector() { renderCaseSelectorModal(); }
@@ -3967,6 +4012,47 @@ Zeus x27|Charged Up|8.50|#8847ff
                 upgTarget = null;
                 renderUpgrader();
             }, 2000);
+        }
+
+
+
+        async function loadSessionFromBackend() {
+            return null;
+        }
+
+        async function loadTradeInbox() {
+            return [];
+        }
+
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+
+
+        function formatMoney(value) {
+            const n = Number(value || 0);
+            return `${n.toFixed(2)} EUR`;
+        }
+
+        function formatChancePercent(value) {
+            return `${Number(value || 0).toFixed(3).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
+        }
+
+        function updateUI() {
+            try { renderCases(); } catch (_) {}
+            try { if (typeof renderInventory === 'function') renderInventory(); } catch (_) {}
+            const balanceEl = document.getElementById('top-balance');
+            if (balanceEl) balanceEl.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
+        }
+
+        function sanitizeDuplicateSocialButtons() {
+            const steamButtons = document.querySelectorAll('#steam-login-btn');
+            const googleButtons = document.querySelectorAll('#google-login-btn');
+            steamButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
+            googleButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
         }
 
         window.onload = async () => {
