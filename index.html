@@ -253,11 +253,19 @@
         </div>
     </header>
 
-    <div id="live-chat" class="fixed right-6 bottom-6 z-[90] w-80 h-56 bg-[#0b0d11]/90 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl hidden lg:flex flex-col">
+    <button id="live-chat-toggle" onclick="toggleLiveChat()" class="hidden lg:flex fixed right-6 bottom-6 z-[90] w-12 h-12 rounded-lg bg-[#12161f] border border-yellow-400/40 text-yellow-300 items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:bg-[#1a1e29] hover:text-yellow-200 transition-all">
+        <i data-lucide="message-square" class="w-5 h-5"></i>
+    </button>
+
+    <div id="live-chat" class="hidden fixed right-6 bottom-20 z-[95] w-80 h-56 bg-[#0b0d11]/95 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl lg:flex-col">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] uppercase tracking-widest text-yellow-300 font-black">Live Chat</div>
+            <button type="button" id="live-chat-close" onclick="toggleLiveChat(false)" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center">✕</button>
+        </div>
         <div id="live-chat-messages" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-2 mb-2"></div>
         <div class="flex gap-2">
             <input id="live-chat-input" type="text" maxlength="140" placeholder="Napiš zprávu..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-yellow-400/60">
-            <button id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
+            <button type="button" id="live-chat-send" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black text-xs px-3 rounded-lg">SEND</button>
         </div>
     </div>
 
@@ -5678,6 +5686,18 @@ Zeus x27|Charged Up|8.50|#8847ff
             }, 5000);
         }
 
+        let liveChatPollTimer = null;
+
+        function toggleLiveChat(force) {
+            const panel = document.getElementById('live-chat');
+            const toggle = document.getElementById('live-chat-toggle');
+            if (!panel) return;
+            const shouldOpen = typeof force === 'boolean' ? force : panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !shouldOpen);
+            panel.classList.toggle('flex', shouldOpen);
+            if (toggle) toggle.classList.toggle('hidden', shouldOpen);
+        }
+
         function renderChatMessage(container, msg, mine = false) {
             const row = document.createElement('div');
             row.className = mine ? 'text-[12px] text-right' : 'text-[12px]';
@@ -5693,10 +5713,14 @@ Zeus x27|Charged Up|8.50|#8847ff
             const container = document.getElementById('live-chat-messages');
             const input = document.getElementById('live-chat-input');
             const sendBtn = document.getElementById('live-chat-send');
-            if(!container || !input || !sendBtn) return;
+            const panel = document.getElementById('live-chat');
+            if (!container || !input || !sendBtn || !panel) return;
 
             const loadMessages = async () => {
-                if (!currentUser) return;
+                if (!currentUser) {
+                    container.innerHTML = '<div class="text-[11px] text-gray-500">Přihlas se pro psaní do chatu.</div>';
+                    return;
+                }
                 try {
                     const data = await apiRequest('/api/chat/messages');
                     container.innerHTML = '';
@@ -5709,21 +5733,27 @@ Zeus x27|Charged Up|8.50|#8847ff
             const sendUserMessage = async () => {
                 if (!requireAuthAction()) return;
                 const text = input.value.trim();
-                if(!text) return;
+                if (!text) return;
                 input.value = '';
+                sendBtn.disabled = true;
+                sendBtn.classList.add('opacity-70');
                 try {
                     await apiRequest('/api/chat/messages', 'POST', { text });
                     await loadMessages();
                 } catch (err) {
                     showToast(err.message, true);
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.classList.remove('opacity-70');
                 }
             };
 
             sendBtn.onclick = sendUserMessage;
-            input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendUserMessage(); });
+            input.onkeydown = (e) => { if (e.key === 'Enter') sendUserMessage(); };
 
             await loadMessages();
-            setInterval(loadMessages, 1000);
+            if (liveChatPollTimer) clearInterval(liveChatPollTimer);
+            liveChatPollTimer = setInterval(loadMessages, 2000);
         }
 
         // --- FREE CASE SYSTEM ---
