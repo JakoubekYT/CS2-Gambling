@@ -423,7 +423,7 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <button class="bg-[#1a1e29] border border-white/10 text-gray-200 rounded-lg px-4 py-3 text-xs font-black uppercase">Affordable</button>
-                            <button onclick="openCaseSelectorModal()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all"><i data-lucide="plus" class="w-4 h-4"></i>Create Battle</button>
+                            <button onclick="openCaseBattleBuilder()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black font-black uppercase flex items-center gap-2 px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(192,242,12,0.2)] transition-all"><i data-lucide="plus" class="w-4 h-4"></i>Create Battle</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 px-6 py-2 border-b border-white/5">
@@ -4407,12 +4407,16 @@ Zeus x27|Charged Up|8.50|#8847ff
             
             if (inRoom) {
                 if (createPanel) createPanel.classList.add('hidden');
-                if (roomPanel) roomPanel.classList.remove('hidden');
-                if (roomPanel) roomPanel.classList.add('flex');
+                if (roomPanel) {
+                    roomPanel.classList.remove('hidden');
+                    roomPanel.classList.add('flex');
+                }
             } else {
                 if (createPanel) createPanel.classList.remove('hidden');
-                if (roomPanel) roomPanel.classList.add('hidden');
-                if (roomPanel) roomPanel.classList.remove('flex');
+                if (roomPanel) {
+                    roomPanel.classList.add('hidden');
+                    roomPanel.classList.remove('flex');
+                }
             }
         }
         function cbSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
@@ -4654,18 +4658,19 @@ Zeus x27|Charged Up|8.50|#8847ff
             
             const payload = selectedCasePayload();
             if (!payload) {
-                return showToast('Please select at least one case first!', true);
+                return showToast('Nejdříve vyber alespoň jednu bednu!', true);
             }
 
             const mode = cbBuilderState.mode || '1v1';
             const rounds = Number(payload.rounds || 1);
             
+            // Změna textu tlačítka pro feedback
             const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
-            const originalText = btn ? btn.textContent : 'CREATE BATTLE';
+            const originalText = btn ? btn.textContent : 'Create battle';
             if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
 
             try {
-                console.log('Sending Create Battle Request...', { mode, rounds, ...payload });
+                console.log('[CaseBattle] Odesílám na API...', { mode, rounds, ...payload });
                 
                 const data = await apiRequest('/api/case-battle/create', 'POST', { 
                     mode, 
@@ -4677,20 +4682,18 @@ Zeus x27|Charged Up|8.50|#8847ff
                     ...payload 
                 });
 
-                console.log('Battle Created Successfully:', data);
-
+                // Úspěch - schováme modaly, ukážeme Arénu
                 cbActiveRoomId = data.room?.id || null;
-                closeCaseBattleBuilder();
-                cbSetPanels(true);
+                closeCaseBattleBuilder(); // Zavře Builder
+                cbSetPanels(true); // Fyzicky zobrazí #cb-room-panel
                 
-                cbAddLog(`Battle Room Created: ${cbActiveRoomId}`);
-                
+                cbAddLog(`Bitva vytvořena (ID: ${cbActiveRoomId})`);
                 renderCaseBattleRoom(data.room, false);
-                showToast('Battle created successfully!');
+                showToast('Bitva úspěšně vytvořena!');
                 
             } catch (err) { 
-                console.error('Create Battle Error:', err);
-                showToast(err.message || 'Failed to create battle', true); 
+                console.error('[CaseBattle] Error API:', err);
+                showToast(err.message || 'Nepodařilo se vytvořit bitvu.', true);
             } finally {
                 if (btn) { btn.textContent = originalText; btn.disabled = false; }
             }
