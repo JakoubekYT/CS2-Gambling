@@ -112,6 +112,8 @@ const battleRoomSchema = new mongoose.Schema(
     casePrice: { type: Number, default: 0 },
     contents: { type: Array, default: [] },
     caseQueue: { type: Array, default: [] },
+    totalRounds: { type: Number, default: 1 },
+    teams: { type: Object, default: {} },
     capacity: { type: Number, default: 2 },
     status: { type: String, enum: ['waiting', 'done'], default: 'waiting' },
     creatorId: { type: String, required: true },
@@ -864,7 +866,18 @@ app.post('/api/giveaways/ticket', ensureDbReady, ensureAuth, async (req, res) =>
 
 function battleCapacity(mode) {
   if (mode === '2v2' || mode === '1v1v1v1') return 4;
+  if (mode === '1v1v1') return 3;
   return 2;
+}
+
+function buildTeams(players = [], teamFormat = '1v1') {
+  if (teamFormat === '2v2' || teamFormat === '1v1v1v1') {
+    return { CT: players.slice(0, 2), T: players.slice(2, 4) };
+  }
+  if (teamFormat === '1v1v1') {
+    return { A: players.slice(0, 1), B: players.slice(1, 2), C: players.slice(2, 3) };
+  }
+  return { CT: players.slice(0, 1), T: players.slice(1, 2) };
 }
 
 function weightedRoll(contents) {
@@ -950,6 +963,8 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
     casePrice,
     contents,
     caseQueue: caseQueue,
+    totalRounds: rounds,
+    teams: buildTeams([{ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] }], teamFormat),
     capacity: battleCapacity(mode),
     status: 'waiting',
     creatorId: String(req.user._id),
@@ -970,9 +985,14 @@ app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res
 
   if (!room.players.some((p) => p.userId === String(req.user._id))) {
     if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
-    room.players.push({ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] });
+    const preferredSlot = Math.max(0, Math.min(room.capacity - 1, Number(req.body?.slot ?? room.players.length)));
+    const newPlayer = { userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] };
+    if (!room.players[preferredSlot]) room.players[preferredSlot] = newPlayer;
+    else room.players.push(newPlayer);
+    room.players = room.players.filter(Boolean).slice(0, room.capacity);
   }
 
+  room.teams = buildTeams(room.players, room.teamFormat || room.mode);
   room.updatedAt = new Date();
   room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
   await room.save();
@@ -985,10 +1005,16 @@ app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req,
   if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží.' });
   if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Boty může přidávat jen zakladatel.' });
-  if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
+
+  const slot = Math.max(0, Math.min(room.capacity - 1, Number(req.body?.slot ?? room.players.length)));
+  if (room.players.length >= room.capacity && room.players[slot]) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
 
   const idx = (room.players || []).filter((p) => p.bot).length + 1;
-  room.players.push({ userId: `bot-${Date.now()}-${idx}`, nickname: `Bot ${idx}`, avatar: '', bot: true, score: 0, drops: [] });
+  const bot = { userId: `bot-${Date.now()}-${idx}`, nickname: `Bot ${idx}`, avatar: '', bot: true, score: 0, drops: [] };
+  if (!room.players[slot]) room.players[slot] = bot;
+  else room.players.push(bot);
+  room.players = room.players.filter(Boolean).slice(0, room.capacity);
+  room.teams = buildTeams(room.players, room.teamFormat || room.mode);
   room.updatedAt = new Date();
   room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
   await room.save();
@@ -1029,6 +1055,7 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
   if (room.players.length < 2) return res.status(400).json({ ok: false, message: 'Potřebuješ minimálně 2 hráče nebo zapnout boty.' });
 
   const expandedQueue = expandCaseQueue(room.caseQueue, room.rounds);
+  room.totalRounds = expandedQueue.length || room.rounds;
   const fee = expandedQueue.reduce((sum, q) => sum + Math.max(0, Number(q.casePrice || room.casePrice || 0)), 0);
   if (fee > 0) {
     for (const pl of room.players.filter((p) => !p.bot)) {
@@ -1059,6 +1086,7 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
     }
   }
 
+  room.teams = buildTeams(room.players, room.teamFormat || room.mode);
   const winner = [...room.players].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
   room.winnerId = winner?.userId || null;
   room.status = 'done';
