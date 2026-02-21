@@ -500,8 +500,15 @@
             <section id="page-admin" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <h2 class="text-3xl font-black uppercase">Admin panel</h2>
                 <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
-                    <button onclick="loadAdminUsers()" class="bg-yellow-400 text-black font-black rounded-xl px-4 py-2">Načíst uživatele</button>
-                    <div id="admin-users" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadAdminUsers()" class="bg-yellow-400 text-black font-black rounded-xl px-4 py-2">Načíst uživatele</button>
+                        <button onclick="loadTopupRequests()" class="bg-blue-500 text-white font-black rounded-xl px-4 py-2">Načíst žádosti o top-up</button>
+                    </div>
+                    <div id="admin-users" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
+                    <div class="pt-4 border-t border-white/10">
+                        <h3 class="font-black text-lg mb-2">Pending žádosti</h3>
+                        <div id="admin-topup-requests" class="space-y-2 max-h-[35vh] overflow-y-auto"></div>
+                    </div>
                 </div>
             </section>
 
@@ -2639,7 +2646,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 let c = casesDB.find(x => x.id === id);
                 if (!c) {
-                    c = { id, name, price, color, img: (resolveCaseImageUrl(id, name) || cSkin.img), category, contents: [] };
+                    c = { id, name, price, color, img: (resolveCaseImageUrl(id, name) || `${CASEHUG_BASE_URL}WORKSHOP.png`), category, contents: [] };
                     casesDB.push(c);
                 } else {
                     c.name = meta.name || c.name;
@@ -2652,6 +2659,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                 // Logika 50/50
                 const resolvedImg = resolveCaseImageUrl(id, name);
                 if (resolvedImg) c.img = resolvedImg;
+
+                if (constraints.is5050) {
+                    const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
+                    c.contents = [
+                        { skin: cSkin, chance: 50 },
+                        { skin: trash, chance: 50 }
+                    ];
+                    manualCaseIds.add(id);
+                    return;
+                }
+                
+                // Logika 50/50
+                const resolvedImg = resolveCaseImageUrl(id, name);
+                c.img = resolvedImg || `${CASEHUG_BASE_URL}WORKSHOP.png`;
 
                 if (constraints.is5050) {
                     const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
@@ -2834,7 +2855,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
                 casesDB.forEach((c) => {
                     const mapped = resolveCaseImageUrl(c.id, c.name);
-                    if (mapped) c.img = mapped;
+                    c.img = mapped || `${CASEHUG_BASE_URL}WORKSHOP.png`;
                 });
                 renderCases();
             }, 200);
@@ -3458,7 +3479,7 @@ function closeCaseSelectorModal() {
 
             if(id === 'inventory') renderInventory();
             if(id === 'upgrade') renderUpgrader();
-            if(id === 'admin') loadAdminUsers();
+            if(id === 'admin') { loadAdminUsers(); loadTopupRequests(); }
             if(id === 'profile') { loadFriends(); }
             if(id === 'case-battle') initCaseBattle();
             if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; cbAnimationSession += 1; cbAnimationLock = false; }
@@ -4159,17 +4180,241 @@ function closeCaseSelectorModal() {
             }, 2000);
         }
 
-        async function loadSessionFromBackend() {
-            return null;
+        async function apiRequest(url, method = 'GET', body) {
+            const opts = { method, credentials: 'include', headers: {} };
+            if (body !== undefined) {
+                opts.headers['Content-Type'] = 'application/json';
+                opts.body = JSON.stringify(body);
+            }
+            const res = await fetch(url, opts);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data?.ok === false) throw new Error(data?.message || `HTTP ${res.status}`);
+            return data;
         }
 
-        async function loadTradeInbox() {
-            return [];
+        function updateAuthUI() {
+            const authBtn = document.getElementById('auth-open-btn');
+            const balanceEl = document.getElementById('balance');
+            const profilePill = document.getElementById('profile-pill');
+            const pillAvatar = document.getElementById('profile-pill-avatar');
+            const pillName = document.getElementById('profile-pill-name');
+            const pillNick = document.getElementById('profile-pill-nick');
+            const adminHint = document.getElementById('admin-hint');
+
+            if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
+
+            if (currentUser) {
+                if (authBtn) authBtn.textContent = currentUser.nickname || currentUser.displayName || 'Účet';
+                if (profilePill) profilePill.classList.remove('hidden');
+                if (pillAvatar) pillAvatar.src = currentUser.avatar || FALLBACK_IMG;
+                if (pillName) pillName.textContent = currentUser.displayName || currentUser.nickname || 'User';
+                if (pillNick) pillNick.textContent = `@${currentUser.nickname || 'user'}`;
+                if (adminHint) adminHint.classList.toggle('hidden', !currentUser.isAdmin);
+            } else {
+                if (authBtn) authBtn.textContent = 'Sign In';
+                if (profilePill) profilePill.classList.add('hidden');
+                if (adminHint) adminHint.classList.add('hidden');
+            }
+        }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         function closeAuthModal() {
             const modal = document.getElementById('auth-modal');
-            if (modal) modal.classList.add('hidden');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function registerAccount() {
+            try {
+                const payload = {
+                    email: document.getElementById('auth-email')?.value?.trim(),
+                    password: document.getElementById('auth-password')?.value || '',
+                    nickname: document.getElementById('profile-nickname')?.value?.trim(),
+                    displayName: document.getElementById('profile-display-name')?.value?.trim(),
+                    avatar: document.getElementById('profile-avatar')?.value?.trim(),
+                    phone: document.getElementById('profile-phone-auth')?.value?.trim()
+                };
+                const data = await apiRequest('/api/auth/register', 'POST', payload);
+                currentUser = data.user || null;
+                await loadSessionFromBackend();
+                closeAuthModal();
+                showToast('Registrace hotová.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loginAccount() {
+            try {
+                const data = await apiRequest('/api/auth/login', 'POST', {
+                    email: document.getElementById('auth-email')?.value?.trim(),
+                    password: document.getElementById('auth-password')?.value || ''
+                });
+                currentUser = data.user || null;
+                await loadSessionFromBackend();
+                closeAuthModal();
+                showToast('Přihlášení úspěšné.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function logoutLocalProfile() {
+            try { await apiRequest('/api/auth/logout', 'POST'); } catch (_) {}
+            currentUser = null;
+            balanceBase = 0;
+            userInventory = [];
+            updateAuthUI();
+            updateUI();
+            showToast('Odhlášeno.');
+        }
+
+        async function saveLocalProfile() {
+            if (!requireAuthAction()) return;
+            try {
+                const payload = {
+                    nickname: document.getElementById('profile-nickname')?.value?.trim() || currentUser?.nickname || '',
+                    displayName: document.getElementById('profile-display-name')?.value?.trim() || currentUser?.displayName || '',
+                    avatar: document.getElementById('profile-avatar')?.value?.trim() || currentUser?.avatar || '',
+                    phone: document.getElementById('profile-phone')?.value?.trim() || document.getElementById('profile-phone-auth')?.value?.trim() || ''
+                };
+                const data = await apiRequest('/api/profile', 'PUT', payload);
+                currentUser = data.user || currentUser;
+                updateAuthUI();
+                showToast('Profil uložen.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        function socialLogin(provider) {
+            const allowed = ['steam', 'google'];
+            if (!allowed.includes(provider)) return;
+            window.location.href = `/auth/${provider}`;
+        }
+
+        function requireAuthAction() {
+            if (currentUser) return true;
+            showToast('Nejdřív se přihlas.', true);
+            openAuthModal();
+            return false;
+        }
+
+        async function loadSessionFromBackend() {
+            try {
+                const session = await apiRequest('/api/auth/session');
+                currentUser = session.user || null;
+                if (!currentUser) {
+                    balanceBase = 0;
+                    userInventory = [];
+                    updateAuthUI();
+                    return null;
+                }
+                const state = await apiRequest('/api/state');
+                balanceBase = Number(state.balance || 0);
+                userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                updateAuthUI();
+                updateUI();
+                return currentUser;
+            } catch (_err) {
+                currentUser = null;
+                updateAuthUI();
+                return null;
+            }
+        }
+
+        async function requestTopUp() {
+            if (!requireAuthAction()) return;
+            const amount = Number(document.getElementById('topup-amount')?.value || 0);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                showToast('Zadej částku > 0', true);
+                return;
+            }
+            try {
+                await apiRequest('/api/wallet/request-topup', 'POST', { amount });
+                showToast('Žádost o top-up odeslána adminovi.');
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loadAdminUsers() {
+            if (!currentUser?.isAdmin) return showToast('Pouze admin.', true);
+            const wrap = document.getElementById('admin-users');
+            if (!wrap) return;
+            wrap.innerHTML = '<div class="text-xs text-gray-400">Načítám...</div>';
+            try {
+                const data = await apiRequest('/api/admin/users');
+                const users = data.users || [];
+                wrap.innerHTML = users.map((u) => `
+                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-3">
+                        <div>
+                            <div class="font-black text-white">${u.nickname || u.displayName || 'user'} <span class="text-xs text-gray-400">${u.email || ''}</span></div>
+                            <div class="text-xs text-gray-400">Balance: ${formatMoney(u.balance || 0)}</div>
+                        </div>
+                        <button onclick="quickAddBalance('${u.id}')" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-black">+5 EUR</button>
+                    </div>
+                `).join('') || '<div class="text-xs text-gray-400">Žádní uživatelé.</div>';
+            } catch (err) {
+                wrap.innerHTML = `<div class="text-xs text-red-300">${err.message}</div>`;
+            }
+        }
+
+        async function quickAddBalance(userId) {
+            try {
+                await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: 5 });
+                showToast('Balance přidán.');
+                loadAdminUsers();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loadTopupRequests() {
+            if (!currentUser?.isAdmin) return;
+            const wrap = document.getElementById('admin-topup-requests');
+            if (!wrap) return;
+            wrap.innerHTML = '<div class="text-xs text-gray-400">Načítám...</div>';
+            try {
+                const data = await apiRequest('/api/admin/topup-requests?status=pending');
+                const requests = data.requests || [];
+                wrap.innerHTML = requests.map((r) => `
+                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-3">
+                        <div>
+                            <div class="font-black text-white">${r.user?.nickname || r.user?.displayName || 'user'} <span class="text-xs text-gray-400">${r.user?.email || ''}</span></div>
+                            <div class="text-xs text-gray-300">Žádost: ${formatMoney(r.amount || 0)}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="decideTopupRequest('${r.id}', true)" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-black">Schválit</button>
+                            <button onclick="decideTopupRequest('${r.id}', false)" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-black">Zamítnout</button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="text-xs text-gray-400">Žádné pending žádosti.</div>';
+            } catch (err) {
+                wrap.innerHTML = `<div class="text-xs text-red-300">${err.message}</div>`;
+            }
+        }
+
+        async function decideTopupRequest(id, approve) {
+            try {
+                await apiRequest(`/api/admin/topup-requests/${id}/decision`, 'POST', { approve });
+                showToast(approve ? 'Žádost schválena.' : 'Žádost zamítnuta.');
+                loadTopupRequests();
+                loadAdminUsers();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loadTradeInbox() {
+            return [];
         }
 
         function formatMoney(value) {
@@ -4194,6 +4439,20 @@ function closeCaseSelectorModal() {
             steamButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
             googleButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
         }
+
+
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.registerAccount = registerAccount;
+        window.loginAccount = loginAccount;
+        window.logoutLocalProfile = logoutLocalProfile;
+        window.saveLocalProfile = saveLocalProfile;
+        window.socialLogin = socialLogin;
+        window.requestTopUp = requestTopUp;
+        window.loadAdminUsers = loadAdminUsers;
+        window.loadTopupRequests = loadTopupRequests;
+        window.decideTopupRequest = decideTopupRequest;
+        window.quickAddBalance = quickAddBalance;
 
         window.onload = async () => {
             sanitizeDuplicateSocialButtons();
