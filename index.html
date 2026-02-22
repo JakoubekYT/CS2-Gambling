@@ -229,6 +229,7 @@
             <div class="text-2xl font-black italic tracking-tight text-white">OTO<span class="text-yellow-400">DROP</span></div>
         </div>
         <nav class="hidden lg:flex items-center gap-6">
+            <button onclick="switchPage('inventory')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="backpack" class="w-4 h-4"></i>Inventář</button>
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
             <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
@@ -548,7 +549,7 @@
         </main>
     </div>
 
-    <div id="auth-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div id="auth-modal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/90 backdrop-blur-sm hidden" style="display: none;">
         <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Účet (DB backend)</h3>
@@ -2702,6 +2703,53 @@ Zeus x27|Charged Up|8.50|#8847ff
                     chanceLeft -= ch;
                     contents.push({ skin: fillers[i], chance: ch });
                 }
+                
+                // Logika 50/50
+                const resolvedImg = resolveCaseImageUrl(id, name);
+                c.img = resolvedImg || `${CASEHUG_BASE_URL}WORKSHOP.png`;
+
+                if (constraints.is5050) {
+                    const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
+                    c.contents = [
+                        { skin: cSkin, chance: 50 },
+                        { skin: trash, chance: 50 }
+                    ];
+                    manualCaseIds.add(id);
+                    return;
+                }
+
+                // Získání filler skinů
+                let pool = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price < cSkin.price && s.price < (price * 3));
+                
+                if (constraints.weapon) pool = pool.filter(s => s.weapon === constraints.weapon);
+                if (constraints.rarity) pool = pool.filter(s => s.rarityName === constraints.rarity);
+                
+                if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
+                pool.sort((a,b) => a.price - b.price); // Od nejlevnějšího
+
+                // Matematika (Casino win: EV = 85% ceny bedny)
+                const targetEV = price * 0.85;
+                
+                let coverChance = constraints.exactChance || ((targetEV * 0.4) / cSkin.price * 100);
+                if (coverChance > 5 && !constraints.exactChance) coverChance = 5;
+                if (coverChance < 0.01) coverChance = 0.01;
+
+                let contents = [{ skin: cSkin, chance: coverChance }];
+                let chanceLeft = 100 - coverChance;
+                
+                // Vybereme 5 levnějších skinů na vyplnění
+                const fillers = [];
+                const step = Math.max(1, Math.floor(pool.length / 5));
+                for(let i=0; i<Math.min(5, pool.length); i++) {
+                    fillers.push(pool[i * step]);
+                }
+                fillers.reverse(); // Od nejdražšího z fillerů po nejlevnější
+                
+                for(let i=0; i<fillers.length; i++) {
+                    let ch = (i === fillers.length - 1) ? chanceLeft : (chanceLeft * 0.55);
+                    chanceLeft -= ch;
+                    contents.push({ skin: fillers[i], chance: ch });
+                }
 
                 // Ošetření nepřesností a seřazení
                 const totalChance = contents.reduce((a, b) => a + b.chance, 0);
@@ -4215,17 +4263,42 @@ function closeCaseSelectorModal() {
         }
 
         function openAuthModal() {
+            const friendInput = document.getElementById('friend-search');
+            if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
-            if (!modal) return;
+            if(!modal) return;
+            sanitizeDuplicateSocialButtons();
+            if (typeof updateSocialLoginButtons === 'function') updateSocialLoginButtons();
+
+            // OPRAVA ZOBRAZENÍ
             modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.style.display = 'flex';
+
+            const userProfile = {
+                nickname: currentUser?.nickname || '',
+                displayName: currentUser?.displayName || '',
+                avatar: currentUser?.avatar || '',
+                phone: currentUser?.phone || ''
+            };
+            document.getElementById('profile-nickname').value = userProfile.nickname || '';
+            document.getElementById('profile-display-name').value = userProfile.displayName || '';
+            document.getElementById('profile-avatar').value = userProfile.avatar || '';
+            const phoneAuth = document.getElementById('profile-phone-auth');
+            const phoneProfile = document.getElementById('profile-phone');
+            if (phoneAuth) phoneAuth.value = userProfile.phone || '';
+            if (phoneProfile) phoneProfile.value = userProfile.phone || '';
+            lucide.createIcons();
         }
 
         function closeAuthModal() {
+            const friendInput = document.getElementById('friend-search');
+            if (friendInput) friendInput.addEventListener('input', () => searchUsers());
             const modal = document.getElementById('auth-modal');
-            if (!modal) return;
+            if(!modal) return;
+
+            // OPRAVA SKRYTÍ
             modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modal.style.display = 'none';
         }
 
         async function registerAccount() {
@@ -4435,6 +4508,13 @@ function closeCaseSelectorModal() {
             const googleButtons = document.querySelectorAll('#google-login-btn');
             steamButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
             googleButtons.forEach((btn, idx) => { if (idx > 0) btn.remove(); });
+        }
+
+        function updateSocialLoginButtons() {
+            const steamButtons = document.querySelectorAll('#steam-login-btn');
+            const googleButtons = document.querySelectorAll('#google-login-btn');
+            steamButtons.forEach((btn) => { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); });
+            googleButtons.forEach((btn) => { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); });
         }
 
 
