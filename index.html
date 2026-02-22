@@ -2658,20 +2658,6 @@ Zeus x27|Charged Up|8.50|#8847ff
                 
                 // Logika 50/50
                 const resolvedImg = resolveCaseImageUrl(id, name);
-                if (resolvedImg) c.img = resolvedImg;
-
-                if (constraints.is5050) {
-                    const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
-                    c.contents = [
-                        { skin: cSkin, chance: 50 },
-                        { skin: trash, chance: 50 }
-                    ];
-                    manualCaseIds.add(id);
-                    return;
-                }
-                
-                // Logika 50/50
-                const resolvedImg = resolveCaseImageUrl(id, name);
                 c.img = resolvedImg || `${CASEHUG_BASE_URL}WORKSHOP.png`;
 
                 if (constraints.is5050) {
@@ -2728,6 +2714,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             // INICIALIZACE VŠECH KLIENTOVÝCH BEDEN
             setTimeout(() => {
+                try {
                 // 50/50 Bety
                 createSmartCase('coinflip', '50/50 Profit', 50.00, 'red', 'AWP', 'Crakow!', 'high-risk', { is5050: true });
                 
@@ -2849,15 +2836,25 @@ Zeus x27|Charged Up|8.50|#8847ff
                 createSmartCase('wild-west', 'Wild West', 2.00, 'purple', 'Karambit', 'Lore', 'cheap');
                 createSmartCase('wild-shots', 'Wild Shots', 8.00, 'purple', 'Gut Knife', 'Lore', 'regular');
 
-                // Po sestavení beden načteme UI
-                for (let i = casesDB.length - 1; i >= 0; i--) {
-                    if (!manualCaseIds.has(casesDB[i].id)) casesDB.splice(i, 1);
+                // Po sestavení beden načteme UI (fail-safe proti prázdnému homepage)
+                const generatedCount = manualCaseIds.size;
+                if (generatedCount > 10) {
+                    for (let i = casesDB.length - 1; i >= 0; i--) {
+                        if (!manualCaseIds.has(casesDB[i].id)) casesDB.splice(i, 1);
+                    }
+                } else {
+                    console.warn('Smart case generator produced too few cases, keeping fallback cases.', { generatedCount });
                 }
+
                 casesDB.forEach((c) => {
                     const mapped = resolveCaseImageUrl(c.id, c.name);
                     c.img = mapped || `${CASEHUG_BASE_URL}WORKSHOP.png`;
                 });
+            } catch (e) {
+                console.error('Case initialization failed, using fallback cases.', e);
+            } finally {
                 renderCases();
+            }
             }, 200);
         }, 50);
 
