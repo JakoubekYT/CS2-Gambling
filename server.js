@@ -75,6 +75,20 @@ const tradeSchema = new mongoose.Schema(
 
 const Trade = mongoose.model('Trade', tradeSchema);
 
+const walletRequestSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    amount: { type: Number, required: true },
+    note: { type: String, default: '', maxlength: 300 },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
+    processedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    processedAt: { type: Date, default: null }
+  },
+  { timestamps: true }
+);
+walletRequestSchema.index({ userId: 1, status: 1, createdAt: -1 });
+const WalletRequest = mongoose.model('WalletRequest', walletRequestSchema);
+
 
 const giveawayStateSchema = new mongoose.Schema({
   tierId: { type: String, unique: true },
@@ -630,6 +644,103 @@ app.post('/api/admin/inventory-edit', ensureDbReady, ensureAuth, ensureAdmin, as
   await user.save();
   pushNotification(user._id, 'admin-inventory', `Admin upravil tvůj inventář (${mode === 'add' ? 'přidal item' : 'odebral item'}).`);
   return res.json({ ok: true, userId: user._id, inventoryCount: user.inventory.length });
+});
+
+
+app.post('/api/wallet/request-topup', ensureDbReady, ensureAuth, async (req, res) => {
+  const amount = Number(req.body.amount);
+  const note = (req.body.note || '').toString().trim().slice(0, 300);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'Neplatná částka.' });
+  }
+  if (!isAdminUser(req.user) && amount > USER_TOPUP_MAX) {
+    return res.status(400).json({ ok: false, message: `Maximální žádost je ${USER_TOPUP_MAX} EUR.` });
+  }
+
+  const alreadyPending = await WalletRequest.findOne({ userId: req.user._id, status: 'pending' });
+  if (alreadyPending) {
+    return res.status(409).json({ ok: false, message: 'Už máš otevřenou žádost. Počkej na schválení adminem.' });
+  }
+
+  const request = await WalletRequest.create({
+    userId: req.user._id,
+    amount: Math.round(amount * 100) / 100,
+    note,
+    status: 'pending'
+  });
+
+  return res.json({ ok: true, request: { id: request._id, amount: request.amount, status: request.status, createdAt: request.createdAt } });
+});
+
+app.get('/api/admin/topup-requests', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
+  const status = (req.query.status || 'pending').toString();
+  const filter = ['pending', 'approved', 'rejected'].includes(status) ? { status } : {};
+
+  const requests = await WalletRequest.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .populate('userId', 'email nickname displayName avatar')
+    .populate('processedBy', 'email nickname displayName');
+
+  return res.json({
+    ok: true,
+    requests: requests.map((r) => ({
+      id: r._id,
+      amount: Number(r.amount || 0),
+      note: r.note || '',
+      status: r.status,
+      createdAt: r.createdAt,
+      processedAt: r.processedAt || null,
+      user: r.userId
+        ? {
+            id: r.userId._id,
+            email: r.userId.email || null,
+            nickname: r.userId.nickname || null,
+            displayName: r.userId.displayName || null,
+            avatar: r.userId.avatar || ''
+          }
+        : null,
+      processedBy: r.processedBy
+        ? {
+            id: r.processedBy._id,
+            email: r.processedBy.email || null,
+            nickname: r.processedBy.nickname || null,
+            displayName: r.processedBy.displayName || null
+          }
+        : null
+    }))
+  });
+});
+
+app.post('/api/admin/topup-requests/:id/decision', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
+  const approve = Boolean(req.body.approve);
+  const request = await WalletRequest.findById(req.params.id);
+  if (!request) return res.status(404).json({ ok: false, message: 'Žádost nenalezena.' });
+  if (request.status !== 'pending') {
+    return res.status(409).json({ ok: false, message: 'Žádost už byla zpracována.' });
+  }
+
+  request.status = approve ? 'approved' : 'rejected';
+  request.processedBy = req.user._id;
+  request.processedAt = new Date();
+
+  if (approve) {
+    const user = await User.findById(request.userId);
+    if (!user) return res.status(404).json({ ok: false, message: 'Uživatel žádosti nenalezen.' });
+    user.balance = Math.round((Number(user.balance || 0) + Number(request.amount || 0)) * 100) / 100;
+    user.lastTopUpAt = new Date();
+    await user.save();
+    pushNotification(user._id, 'topup-approved', `Admin schválil top-up ${request.amount} EUR. Nový zůstatek: ${user.balance} EUR.`);
+  } else {
+    const user = await User.findById(request.userId).select('nickname displayName');
+    if (user) {
+      pushNotification(user._id, 'topup-rejected', 'Admin zamítl tvoji žádost o top-up.');
+    }
+  }
+
+  await request.save();
+  return res.json({ ok: true, requestId: request._id, status: request.status });
 });
 
 app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
