@@ -2325,7 +2325,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                 color: c,
                 img: primaryImg,
                 imgAlts: Array.from(new Set([alt1, alt2])),
-                rarityName: c === '#ebca44' ? 'gold' : (c === '#eb4b4b' ? 'red' : (c === '#d32ee6' ? 'pink' : 'blue'))
+                rarityName: c === '#ebca44' ? 'gold' : 
+            c === '#eb4b4b' ? 'red' : 
+            c === '#d32ee6' ? 'pink' : 
+            c === '#8847ff' ? 'purple' : 
+            c === '#5e98d9' ? 'light-blue' : 'blue'
             };
         });
 
@@ -2360,7 +2364,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                 color,
                 img,
                 imgAlts: [],
-                rarityName: color === '#ebca44' ? 'gold' : (color === '#eb4b4b' ? 'red' : (color === '#d32ee6' ? 'pink' : 'blue'))
+                rarityName: color === '#ebca44' ? 'gold' : 
+            color === '#eb4b4b' ? 'red' : 
+            color === '#d32ee6' ? 'pink' : 
+            color === '#8847ff' ? 'purple' : 
+            color === '#5e98d9' ? 'light-blue' : 'blue'
             };
             if (existing) {
                 Object.assign(existing, payload);
@@ -2454,20 +2462,22 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
     let contents = [{ skin: cSkin, chance: coverChance }];
     let chanceLeft = 100 - coverChance;
     
-    const step = Math.max(1, Math.floor(pool.length / 5));
+    // Zvýšená rozmanitost: Vybereme 14 levnějších skinů na vyplnění
+    const step = Math.max(1, Math.floor(pool.length / 14));
     const fillers = [];
-    for(let i=0; i<Math.min(5, pool.length); i++) fillers.push(pool[i * step]);
-    fillers.reverse();
+    for(let i=0; i<Math.min(14, pool.length); i++) fillers.push(pool[i * step]);
+    fillers.reverse(); // Od nejdražšího z fillerů po nejlevnější
     
     for(let i=0; i<fillers.length; i++) {
-        let ch = (i === fillers.length - 1) ? chanceLeft : (chanceLeft * 0.55);
+        let ch = (i === fillers.length - 1) ? chanceLeft : (chanceLeft * 0.45);
         chanceLeft -= ch;
         contents.push({ skin: fillers[i], chance: ch });
     }
 
     const totalChance = contents.reduce((a, b) => a + b.chance, 0);
     contents[contents.length - 1].chance += (100 - totalChance);
-    contents.sort((a, b) => b.skin.price - a.skin.price);
+    // Řazení: Nejnižší šance (nejvzácnější) jsou dole
+    contents.sort((a, b) => a.chance - b.chance);
     
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
     manualCaseIds.add(id);
@@ -2499,7 +2509,7 @@ setTimeout(() => {
     createSmartCase('candy-drop', 'Candy Drop', 0.40, 'purple', 'candy_drop_1.png', 'M4A1-S', 'Mecha Industries', 'cheap');
     createSmartCase('hellfire-new', 'Hellfire', 0.70, 'red', 'HELLFIRE_NEW.png', 'M4A4', 'Hellfire', 'cheap');
     createSmartCase('double-cheese', 'Double Cheese', 0.70, 'blue', 'DOUBLE_CHEESE.png', 'AK-47', 'Bloodsport', 'cheap');
-    createSmartCase('frosty', 'Frosty', 0.80, 'blue', 'FROSTY.png', 'AK-47', 'Ice Coaled', 'cheap');
+    createSmartCase('frosty', 'Frosty', 0.80, 'blue', 'FROSTY.png', 'AK-47', 'Frontside Misty', 'cheap');
     createSmartCase('ritual', 'Ritual', 0.80, 'purple', 'RITUAL.png', 'Survival Knife', 'Case Hardened', 'cheap');
     createSmartCase('gummy-love', 'Gummy Love', 0.80, 'pink', 'GUMMY_LOVE_2.png', 'AWP', 'Wildfire', 'cheap');
     createSmartCase('duck-luck', 'Duck Luck', 1.00, 'blue', 'DUCK_LUCK.png', 'Shadow Daggers', 'Lore', 'cheap');
@@ -2532,7 +2542,7 @@ setTimeout(() => {
     createSmartCase('nitro-v1', 'Nitro V1', 15.00, 'yellow-400', 'NITRO_V1.png', 'Karambit', 'Tiger Tooth', 'regular');
     createSmartCase('painkiller', 'Painkiller', 15.00, 'red', 'PAINKILLER.png', 'USP-S', 'Kill Confirmed', 'regular');
     createSmartCase('gambit', 'Gambit', 18.00, 'yellow-400', 'GAMBIT.png', 'Stiletto Knife', 'Tiger Tooth', 'regular');
-    createSmartCase('5-dagura', '5 Dagura', 20.00, 'yellow-400', '5_dagura.png', 'Shadow Daggers', 'Tiger Tooth', 'premium');
+    createSmartCase('5-dagura', '5_dagura', 20.00, 'yellow-400', '5_dagura.png', 'Shadow Daggers', 'Tiger Tooth', 'regular', { exactChance: 5.0 });
     createSmartCase('duel', 'Duel', 25.00, 'red', 'duel.png', 'AK-47', 'Fuel Injector', 'premium');
     createSmartCase('blaze', 'Blaze', 25.00, 'red', 'BLAZE.png', 'Desert Eagle', 'Blaze', 'premium');
     createSmartCase('foxie', 'Foxie', 25.00, 'red', 'FOXIE.png', 'Desert Eagle', 'Fennec Fox', 'premium');
@@ -3326,8 +3336,7 @@ function closeCaseSelectorModal() {
 
             const groups = [
                 { key: 'featured', label: 'FEATURED' },
-                { key: 'cheap', label: 'CHEAP & WEAPONS' }, // TOTO ZDE CHYBĚLO!
-                { key: 'regular', label: 'REGULAR' },
+                { key: 'regular', label: 'REGULAR CASES' },
                 { key: 'cheap', label: 'CHEAP & WEAPONS' },
                 { key: 'premium', label: 'PREMIUM' },
                 { key: 'high-risk', label: 'HIGH RISK' }
@@ -3346,13 +3355,17 @@ function closeCaseSelectorModal() {
                 const items = filtered.filter((c) => normalizeCategory(c) === group.key);
                 if (!items.length) return '';
                 const cards = items.map((c) => `
-                    <div onclick="openCaseView('${c.id}')" class="relative bg-[#161a24] hover:bg-[#1a1e29] border border-white/5 rounded-xl p-4 min-h-[280px] xl:min-h-[320px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
-                        <div class="absolute top-3 right-3 bg-white text-black font-black text-xs px-3 py-1.5 rounded-md shadow-md z-20">${formatMoney(c.price)}</div>
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${rarityGlow(c.color)} to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 rounded-xl"></div>
-                        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-48 xl:h-56 w-full object-contain mx-auto relative z-10 drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-500 ease-out">
-                        <div class="mt-4 text-sm font-black uppercase text-gray-300 group-hover:text-white tracking-widest relative z-10 text-center">${c.name}</div>
-                    </div>
-                `).join('');
+    <div onclick="openCaseView('${c.id}')" class="relative bg-[#161a24] rounded-2xl p-4 min-h-[260px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_15px_40px_rgba(0,0,0,0.7)] group overflow-hidden border border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${rarityGlow(c.color)} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
+        <div class="absolute top-0 left-0 w-full h-1 transition-all duration-300 group-hover:h-1.5" style="background-color: ${c.color}; box-shadow: 0 0 15px ${c.color};"></div>
+        
+        <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm border border-white/10 text-white font-black text-xs px-3 py-1.5 rounded-lg shadow-md z-20 group-hover:bg-[#c0f20c] group-hover:text-black transition-colors">${formatMoney(c.price)}</div>
+        
+        <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-40 w-full object-contain mx-auto relative z-10 drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform duration-500 ease-out mt-4">
+        
+        <div class="mt-auto pt-4 text-sm font-black uppercase text-gray-400 group-hover:text-white tracking-widest relative z-10 text-center transition-colors">${c.name}</div>
+    </div>
+`).join('');
 
                 return `
                     <div class="col-span-full flex items-center justify-center gap-4 my-8">
@@ -4480,7 +4493,30 @@ function closeCaseSelectorModal() {
     </script>
 
 <div id="cb-builder-modal" class="fixed inset-0 z-[9990] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+    <div class="w-full max-w-5xl bg-[#12161f] border border-yellow-400/30 rounded-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-2xl font-black uppercase text-yellow-300 drop-shadow-md">Create Case Battle</div>
+            <button onclick="closeCaseBattleBuilder()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Team Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="teamFormat" data-cb-val="1v1">Solo</button><button class="cb-builder-opt" data-cb-group="teamFormat" data-cb-val="2v2">2v2</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Players</div><div class="grid grid-cols-3 gap-2"><button class="cb-builder-opt active" data-cb-group="mode" data-cb-val="1v1">2</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1">3</button><button class="cb-builder-opt" data-cb-group="mode" data-cb-val="1v1v1v1">4</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Game Mode</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="gameMode" data-cb-val="classic">Classic</button><button class="cb-builder-opt" data-cb-group="gameMode" data-cb-val="underdog">Underdog</button></div></div>
+            <div class="bg-[#0b0d11] border border-white/5 rounded-xl p-3"><div class="text-[10px] uppercase text-gray-500 font-black mb-2 text-center">Privacy</div><div class="grid grid-cols-2 gap-2"><button class="cb-builder-opt active" data-cb-group="privacy" data-cb-val="public">Public</button><button class="cb-builder-opt" data-cb-group="privacy" data-cb-val="private">Private</button></div></div>
+        </div>
+        <div class="bg-[#0b0d11] border border-dashed border-white/20 rounded-xl p-4 flex-1 flex flex-col min-h-[180px] mb-4">
+            <div class="text-xs text-gray-400 font-bold uppercase mb-2">Battle Queue</div>
+            <div class="flex gap-3 overflow-x-auto items-center custom-scroll pb-2" id="cb-builder-queue"></div>
+        </div>
+        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+            <div class="text-sm font-bold text-gray-400">Total Rounds: <span id="cb-builder-rounds" class="text-yellow-300 font-black text-lg">0</span></div>
+            <div class="flex items-center gap-6">
+                <div class="text-right"><div class="text-[10px] text-gray-500 uppercase font-bold">Total Cost</div><div id="cb-builder-total" class="text-yellow-400 font-black text-2xl drop-shadow-md">0.00 EUR</div></div>
+                <button onclick="createCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-10 py-4 rounded-xl text-lg font-black uppercase transition-all shadow-[0_0_20px_rgba(192,242,12,0.2)] hover:scale-105">Create Battle</button>
+            </div>
+        </div>
     </div>
+</div>
 
 <div id="cb-case-selector-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-[#0b0d11]/95 backdrop-blur-md p-4">
     <div class="w-full max-w-6xl bg-[#12161f] border border-white/10 rounded-xl flex flex-col h-[85vh] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)]">
