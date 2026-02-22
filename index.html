@@ -549,7 +549,7 @@
         </main>
     </div>
 
-    <div id="auth-modal" class="fixed inset-0 z-[99999] items-center justify-center bg-black/90 backdrop-blur-sm hidden" style="display: none;">
+    <div id="auth-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/90 backdrop-blur-sm">
         <div class="w-full max-w-lg bg-[#131824] border border-yellow-400/30 rounded-3xl p-6 shadow-[0_0_60px_rgba(250,204,21,0.18)]">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Účet (DB backend)</h3>
@@ -726,6 +726,7 @@
         let activeCaseId = null;
         let isSpinning = false;
         let cbListTab = 'all';
+        let cbModeFilter = 'all';
         const cbSelectedCases = new Map();
         let caseBattleRooms = [];
         let chatMessages = [];
@@ -2634,28 +2635,37 @@ setTimeout(() => {
         return;
     }
 
-    // Bezpečné vykreslení gridu
-    let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">';
+    let html = '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">';
     all.forEach(c => {
         const count = Number(cbSelectedCases.get(c.id) || 0);
-        const selected = count > 0;
-        const price = Number(c.price || 0);
-        const color = c.color || '#4b69ff';
+        const isSelected = count > 0;
 
-        html += `
-        <div class="relative bg-[#161a24] border-t-2 rounded-xl p-3 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] ${selected ? 'ring-2 ring-[#c0f20c]' : ''}" style="border-top-color: ${color}">
-            <div class="absolute top-2 right-2 bg-white text-black text-[10px] px-1.5 py-0.5 rounded font-black z-20">${formatMoney(price)}</div>
-            ${selected ? '<div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#c0f20c] grid place-items-center text-black z-20"><i data-lucide="check" class="w-3 h-3"></i></div>' : ''}
+        if (!isSelected) {
+            // Výchozí stav: jen karta, po kliknutí přidá 1 ks
+            html += `
+            <div onclick="updateCbCaseCount('${c.id}', 1)" class="relative bg-[#161a24] border border-white/5 rounded-xl p-4 flex flex-col items-center cursor-pointer transition-all hover:bg-[#1a1e29] hover:border-yellow-400/50">
+                <div class="absolute top-2 right-2 text-gray-400 font-black text-[11px]">${formatMoney(c.price)}</div>
+                <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain my-3 drop-shadow-md transition-transform hover:scale-105">
+                <div class="text-[11px] font-black text-gray-300 uppercase truncate w-full text-center mt-auto">${c.name}</div>
+            </div>`;
+        } else {
+            // Vybraný stav: ukazuje overlay s + a -
+            html += `
+            <div class="relative bg-[#161a24] border border-yellow-400 rounded-xl p-4 flex flex-col items-center">
+                <div class="absolute top-2 right-2 text-yellow-400 font-black text-[11px] z-20">${formatMoney(c.price)}</div>
+                <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain my-3 opacity-30">
 
-            <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain drop-shadow-md my-2 z-10 ${selected ? 'opacity-50' : ''}">
-            <div class="text-[11px] font-black text-gray-200 uppercase truncate w-full text-center z-10">${c.name || 'Case'}</div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <div class="flex items-center gap-3 bg-[#0b0d11]/90 p-2 rounded-lg border border-white/10 backdrop-blur-sm">
+                        <button onclick="updateCbCaseCount('${c.id}', -1)" class="w-8 h-8 rounded bg-white/5 hover:bg-red-500/80 hover:text-white flex items-center justify-center text-gray-300 font-black text-lg transition-colors">-</button>
+                        <div class="text-lg font-black text-yellow-400 w-6 text-center">${count}</div>
+                        <button onclick="updateCbCaseCount('${c.id}', 1)" class="w-8 h-8 rounded bg-yellow-400 hover:bg-yellow-500 flex items-center justify-center text-black font-black text-lg transition-colors">+</button>
+                    </div>
+                </div>
 
-            <div class="mt-2 w-full flex items-center justify-between bg-[#0b0d11] rounded-lg p-1 z-20">
-                <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-white">-</button>
-                <div class="text-xs font-black text-[#c0f20c]">${count}</div>
-                <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-6 h-6 rounded bg-[#c0f20c] hover:bg-[#a3cc0a] flex items-center justify-center text-black">+</button>
-            </div>
-        </div>`;
+                <div class="text-[11px] font-black text-yellow-400 uppercase truncate w-full text-center mt-auto z-20">${c.name}</div>
+            </div>`;
+        }
     });
     html += '</div>';
 
@@ -2779,6 +2789,29 @@ function closeCaseSelectorModal() {
                 wrap.innerHTML = `<div class="text-red-400 text-xs px-6 py-6">${err.message}</div>`;
             }
         }
+        function setCaseBattleListTab(tab) {
+            cbListTab = tab;
+            document.querySelectorAll('.cb-hub-tab').forEach(el => {
+                el.classList.toggle('active', el.dataset.cbList === tab);
+                el.classList.toggle('bg-yellow-400/20', el.dataset.cbList === tab);
+                el.classList.toggle('border-yellow-400/60', el.dataset.cbList === tab);
+                el.classList.toggle('text-yellow-300', el.dataset.cbList === tab);
+            });
+            loadCaseBattleRooms();
+        }
+
+        function setCaseBattleFilter(mode) {
+            if (cbModeFilter === mode) cbModeFilter = 'all'; // toggle off
+            else cbModeFilter = mode;
+
+            document.querySelectorAll('.cb-filter-chip').forEach(el => {
+                const isActive = el.dataset.cbFilter === cbModeFilter;
+                el.classList.toggle('active', isActive);
+                el.classList.toggle('border-yellow-400/60', isActive);
+            });
+            loadCaseBattleRooms();
+        }
+
         // --- VYTVOŘENÍ BATTLE ---
         async function createCaseBattleRoom() {
             if (!requireAuthAction()) return;
@@ -3986,9 +4019,8 @@ function closeCaseSelectorModal() {
             sanitizeDuplicateSocialButtons();
             if (typeof updateSocialLoginButtons === 'function') updateSocialLoginButtons();
 
-            // OPRAVA ZOBRAZENÍ
             modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+            modal.classList.add('flex');
 
             const userProfile = {
                 nickname: currentUser?.nickname || '',
@@ -4012,9 +4044,8 @@ function closeCaseSelectorModal() {
             const modal = document.getElementById('auth-modal');
             if(!modal) return;
 
-            // OPRAVA SKRYTÍ
             modal.classList.add('hidden');
-            modal.style.display = 'none';
+            modal.classList.remove('flex');
         }
 
         async function registerAccount() {
@@ -4116,16 +4147,19 @@ function closeCaseSelectorModal() {
             }
         }
 
+        let lastTopupRequestTime = 0;
         async function requestTopUp() {
             if (!requireAuthAction()) return;
-            const amount = Number(document.getElementById('topup-amount')?.value || 0);
-            if (!Number.isFinite(amount) || amount <= 0) {
-                showToast('Zadej částku > 0', true);
-                return;
+            if (Date.now() - lastTopupRequestTime < 60000) {
+                return showToast('Musíš počkat 60 vteřin před další žádostí.', true);
             }
+            const amount = Number(document.getElementById('topup-amount')?.value || 0);
+            if (!Number.isFinite(amount) || amount <= 0) return showToast('Zadej platnou částku', true);
+
             try {
                 await apiRequest('/api/wallet/request-topup', 'POST', { amount });
-                showToast('Žádost o top-up odeslána adminovi.');
+                lastTopupRequestTime = Date.now();
+                showToast('Žádost odeslána adminovi.');
             } catch (err) {
                 showToast(err.message, true);
             }
