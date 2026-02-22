@@ -2456,29 +2456,34 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
     if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
     pool.sort((a,b) => a.price - b.price);
 
-    // FÉROVÁ MATEMATIKA (Kasino vyhrává těsně, RTP cca 94-96%)
-    let coverChance = constraints.exactChance || ((price * 0.15) / cSkin.price * 100);
+    // FÉROVÁ MATEMATIKA (RTP = 92%, Kasino má skrytý 8% profit z každé bedny)
+    let targetEV = price * 0.92; 
+
+    // Hlavní (nejvzácnější) skin si bere cca 15% z celkového EV
+    let coverChance = constraints.exactChance || ((targetEV * 0.15) / cSkin.price * 100);
     if (coverChance > 10 && !constraints.exactChance) coverChance = 10;
     if (coverChance < 0.01) coverChance = 0.01;
 
     let contents = [{ skin: cSkin, chance: coverChance }];
     let chanceLeft = 100 - coverChance;
     
-    // Plynulé rozložení šancí na 12 levnějších skinů
-    const step = Math.max(1, Math.floor(pool.length / 12));
+    // Zvýšená rozmanitost: 14 filler skinů
+    const step = Math.max(1, Math.floor(pool.length / 14));
     const fillers = [];
-    for(let i=0; i<Math.min(12, pool.length); i++) fillers.push(pool[i * step]);
-    fillers.reverse();
+    for(let i=0; i<Math.min(14, pool.length); i++) fillers.push(pool[i * step]);
+    fillers.reverse(); // Od nejdražšího po nejlevnější
     
-    let totalWeight = fillers.reduce((acc, f) => acc + (1 / f.price), 0);
+    // Plynulé rozložení pravděpodobností (nepřímá úměra k ceně)
+    let totalWeight = fillers.reduce((sum, f) => sum + (1 / f.price), 0);
     fillers.forEach((f) => {
         let ch = ((1 / f.price) / totalWeight) * chanceLeft;
         contents.push({ skin: f, chance: ch });
     });
 
-    const totalChance = contents.reduce((a, b) => a + b.chance, 0);
-    contents[contents.length - 1].chance += (100 - totalChance);
+    // Seřazení a zaokrouhlení
     contents.sort((a, b) => a.chance - b.chance);
+    const totalChance = contents.reduce((a, b) => a + b.chance, 0);
+    contents[contents.length - 1].chance += (100 - totalChance); // dorovnání na přesných 100%
     
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
     manualCaseIds.add(id);
@@ -2649,10 +2654,10 @@ setTimeout(() => {
                 <img src="${c.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain my-2 opacity-30 pointer-events-none">
                 
                 <div class="absolute inset-0 flex flex-col items-center justify-center z-50">
-                    <div class="flex items-center gap-4 bg-[#0b0d11] p-2.5 rounded-xl border border-yellow-400/50 shadow-2xl pointer-events-auto">
-                        <button onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-8 h-8 rounded bg-white/10 hover:bg-red-500 hover:text-white flex items-center justify-center text-white font-black text-xl transition-colors cursor-pointer">-</button>
+                    <div class="flex items-center gap-4 bg-[#0b0d11] p-2.5 rounded-xl border border-yellow-400/50 shadow-2xl">
+                        <div onclick="updateCbCaseCount('${c.id}', -1); event.stopPropagation();" class="w-8 h-8 rounded bg-white/10 hover:bg-red-500 hover:text-white flex items-center justify-center text-white font-black text-xl transition-colors cursor-pointer">-</div>
                         <div class="text-xl font-black text-yellow-400 w-6 text-center">${count}</div>
-                        <button onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-8 h-8 rounded bg-yellow-400 hover:bg-yellow-500 flex items-center justify-center text-black font-black text-xl transition-colors cursor-pointer">+</button>
+                        <div onclick="updateCbCaseCount('${c.id}', 1); event.stopPropagation();" class="w-8 h-8 rounded bg-yellow-400 hover:bg-yellow-500 flex items-center justify-center text-black font-black text-xl transition-colors cursor-pointer">+</div>
                     </div>
                 </div>
                 <div class="text-[11px] font-black text-yellow-400 uppercase truncate w-full text-center mt-auto pointer-events-none">${c.name}</div>
@@ -2825,47 +2830,35 @@ function updateSelectorBottomBar() {
 
         // --- VYTVOŘENÍ BATTLE ---
         async function createCaseBattleRoom() {
-            if (!requireAuthAction()) return;
+    if (!requireAuthAction()) return;
+    const payload = selectedCasePayload();
+    if (!payload || !payload.rounds) return showToast('Vyber alespoň 1 bednu!', true);
 
-            const payload = selectedCasePayload();
-            if (!payload || !payload.rounds) {
-                return showToast('Select at least 1 case!', true);
-            }
+    const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+    if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
 
-            const mode = cbBuilderState.mode || '1v1';
-            const rounds = Number(payload.rounds);
-            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+    try {
+        const data = await apiRequest('/api/case-battle/create', 'POST', {
+            mode: cbBuilderState.mode || '1v1',
+            rounds: payload.rounds,
+            fillWithBots: false,
+            teamFormat: cbBuilderState.teamFormat || '1v1',
+            gameMode: cbBuilderState.gameMode || 'classic',
+            privacy: cbBuilderState.privacy || 'public',
+            ...payload
+        });
 
-            if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
-
-            try {
-                const data = await apiRequest('/api/case-battle/create', 'POST', {
-                    mode,
-                    rounds,
-                    fillWithBots: false,
-                    teamFormat: cbBuilderState.teamFormat || '1v1',
-                    gameMode: cbBuilderState.gameMode || 'classic',
-                    privacy: cbBuilderState.privacy || 'public',
-                    ...payload
-                });
-
-                // 1. Získání dat z API
-                cbActiveRoomId = data.room?.id || null;
-
-                // 2. Úprava UI (Zavři builder, skryj lobby, ukaž arénu)
-                closeCaseBattleBuilder();
-                cbSetPanels(true);
-
-                // 3. Vykresli arénu
-                renderCaseBattleRoom(data.room, false);
-                showToast('Battle Created!');
-
-            } catch (err) {
-                showToast(err.message || 'Error creating battle', true);
-            } finally {
-                if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
-            }
-        }
+        cbActiveRoomId = data.room?.id || null;
+        closeCaseBattleBuilder(); // Opravuje zamrznutí
+        cbSetPanels(true);
+        renderCaseBattleRoom(data.room, false);
+        showToast('Battle Created!');
+    } catch (err) {
+        showToast(err.message || 'Error creating battle', true);
+    } finally {
+        if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
+    }
+}
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
@@ -3278,7 +3271,9 @@ function updateSelectorBottomBar() {
             if(id === 'profile') { loadFriends(); }
             if(id === 'case-battle') initCaseBattle();
             if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; cbAnimationSession += 1; cbAnimationLock = false; }
-            if(id === 'giveaways') initGiveaways();
+            if(id === 'giveaways') { 
+                if (typeof initGiveaways === 'function') initGiveaways(); 
+            }
             if(id === 'free-cases') { const grid = document.getElementById('cases-grid'); if (grid) grid.innerHTML = ''; }
             activeCaseId = null;
         }
@@ -3919,27 +3914,37 @@ function updateSelectorBottomBar() {
 function renderSelectorPage() {
     const grid = document.getElementById('selector-grid');
     if (!grid) return;
-    const src = getSelectorSource();
-    const items = src.list || [];
+    
+    try {
+        const src = getSelectorSource();
+        const items = src.list || [];
 
-    document.getElementById('selector-title').textContent = src.type === 'input' ? "VYBER SKIN K OBĚTOVÁNÍ" : "VYBER CÍLOVÝ SKIN Z DATABÁZE";
+        document.getElementById('selector-title').textContent = src.type === 'input' ? "VYBER SKIN K OBĚTOVÁNÍ" : "VYBER CÍLOVÝ SKIN Z DATABÁZE";
 
-    const slice = items.slice(0, selectorOffset + SELECTOR_PAGE_SIZE);
-    if (slice.length === 0) {
-        grid.innerHTML = src.type === 'input' ? '<div class="col-span-full text-center text-yellow-400 py-16 font-black text-xl uppercase">Tvůj inventář je prázdný!<br><span class="text-sm text-gray-500">Otevři nějakou bednu a zkus to znovu.</span></div>' : '<div class="col-span-full text-center text-gray-500 py-16 font-black uppercase">Žádné skiny.</div>';
-        return;
-    }
-
-    grid.innerHTML = slice.map((item, idx) => {
-        if (src.type === 'input') {
-            return `<div onclick="upgInputs[${src.slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 20}ms;"><img loading="lazy" decoding="async" src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div></div>`;
+        if (items.length === 0) {
+            if (src.type === 'input') {
+                grid.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center py-20"><div class="text-yellow-400 font-black text-2xl uppercase mb-2">Tvůj inventář je prázdný!</div><div class="text-gray-500 font-bold">Otevři nějakou bednu a zkus to znovu.</div></div>';
+            } else {
+                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-20 font-black uppercase">Žádné skiny k zobrazení.</div>';
+            }
+            return;
         }
-        let chanceCalc = src.totalVal > 0 ? Math.min((src.totalVal / item.price)*100, 90).toFixed(1) : 0;
-        return `<div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#1a1e26] p-4 rounded-xl cursor-pointer hover:bg-gray-800 transition-all border-b-4 item-float" style="border-color: ${item.color}; animation-delay: ${idx * 20}ms;"><img loading="lazy" decoding="async" src="${item.img}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div><div class="text-[10px] text-center font-bold text-purple-400 mt-1">Šance: ${chanceCalc}%</div></div>`;
-    }).join('');
 
-    if (slice.length < items.length) {
-        grid.insertAdjacentHTML('beforeend', `<div class="col-span-full flex justify-center mt-6"><button onclick="selectorOffset += ${SELECTOR_PAGE_SIZE}; renderSelectorPage();" class="bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 hover:bg-yellow-400 hover:text-black transition-colors rounded-lg px-6 py-3 text-xs font-black uppercase tracking-widest shadow-lg">Načíst další skiny</button></div>`);
+        const slice = items.slice(0, (window.selectorOffset || 0) + 40);
+        
+        grid.innerHTML = slice.map((item, idx) => {
+            if (src.type === 'input') {
+                return `<div onclick="upgInputs[${src.slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#161a24] p-4 rounded-xl cursor-pointer hover:bg-[#1a1e29] transition-all border-b-4 flex flex-col items-center shadow-lg" style="border-color: ${item.color};"><img loading="lazy" src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div></div>`;
+            }
+            let chanceCalc = src.totalVal > 0 ? Math.min((src.totalVal / item.price)*100, 90).toFixed(1) : 0;
+            return `<div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#161a24] p-4 rounded-xl cursor-pointer hover:bg-[#1a1e29] transition-all border-b-4 flex flex-col items-center shadow-lg" style="border-color: ${item.color};"><img loading="lazy" src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div><div class="text-[10px] text-center font-black mt-1 ${chanceCalc > 50 ? 'text-green-400' : 'text-purple-400'}">Šance: ${chanceCalc}%</div></div>`;
+        }).join('');
+
+        if (slice.length < items.length) {
+            grid.insertAdjacentHTML('beforeend', `<div class="col-span-full flex justify-center mt-6"><button onclick="window.selectorOffset = (window.selectorOffset || 0) + 40; renderSelectorPage();" class="bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 hover:bg-yellow-400 hover:text-black transition-all rounded-lg px-8 py-3 text-xs font-black uppercase tracking-widest">Načíst další skiny</button></div>`);
+        }
+    } catch (e) {
+        console.error("Upgrader render error:", e);
     }
 }
 
@@ -4346,18 +4351,22 @@ function renderCreateBattleQueue() {
 }
 
 
-// Exponování všech klíčových UI funkcí do globálního okna
-window.toggleLiveChat = toggleLiveChat;
+function initGiveaways() {
+    // giveaways init placeholder to prevent runtime breakage
+}
+
+// --- CRITICAL GLOBAL BINDINGS ---
+window.switchPage = switchPage;
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
-window.switchPage = switchPage;
+window.toggleLiveChat = toggleLiveChat;
 window.openCaseView = openCaseView;
+window.renderSelectorPage = renderSelectorPage;
+window.createCaseBattleRoom = createCaseBattleRoom;
 window.updateCbCaseCount = updateCbCaseCount;
-window.openCaseSelectorModal = openCaseSelectorModal;
-window.closeCaseSelectorModal = closeCaseSelectorModal;
 window.setCaseBattleListTab = setCaseBattleListTab;
 window.setCaseBattleFilter = setCaseBattleFilter;
-window.renderSelectorPage = renderSelectorPage;
+window.initGiveaways = initGiveaways;
 
         window.onload = async () => {
             sanitizeDuplicateSocialButtons();
