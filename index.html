@@ -277,7 +277,7 @@
                 <div id="mobile-balance" class="text-yellow-300 font-black text-lg">0.00 EUR</div>
                 <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
             </div>
-            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Bedny</button>
+            <button onclick="switchPage('cases'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁 Cases</button>
             <button onclick="switchPage('inventory'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒 Inventář</button>
             <button onclick="switchPage('upgrade'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️ Upgrade</button>
             <button onclick="switchPage('case-battle'); toggleMobileMenu(false);" class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case Battle</button>
@@ -2649,6 +2649,59 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if (!c) {
                     c = { id, name, price, color, img: (resolveCaseImageUrl(id, name) || `${CASEHUG_BASE_URL}WORKSHOP.png`), category, contents: [] };
                     casesDB.push(c);
+                } else {
+                    c.name = meta.name || c.name;
+                    c.price = Number(meta.price ?? c.price ?? 1);
+                    c.color = meta.color || c.color || 'blue';
+                    c.img = meta.img || c.img || FALLBACK_IMG;
+                    c.category = meta.category || c.category || '';
+                }
+                
+                // Logika 50/50
+                const resolvedImg = resolveCaseImageUrl(id, name);
+                c.img = resolvedImg || `${CASEHUG_BASE_URL}WORKSHOP.png`;
+
+                if (constraints.is5050) {
+                    const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
+                    c.contents = [
+                        { skin: cSkin, chance: 50 },
+                        { skin: trash, chance: 50 }
+                    ];
+                    manualCaseIds.add(id);
+                    return;
+                }
+
+                // Získání filler skinů
+                let pool = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price < cSkin.price && s.price < (price * 3));
+                
+                if (constraints.weapon) pool = pool.filter(s => s.weapon === constraints.weapon);
+                if (constraints.rarity) pool = pool.filter(s => s.rarityName === constraints.rarity);
+                
+                if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
+                pool.sort((a,b) => a.price - b.price); // Od nejlevnějšího
+
+                // Matematika (Casino win: EV = 85% ceny bedny)
+                const targetEV = price * 0.85;
+                
+                let coverChance = constraints.exactChance || ((targetEV * 0.4) / cSkin.price * 100);
+                if (coverChance > 5 && !constraints.exactChance) coverChance = 5;
+                if (coverChance < 0.01) coverChance = 0.01;
+
+                let contents = [{ skin: cSkin, chance: coverChance }];
+                let chanceLeft = 100 - coverChance;
+                
+                // Vybereme 5 levnějších skinů na vyplnění
+                const fillers = [];
+                const step = Math.max(1, Math.floor(pool.length / 5));
+                for(let i=0; i<Math.min(5, pool.length); i++) {
+                    fillers.push(pool[i * step]);
+                }
+                fillers.reverse(); // Od nejdražšího z fillerů po nejlevnější
+                
+                for(let i=0; i<fillers.length; i++) {
+                    let ch = (i === fillers.length - 1) ? chanceLeft : (chanceLeft * 0.55);
+                    chanceLeft -= ch;
+                    contents.push({ skin: fillers[i], chance: ch });
                 }
                 
                 // Logika 50/50
@@ -3599,6 +3652,7 @@ function closeCaseSelectorModal() {
 
             const groups = [
                 { key: 'featured', label: 'FEATURED' },
+                { key: 'cheap', label: 'CHEAP & WEAPONS' }, // TOTO ZDE CHYBĚLO!
                 { key: 'regular', label: 'REGULAR' },
                 { key: 'cheap', label: 'CHEAP & WEAPONS' },
                 { key: 'premium', label: 'PREMIUM' },
