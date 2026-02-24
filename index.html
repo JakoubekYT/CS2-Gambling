@@ -228,7 +228,7 @@
             <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 object-contain">
             <div class="text-2xl font-black italic tracking-tight text-white">OTO<span class="text-yellow-400">DROP</span></div>
         </div>
-        <nav class="hidden lg:flex items-center gap-6">
+        <nav class="hidden lg:flex items-center justify-center flex-1 gap-8">
             <button onclick="switchPage('inventory')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="backpack" class="w-4 h-4"></i>Inventář</button>
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
@@ -240,7 +240,7 @@
                 <span id="balance">0.00 EUR</span>
                 <span class="bg-green-500/20 px-1.5 rounded">+</span>
             </button>
-            <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
+            <div id="profile-pill" onclick="switchPage('profile')" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
                 <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
                     <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
                 </div>
@@ -2864,36 +2864,51 @@ function updateSelectorBottomBar() {
         }
 
         // --- VYTVOŘENÍ BATTLE ---
-        async function createCaseBattleRoom() {
-    if (!requireAuthAction()) return;
-    const payload = selectedCasePayload();
-    if (!payload || !payload.rounds) return showToast('Vyber alespoň 1 bednu!', true);
+        window.cbSetPanels = function(inRoom) {
+            const lobbyPanel = document.getElementById('cb-lobby-panel');
+            const roomPanel = document.getElementById('cb-room-panel');
+            if (inRoom) {
+                if (lobbyPanel) lobbyPanel.classList.add('hidden');
+                if (roomPanel) { roomPanel.classList.remove('hidden'); roomPanel.classList.add('flex'); }
+            } else {
+                if (lobbyPanel) lobbyPanel.classList.remove('hidden');
+                if (roomPanel) { roomPanel.classList.add('hidden'); roomPanel.classList.remove('flex'); }
+            }
+        };
 
-    const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
-    if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
+        window.createCaseBattleRoom = async function() {
+            if (!requireAuthAction()) return;
+            const payload = selectedCasePayload();
+            if (!payload || !payload.rounds) return showToast('Vyber alespoň 1 bednu!', true);
 
-    try {
-        const data = await apiRequest('/api/case-battle/create', 'POST', {
-            mode: cbBuilderState.mode || '1v1',
-            rounds: payload.rounds,
-            fillWithBots: false,
-            teamFormat: cbBuilderState.teamFormat || '1v1',
-            gameMode: cbBuilderState.gameMode || 'classic',
-            privacy: cbBuilderState.privacy || 'public',
-            ...payload
-        });
+            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+            if (btn) { btn.textContent = 'VYTVÁŘÍM...'; btn.disabled = true; }
 
-        cbActiveRoomId = data.room?.id || null;
-        closeCaseBattleBuilder(); // Opravuje zamrznutí
-        cbSetPanels(true);
-        renderCaseBattleRoom(data.room, false);
-        showToast('Battle Created!');
-    } catch (err) {
-        showToast(err.message || 'Error creating battle', true);
-    } finally {
-        if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
-    }
-}
+            try {
+                const data = await apiRequest('/api/case-battle/create', 'POST', {
+                    mode: cbBuilderState.mode || '1v1',
+                    rounds: payload.rounds,
+                    fillWithBots: false,
+                    teamFormat: cbBuilderState.teamFormat || '1v1',
+                    gameMode: cbBuilderState.gameMode || 'classic',
+                    privacy: cbBuilderState.privacy || 'public',
+                    ...payload
+                });
+
+                cbActiveRoomId = data.room?.id || null;
+                closeCaseBattleBuilder();
+
+                // OKAMŽITÉ PŘEPNUTÍ DO HRY:
+                window.cbSetPanels(true);
+                renderCaseBattleRoom(data.room, false);
+                showToast('Battle úspěšně vytvořen!');
+
+            } catch (err) {
+                showToast(err.message || 'Chyba při tvorbě bitvy', true);
+            } finally {
+                if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
+            }
+        };
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
@@ -4232,9 +4247,8 @@ function renderSelectorPage() {
                 showToast(err.message, true);
             }
         }
-
-        async function loadAdminUsers() {
-            if (!currentUser?.isAdmin) return showToast('Pouze admin.', true);
+        window.loadAdminUsers = async function() {
+            if (!currentUser?.isAdmin) return;
             const wrap = document.getElementById('admin-users');
             if (!wrap) return;
             wrap.innerHTML = '<div class="text-xs text-gray-400">Načítám...</div>';
@@ -4242,18 +4256,37 @@ function renderSelectorPage() {
                 const data = await apiRequest('/api/admin/users');
                 const users = data.users || [];
                 wrap.innerHTML = users.map((u) => `
-                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-3">
+                    <div class="bg-[#1a1e29] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
                         <div>
-                            <div class="font-black text-white">${u.nickname || u.displayName || 'user'} <span class="text-xs text-gray-400">${u.email || ''}</span></div>
+                            <div class="font-black text-white text-lg">${u.nickname || 'User'}</div>
                             <div class="text-xs text-gray-400">Balance: ${formatMoney(u.balance || 0)}</div>
                         </div>
-                        <button onclick="quickAddBalance('${u.id}')" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-black">+5 EUR</button>
+
+                        <div class="flex items-center gap-4 bg-[#0b0d11] p-2 rounded-lg">
+                            <span class="text-xs font-bold text-gray-500">LUCK:</span>
+                            <input type="range" min="-10" max="10" value="${u.luckModifier || 0}"
+                                   oninput="document.getElementById('luck-val-${u.id}').textContent = this.value"
+                                   onchange="window.updateUserLuck('${u.id}', this.value)"
+                                   class="w-24 accent-yellow-400">
+                            <span id="luck-val-${u.id}" class="text-xs font-black text-white w-4 text-center">${u.luckModifier || 0}</span>
+                        </div>
+
+                        <button onclick="quickAddBalance('${u.id}')" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-xs font-black transition-colors">+5 EUR</button>
                     </div>
                 `).join('') || '<div class="text-xs text-gray-400">Žádní uživatelé.</div>';
             } catch (err) {
-                wrap.innerHTML = `<div class="text-xs text-red-300">${err.message}</div>`;
+                wrap.innerHTML = `<div class="text-xs text-red-400">${err.message}</div>`;
             }
-        }
+        };
+
+        window.updateUserLuck = async function(userId, luckValue) {
+            try {
+                await apiRequest('/api/admin/update-luck', 'POST', { userId, luckValue: Number(luckValue) });
+                showToast(`Štěstí pro uživatele upraveno na ${luckValue}`);
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        };
 
         async function quickAddBalance(userId) {
             try {
@@ -4344,8 +4377,7 @@ function renderSelectorPage() {
         window.saveLocalProfile = saveLocalProfile;
         window.socialLogin = socialLogin;
         window.requestTopUp = requestTopUp;
-        window.loadAdminUsers = loadAdminUsers;
-        window.loadTopupRequests = loadTopupRequests;
+                window.loadTopupRequests = loadTopupRequests;
         window.decideTopupRequest = decideTopupRequest;
         window.quickAddBalance = quickAddBalance;
 
@@ -4402,29 +4434,44 @@ function renderCreateBattleQueue() {
 }
 
 
-function initGiveaways() {
+// Globální state pro giveaways
+window.liveGiveaways = [
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 124, joined: false },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 89, joined: false },
+    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 342, joined: false }
+];
+
+window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
     if (!grid) return;
-    
-    const giveaways = [
-        { name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 1245 },
-        { name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 890 },
-        { name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 3420 }
-    ];
 
-    grid.innerHTML = giveaways.map(g => `
+    grid.innerHTML = window.liveGiveaways.map(g => `
         <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden group shadow-lg">
-            <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color}; box-shadow: 0 0 15px ${g.color};"></div>
+            <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color};"></div>
             <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${g.players}</div>
             <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
             <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-md group-hover:scale-105 transition-transform duration-500">
             <div class="mt-6 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
-            <div class="text-xl font-black mt-1" style="color: ${g.color}">${formatMoney(g.price)}</div>
-            <button onclick="if(requireAuthAction()){ showToast('Připojeno!'); this.textContent='PŘIPOJENO'; this.disabled=true; this.classList.add('opacity-50'); }" class="mt-6 w-full bg-[#1a1e29] border border-white/10 rounded-xl py-3 text-xs font-black uppercase text-white hover:bg-white/10 transition-all z-10">Join Giveaway</button>
+            <div class="text-xl font-black mt-1 mb-4" style="color: ${g.color}">${formatMoney(g.price)}</div>
+
+            <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${g.joined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#1a1e29] hover:bg-white/10 text-white shadow-md active:scale-95'}">
+                ${g.joined ? 'PŘIPOJENO' : 'Join Giveaway'}
+            </button>
         </div>
     `).join('');
     lucide.createIcons();
-}
+};
+
+window.joinGiveaway = function(id) {
+    if(!requireAuthAction()) return;
+    let g = window.liveGiveaways.find(x => x.id === id);
+    if(g && !g.joined) {
+        g.players += 1;
+        g.joined = true;
+        showToast('Úspěšně ses zapojil do Giveawaye!');
+        window.initGiveaways(); // Re-render
+    }
+};
 
 // --- CRITICAL GLOBAL BINDINGS ---
 window.switchPage = switchPage;
@@ -4433,11 +4480,9 @@ window.closeAuthModal = closeAuthModal;
 window.toggleLiveChat = toggleLiveChat;
 window.openCaseView = openCaseView;
 window.renderSelectorPage = renderSelectorPage;
-window.createCaseBattleRoom = createCaseBattleRoom;
 window.updateCbCaseCount = updateCbCaseCount;
 window.setCaseBattleListTab = setCaseBattleListTab;
 window.setCaseBattleFilter = setCaseBattleFilter;
-window.initGiveaways = initGiveaways;
 
         window.onload = async () => {
             sanitizeDuplicateSocialButtons();
