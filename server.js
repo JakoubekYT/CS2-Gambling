@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, trim: true, maxlength: 500 },
     phone: { type: String, trim: true, maxlength: 32, default: '' },
     isAdmin: { type: Boolean, default: false },
+    luckModifier: { type: Number, default: 0, min: -10, max: 10 },
     balance: { type: Number, default: START_BALANCE },
     inventory: { type: Array, default: [] },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -568,7 +569,7 @@ app.post('/api/state', ensureDbReady, ensureAuth, async (req, res) => {
 app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req, res) => {
   const users = await User.find({})
     .sort({ createdAt: -1 })
-    .select('email nickname displayName avatar inventory balance steamId createdAt');
+    .select('email nickname displayName avatar inventory balance steamId createdAt luckModifier');
 
   return res.json({
     ok: true,
@@ -579,11 +580,27 @@ app.get('/api/admin/users', ensureDbReady, ensureAuth, ensureAdmin, async (_req,
       displayName: u.displayName || null,
       provider: u.steamId ? 'steam' : 'email',
       balance: Number(u.balance || 0),
+      luckModifier: Math.max(-10, Math.min(10, Number(u.luckModifier || 0))),
       avatar: u.avatar || '',
       inventory: Array.isArray(u.inventory) ? u.inventory : [],
       createdAt: u.createdAt
     }))
   });
+});
+
+app.post('/api/admin/update-luck', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
+  const { userId, luckValue } = req.body || {};
+  const luckModifier = Math.max(-10, Math.min(10, Number(luckValue || 0)));
+  if (!userId || !Number.isFinite(luckModifier)) {
+    return res.status(400).json({ ok: false, message: 'Neplatný userId nebo luckValue.' });
+  }
+
+  const user = await User.findById(String(userId));
+  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+
+  user.luckModifier = luckModifier;
+  await user.save();
+  return res.json({ ok: true, message: 'Luck updated', userId: user._id, luckModifier: user.luckModifier });
 });
 
 
@@ -1021,13 +1038,28 @@ function buildSyntheticCaseContents(caseMeta = {}) {
   });
 }
 
-function weightedRoll(contents) {
+function weightedRoll(contents, luckModifier = 0) {
   const list = Array.isArray(contents) ? contents : [];
   if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '', rarity: 'consumer' };
-  const total = list.reduce((a, x) => a + Math.max(0, Number(x.chance || 0)), 0) || list.length;
+  const prices = list.map((x) => Number(x.price || 0));
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const normalizedLuck = Math.max(-10, Math.min(10, Number(luckModifier || 0))) / 10;
+  const adjusted = list.map((item) => {
+    const baseChance = Math.max(0, Number(item.chance || 0)) || 1;
+    if (maxPrice <= minPrice) return { item, weight: baseChance };
+    const price = Number(item.price || 0);
+    const normalizedPrice = (price - minPrice) / (maxPrice - minPrice);
+    const expensiveBias = (normalizedPrice - 0.5) * 2;
+    const multiplier = Math.max(0.1, 1 + (normalizedLuck * expensiveBias * 0.6));
+    return { item, weight: baseChance * multiplier };
+  });
+
+  const total = adjusted.reduce((a, x) => a + Number(x.weight || 0), 0) || adjusted.length;
   let r = Math.random() * total;
-  for (const item of list) {
-    r -= Math.max(0, Number(item.chance || 0)) || (total / list.length);
+  for (const entry of adjusted) {
+    const item = entry.item;
+    r -= Number(entry.weight || 0) || (total / adjusted.length);
     if (r <= 0) {
       return {
         name: item.name || item.skinName || item.label || 'Skin',
@@ -1163,6 +1195,10 @@ async function maybeStartCaseBattle(room) {
   room.status = 'in_progress';
   room.logs = [...(room.logs || []), `Battle spuštěn (${room.rounds} kol).`].slice(-120);
 
+  const userIds = activePlayers.filter((p) => !p.bot).map((p) => String(p.userId));
+  const users = await User.find({ _id: { $in: userIds } }).select('_id luckModifier').lean();
+  const luckByUserId = new Map(users.map((u) => [String(u._id), Math.max(-10, Math.min(10, Number(u.luckModifier || 0)))]));
+
   for (const pl of activePlayers) {
     pl.drops = [];
     pl.score = 0;
@@ -1175,7 +1211,8 @@ async function maybeStartCaseBattle(room) {
       ? roundCase.contents
       : (roomContents.length ? roomContents : buildSyntheticCaseContents(roundCase));
     for (const pl of activePlayers) {
-      const drop = weightedRoll(roundContents);
+      const playerLuck = pl.bot ? 0 : (luckByUserId.get(String(pl.userId)) || 0);
+      const drop = weightedRoll(roundContents, playerLuck);
       pl.drops.push({ round: roundIdx + 1, ...drop });
       pl.score = toMoney(Number(pl.score || 0) + Number(drop.price || 0));
     }
@@ -1333,10 +1370,48 @@ app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req,
   return res.json({ ok: true, room: roomSnapshot(fresh) });
 });
 
+app.post('/api/case-battle/cancel/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
+  if (!room) return res.status(404).json({ ok: false, message: 'Room not found' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Only creator can cancel' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Cannot cancel a battle that is already running or done' });
+
+  const entryCost = toMoney(room.entryCost || 0);
+  if (entryCost > 0) {
+    const userIds = (room.players || []).filter((p) => !p.bot).map((p) => String(p.userId));
+    if (userIds.length) {
+      await User.updateMany(
+        { _id: { $in: userIds } },
+        { $inc: { balance: entryCost } }
+      );
+    }
+  }
+
+  clearRoomRuntime(room.roomId);
+  await BattleRoom.deleteOne({ _id: room._id });
+  return res.json({ ok: true, message: 'Battle cancelled successfully' });
+});
+
 app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
-  if (!room) return res.json({ ok: true, removed: true });
+  if (!room) return res.status(404).json({ ok: false, message: 'Room not found' });
   if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží nebo je dokončen.' });
+
+  if (String(room.creatorId) === String(req.user._id)) {
+    const entryCost = toMoney(room.entryCost || 0);
+    if (entryCost > 0) {
+      const userIds = (room.players || []).filter((p) => !p.bot).map((p) => String(p.userId));
+      if (userIds.length) {
+        await User.updateMany(
+          { _id: { $in: userIds } },
+          { $inc: { balance: entryCost } }
+        );
+      }
+    }
+    clearRoomRuntime(room.roomId);
+    await BattleRoom.deleteOne({ _id: room._id });
+    return res.json({ ok: true, message: 'Battle cancelled by creator' });
+  }
 
   room.players = (room.players || []).filter((p) => String(p.userId) !== String(req.user._id));
   if (!room.players.length) {
