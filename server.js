@@ -1370,6 +1370,28 @@ app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req,
   return res.json({ ok: true, room: roomSnapshot(fresh) });
 });
 
+app.post('/api/case-battle/cancel/:id', ensureDbReady, ensureAuth, async (req, res) => {
+  const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
+  if (!room) return res.status(404).json({ ok: false, message: 'Room not found' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Only creator can cancel' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Cannot cancel a battle that is already running or done' });
+
+  const entryCost = toMoney(room.entryCost || 0);
+  if (entryCost > 0) {
+    const userIds = (room.players || []).filter((p) => !p.bot).map((p) => String(p.userId));
+    if (userIds.length) {
+      await User.updateMany(
+        { _id: { $in: userIds } },
+        { $inc: { balance: entryCost } }
+      );
+    }
+  }
+
+  clearRoomRuntime(room.roomId);
+  await BattleRoom.deleteOne({ _id: room._id });
+  return res.json({ ok: true, message: 'Battle cancelled successfully' });
+});
+
 app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.status(404).json({ ok: false, message: 'Room not found' });
