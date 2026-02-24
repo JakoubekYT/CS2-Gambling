@@ -228,7 +228,7 @@
             <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo" class="w-12 h-12 object-contain">
             <div class="text-2xl font-black italic tracking-tight text-white">OTO<span class="text-yellow-400">DROP</span></div>
         </div>
-        <nav class="hidden lg:flex items-center gap-6">
+        <nav class="hidden lg:flex items-center justify-center flex-1 gap-8">
             <button onclick="switchPage('inventory')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="backpack" class="w-4 h-4"></i>Inventář</button>
             <button onclick="switchPage('upgrade')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
@@ -240,7 +240,7 @@
                 <span id="balance">0.00 EUR</span>
                 <span class="bg-green-500/20 px-1.5 rounded">+</span>
             </button>
-            <div id="profile-pill" onclick="openOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
+            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
                 <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
                     <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
                 </div>
@@ -502,20 +502,33 @@
                 </div>
             </section>
 
-            <section id="page-admin" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
-                <h2 class="text-3xl font-black uppercase">Admin panel</h2>
-                <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="loadAdminUsers()" class="bg-yellow-400 text-black font-black rounded-xl px-4 py-2">Načíst uživatele</button>
-                        <button onclick="loadTopupRequests()" class="bg-blue-500 text-white font-black rounded-xl px-4 py-2">Načíst žádosti o top-up</button>
-                    </div>
-                    <div id="admin-users" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
-                    <div class="pt-4 border-t border-white/10">
-                        <h3 class="font-black text-lg mb-2">Pending žádosti</h3>
-                        <div id="admin-topup-requests" class="space-y-2 max-h-[35vh] overflow-y-auto"></div>
-                    </div>
+            <section id="page-admin" class="page hidden max-w-7xl mx-auto space-y-6 fade-in">
+    <div class="flex items-center justify-between">
+        <h2 class="text-3xl font-black uppercase text-red-500 drop-shadow-md">Admin Control Center</h2>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-[#12161f] border border-red-500/20 rounded-2xl p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-black text-xl text-white uppercase">Správa Uživatelů</h3>
+                <button onclick="loadAdminUsers()" class="bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg px-4 py-2 text-xs transition-colors"><i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i> Refresh</button>
+            </div>
+            <div id="admin-users" class="space-y-3 max-h-[500px] overflow-y-auto custom-scroll pr-2"></div>
+        </div>
+        <div class="space-y-6">
+            <div class="bg-[#12161f] border border-red-500/20 rounded-2xl p-6 shadow-2xl">
+                <h3 class="font-black text-xl text-white uppercase mb-4">Žádosti o Top-up</h3>
+                <button onclick="loadTopupRequests()" class="w-full bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-black rounded-xl px-4 py-3 text-sm transition-colors mb-4">Načíst Žádosti</button>
+                <div id="admin-topup-requests" class="space-y-2 max-h-[300px] overflow-y-auto custom-scroll"></div>
+            </div>
+            <div class="bg-[#12161f] border border-red-500/20 rounded-2xl p-6 shadow-2xl">
+                <h3 class="font-black text-xl text-white uppercase mb-4">Globální Akce</h3>
+                <div class="space-y-3">
+                    <button onclick="showToast('Databáze vyčištěna (MOCK)')" class="w-full bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white font-black rounded-xl px-4 py-3 text-sm transition-colors">Wipe All Inactive Battles</button>
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
+</section>
 
             <section id="page-user-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <button onclick="switchPage('profile')" class="text-gray-400 text-xs uppercase font-black">← Zpět na profil</button>
@@ -601,6 +614,7 @@
 
 <script>
         const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
+        const CB_BOT_AVATAR = 'https://ui-avatars.com/api/?name=BOT&background=ef4444&color=fff';
         const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%2314181c\"/><path d=\"M12 46L46 12M46 12H26M46 12V32\" stroke=\"%23facc15\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>');
 
         function toCachedImage(url) {
@@ -2864,36 +2878,51 @@ function updateSelectorBottomBar() {
         }
 
         // --- VYTVOŘENÍ BATTLE ---
-        async function createCaseBattleRoom() {
-    if (!requireAuthAction()) return;
-    const payload = selectedCasePayload();
-    if (!payload || !payload.rounds) return showToast('Vyber alespoň 1 bednu!', true);
+        window.cbSetPanels = function(inRoom) {
+            const lobbyPanel = document.getElementById('cb-lobby-panel');
+            const roomPanel = document.getElementById('cb-room-panel');
+            if (inRoom) {
+                if (lobbyPanel) lobbyPanel.classList.add('hidden');
+                if (roomPanel) { roomPanel.classList.remove('hidden'); roomPanel.classList.add('flex'); }
+            } else {
+                if (lobbyPanel) lobbyPanel.classList.remove('hidden');
+                if (roomPanel) { roomPanel.classList.add('hidden'); roomPanel.classList.remove('flex'); }
+            }
+        };
 
-    const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
-    if (btn) { btn.textContent = 'CREATING...'; btn.disabled = true; }
+        window.createCaseBattleRoom = async function() {
+            if (!requireAuthAction()) return;
+            const payload = selectedCasePayload();
+            if (!payload || !payload.rounds) return showToast('Vyber alespoň 1 bednu!', true);
 
-    try {
-        const data = await apiRequest('/api/case-battle/create', 'POST', {
-            mode: cbBuilderState.mode || '1v1',
-            rounds: payload.rounds,
-            fillWithBots: false,
-            teamFormat: cbBuilderState.teamFormat || '1v1',
-            gameMode: cbBuilderState.gameMode || 'classic',
-            privacy: cbBuilderState.privacy || 'public',
-            ...payload
-        });
+            const btn = document.querySelector('#cb-builder-modal button[onclick="createCaseBattleRoom()"]');
+            if (btn) { btn.textContent = 'VYTVÁŘÍM...'; btn.disabled = true; }
 
-        cbActiveRoomId = data.room?.id || null;
-        closeCaseBattleBuilder(); // Opravuje zamrznutí
-        cbSetPanels(true);
-        renderCaseBattleRoom(data.room, false);
-        showToast('Battle Created!');
-    } catch (err) {
-        showToast(err.message || 'Error creating battle', true);
-    } finally {
-        if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
-    }
-}
+            try {
+                const data = await apiRequest('/api/case-battle/create', 'POST', {
+                    mode: cbBuilderState.mode || '1v1',
+                    rounds: payload.rounds,
+                    fillWithBots: false,
+                    teamFormat: cbBuilderState.teamFormat || '1v1',
+                    gameMode: cbBuilderState.gameMode || 'classic',
+                    privacy: cbBuilderState.privacy || 'public',
+                    ...payload
+                });
+
+                cbActiveRoomId = data.room?.id || null;
+                closeCaseBattleBuilder();
+
+                // OKAMŽITÉ PŘEPNUTÍ DO HRY:
+                window.cbSetPanels(true);
+                renderCaseBattleRoom(data.room, false);
+                showToast('Battle úspěšně vytvořen!');
+
+            } catch (err) {
+                showToast(err.message || 'Chyba při tvorbě bitvy', true);
+            } finally {
+                if (btn) { btn.textContent = 'CREATE BATTLE'; btn.disabled = false; }
+            }
+        };
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
@@ -3023,6 +3052,17 @@ function updateSelectorBottomBar() {
     const isWaiting = room.status === 'waiting';
     let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
 
+    const isCreator = currentUser && String(currentUser.id || currentUser._id) === String(room.creatorId);
+    let creatorControlsHtml = '';
+
+    if (isWaiting && isCreator) {
+        creatorControlsHtml = `
+            <div class="flex flex-col gap-2 ml-4">
+                <button onclick="cancelCaseBattle('${room.id}')" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-lg z-50 pointer-events-auto">ZRUŠIT BATTLE</button>
+            </div>
+        `;
+    }
+
     header.innerHTML = `
         <div class="flex items-center gap-6">
             <div class="relative">
@@ -3032,7 +3072,8 @@ function updateSelectorBottomBar() {
                     <div class="text-2xl font-black text-yellow-300 leading-none mt-1" id="cb-round-counter">${isDone ? 'FINISHED' : `1 of ${totalRounds}`}</div>
                 </div>
             </div>
-            <div class="flex gap-2 max-w-[400px] overflow-x-auto hide-scrollbar items-center px-2">
+            ${creatorControlsHtml}
+            <div class="flex gap-2 max-w-[300px] overflow-x-auto hide-scrollbar items-center px-2">
                 ${(room.caseQueue || [{caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG, casePrice: room.casePrice}]).slice(0, 10).map(q => `
                     <div class="flex-shrink-0 text-center opacity-80 hover:opacity-100 transition-opacity">
                         <img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-12 object-contain drop-shadow-md">
@@ -3110,8 +3151,8 @@ function updateSelectorBottomBar() {
             <div class="px-5 py-4 flex items-center justify-between bg-[#161a24] border-y-2 border-[#1a1e29] z-50 shadow-md">
                 <div class="flex items-center gap-3 relative">
                     <img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-lg border border-gray-600 object-cover shadow-lg">
-                    ${pl.bot ? '<div class="text-[9px] bg-gray-700 text-white px-1.5 rounded font-black absolute -bottom-2 -right-2 border border-[#161a24]">BOT</div>' : ''}
-                    <div class="text-sm font-black text-white truncate max-w-[120px]">${pl.nickname}</div>
+                    ${pl.bot ? '<div class="text-[9px] bg-red-600 text-white px-1.5 rounded font-black absolute -bottom-2 -right-2 border border-[#161a24]">BOT</div>' : ''}
+                    <div class="text-sm font-black text-white truncate max-w-[120px]">${pl.nickname || 'Player'}</div>
                 </div>
                 <div class="flex items-center gap-2">
                     <i id="cb-crown-${i}" data-lucide="crown" class="w-5 h-5 text-yellow-400 hidden drop-shadow-[0_0_8px_#facc15]"></i>
@@ -4232,28 +4273,52 @@ function renderSelectorPage() {
                 showToast(err.message, true);
             }
         }
-
         async function loadAdminUsers() {
-            if (!currentUser?.isAdmin) return showToast('Pouze admin.', true);
-            const wrap = document.getElementById('admin-users');
-            if (!wrap) return;
-            wrap.innerHTML = '<div class="text-xs text-gray-400">Načítám...</div>';
-            try {
-                const data = await apiRequest('/api/admin/users');
-                const users = data.users || [];
-                wrap.innerHTML = users.map((u) => `
-                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-3">
-                        <div>
-                            <div class="font-black text-white">${u.nickname || u.displayName || 'user'} <span class="text-xs text-gray-400">${u.email || ''}</span></div>
-                            <div class="text-xs text-gray-400">Balance: ${formatMoney(u.balance || 0)}</div>
-                        </div>
-                        <button onclick="quickAddBalance('${u.id}')" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-black">+5 EUR</button>
+    if (!currentUser?.isAdmin) return;
+    const wrap = document.getElementById('admin-users');
+    if (!wrap) return;
+    wrap.innerHTML = '<div class="flex justify-center py-10"><i data-lucide="loader-2" class="w-8 h-8 text-red-500 animate-spin"></i></div>';
+    lucide.createIcons();
+    try {
+        const data = await apiRequest('/api/admin/users');
+        const users = data.users || [];
+        wrap.innerHTML = users.map((u) => `
+            <div class="bg-[#1a1e29] border border-white/5 hover:border-red-500/30 rounded-xl p-4 flex flex-col xl:flex-row items-center justify-between gap-4 transition-all">
+                <div class="flex items-center gap-4 w-full xl:w-auto">
+                    <img src="${u.avatar || FALLBACK_IMG}" class="w-12 h-12 rounded-lg object-cover">
+                    <div>
+                        <div class="font-black text-white text-lg">${u.nickname || 'User'}</div>
+                        <div class="text-xs text-gray-400">Bal: <span class="text-yellow-400">${formatMoney(u.balance || 0)}</span></div>
                     </div>
-                `).join('') || '<div class="text-xs text-gray-400">Žádní uživatelé.</div>';
-            } catch (err) {
-                wrap.innerHTML = `<div class="text-xs text-red-300">${err.message}</div>`;
-            }
-        }
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+                    <div class="flex items-center gap-3 bg-[#0b0d11] px-3 py-1.5 rounded-lg border border-white/10">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase">Luck Rig:</span>
+                        <input type="range" min="-10" max="10" value="${u.luckModifier || 0}"
+                               oninput="document.getElementById('luck-val-${u.id}').textContent = this.value"
+                               onchange="window.updateUserLuck('${u.id}', this.value)"
+                               class="w-20 accent-red-500 cursor-pointer">
+                        <span id="luck-val-${u.id}" class="text-xs font-black text-white w-5 text-right">${u.luckModifier || 0}</span>
+                    </div>
+                    <button onclick="quickAddBalance('${u.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-colors">+5 EUR</button>
+                </div>
+            </div>
+        `).join('') || '<div class="text-center py-10 text-gray-500 font-bold">Žádní uživatelé.</div>';
+        lucide.createIcons();
+    } catch (err) {
+        wrap.innerHTML = `<div class="text-center text-red-500 py-10 font-bold">${err.message}</div>`;
+    }
+};
+
+async function updateUserLuck(userId, luckValue) {
+    try {
+        await apiRequest('/api/admin/update-luck', 'POST', { userId, luckValue: Number(luckValue) });
+        showToast(`Štěstí pro uživatele upraveno na ${luckValue}`);
+    } catch (err) {
+        showToast(err.message, true);
+    }
+};
 
         async function quickAddBalance(userId) {
             try {
@@ -4344,8 +4409,7 @@ function renderSelectorPage() {
         window.saveLocalProfile = saveLocalProfile;
         window.socialLogin = socialLogin;
         window.requestTopUp = requestTopUp;
-        window.loadAdminUsers = loadAdminUsers;
-        window.loadTopupRequests = loadTopupRequests;
+                window.loadTopupRequests = loadTopupRequests;
         window.decideTopupRequest = decideTopupRequest;
         window.quickAddBalance = quickAddBalance;
 
@@ -4402,28 +4466,112 @@ function renderCreateBattleQueue() {
 }
 
 
-function initGiveaways() {
+// Globální state pro giveaways
+window.liveGiveaways = [
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 2, joined: false },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 1, joined: false },
+    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 3, joined: false }
+];
+
+window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
     if (!grid) return;
-    
-    const giveaways = [
-        { name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 1245 },
-        { name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 890 },
-        { name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 3420 }
-    ];
-
-    grid.innerHTML = giveaways.map(g => `
+    grid.innerHTML = window.liveGiveaways.map(g => `
         <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden group shadow-lg">
             <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color}; box-shadow: 0 0 15px ${g.color};"></div>
-            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${g.players}</div>
-            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
-            <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-md group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300 border border-white/10"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${g.players}</div>
+            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black border border-[#c0f20c]/30 shadow-[0_0_10px_rgba(192,242,12,0.2)]"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
+            <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform duration-500">
             <div class="mt-6 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
-            <div class="text-xl font-black mt-1" style="color: ${g.color}">${formatMoney(g.price)}</div>
-            <button onclick="if(requireAuthAction()){ showToast('Připojeno!'); this.textContent='PŘIPOJENO'; this.disabled=true; this.classList.add('opacity-50'); }" class="mt-6 w-full bg-[#1a1e29] border border-white/10 rounded-xl py-3 text-xs font-black uppercase text-white hover:bg-white/10 transition-all z-10">Join Giveaway</button>
+            <div class="text-xl font-black mt-1 mb-4" style="color: ${g.color}">${formatMoney(g.price)}</div>
+            <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${g.joined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-[0_0_15px_rgba(192,242,12,0.2)] active:scale-95'}">
+                ${g.joined ? 'PŘIPOJENO' : 'JOIN GIVEAWAY'}
+            </button>
         </div>
     `).join('');
     lucide.createIcons();
+};
+
+window.joinGiveaway = function(id) {
+    if(!requireAuthAction()) return;
+    let g = window.liveGiveaways.find(x => x.id === id);
+    if(g && !g.joined) {
+        g.players += 1;
+        g.joined = true;
+        showToast('Úspěšně ses zapojil do Giveawaye!');
+        window.initGiveaways(); 
+    }
+};
+
+async function searchUsers() {
+    const q = document.getElementById('friend-search')?.value?.trim().toLowerCase();
+    const results = document.getElementById('friend-search-results');
+    if (!results) return;
+    if (!q) { results.innerHTML = ''; return; }
+
+    try {
+        // Simulovaný fetch (nebo nahraď real API, např. await apiRequest('/api/users/search?q=' + q))
+        // Prozatím funguje jako mock na otestování UI klienta
+        results.innerHTML = `
+            <div onclick="window.viewUserProfile('mock123', '${q}')" class="flex items-center gap-3 bg-white/5 p-3 rounded-xl cursor-pointer hover:bg-white/10 border border-white/5 transition-colors shadow-md">
+                <img src="${FALLBACK_IMG}" class="w-10 h-10 rounded-lg object-cover bg-black">
+                <div>
+                    <div class="text-white font-black text-sm uppercase">${q}</div>
+                    <div class="text-gray-500 text-[10px] font-bold">Klikni pro zobrazení profilu</div>
+                </div>
+            </div>
+        `;
+    } catch(err) {
+        results.innerHTML = `<div class="text-red-500 text-xs">${err.message}</div>`;
+    }
+};
+
+function viewUserProfile(userId, userName, avatar = FALLBACK_IMG) {
+    const card = document.getElementById('user-profile-card');
+    const inv = document.getElementById('user-profile-inventory');
+    if(!card || !inv) return;
+
+    card.innerHTML = `
+        <div class="flex items-center gap-6 bg-[#1a1e29] p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-transparent opacity-50"></div>
+            <img src="${avatar}" class="w-24 h-24 rounded-2xl object-cover shadow-2xl border-2 border-yellow-400 relative z-10">
+            <div class="relative z-10">
+                <h2 class="text-3xl font-black text-white uppercase drop-shadow-md">${userName || 'Hráč'}</h2>
+                <div class="text-yellow-400 font-bold text-sm mt-1 tracking-widest">VEŘEJNÝ PROFIL</div>
+            </div>
+        </div>
+    `;
+
+    // Mock cizího inventáře (vybere náhodně z databáze ať klient vidí, že to funguje)
+    const mockInv = Object.values(skinsDB).sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 8) + 4);
+
+    inv.innerHTML = mockInv.map(item => `
+        <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1" style="border-color: ${item.color};">
+            <img src="${item.img}" class="h-16 w-full object-contain mb-2 drop-shadow-md">
+            <div class="text-[9px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div>
+            <div class="text-xs text-center font-black text-white mt-1">${formatMoney(item.price)}</div>
+        </div>
+    `).join('');
+
+    switchPage('user-profile');
+};
+
+function renderOwnPublicProfile() {
+    if(!currentUser) return;
+    window.viewUserProfile(currentUser.id, currentUser.nickname || currentUser.displayName, currentUser.avatar);
+}
+
+async function cancelCaseBattle(roomId) {
+    if(!confirm('Opravdu chceš zrušit tento Battle? Peníze se ti vrátí.')) return;
+    try {
+        await apiRequest(`/api/case-battle/cancel/${roomId}`, 'POST');
+        showToast('Battle zrušen a peníze vráceny.');
+        cbActiveRoomId = null;
+        if(window.cbSetPanels) window.cbSetPanels(false);
+        loadCaseBattleRooms();
+    } catch (err) {
+        showToast(err.message, true);
+    }
 }
 
 // --- CRITICAL GLOBAL BINDINGS ---
@@ -4433,11 +4581,15 @@ window.closeAuthModal = closeAuthModal;
 window.toggleLiveChat = toggleLiveChat;
 window.openCaseView = openCaseView;
 window.renderSelectorPage = renderSelectorPage;
-window.createCaseBattleRoom = createCaseBattleRoom;
 window.updateCbCaseCount = updateCbCaseCount;
 window.setCaseBattleListTab = setCaseBattleListTab;
 window.setCaseBattleFilter = setCaseBattleFilter;
-window.initGiveaways = initGiveaways;
+window.cancelCaseBattle = cancelCaseBattle;
+window.searchUsers = searchUsers;
+window.viewUserProfile = viewUserProfile;
+window.renderOwnPublicProfile = renderOwnPublicProfile;
+window.loadAdminUsers = loadAdminUsers;
+window.updateUserLuck = updateUserLuck;
 
         window.onload = async () => {
             sanitizeDuplicateSocialButtons();
