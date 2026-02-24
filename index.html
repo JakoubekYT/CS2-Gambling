@@ -240,6 +240,19 @@
                 <span id="balance">0.00 EUR</span>
                 <span class="bg-green-500/20 px-1.5 rounded">+</span>
             </button>
+            
+            <div class="relative ml-2 mr-2 cursor-pointer group" onclick="toggleNotifications()">
+                <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors"></i>
+                <div id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">1</div>
+            </div>
+
+            <div id="notif-dropdown" class="hidden absolute top-16 right-20 w-80 bg-[#12161f] border border-white/10 rounded-xl shadow-2xl z-[100] flex-col overflow-hidden">
+                <div class="bg-[#1a1e29] px-4 py-3 font-black text-white text-xs uppercase tracking-widest border-b border-white/5">Upozornění</div>
+                <div id="notif-list" class="max-h-64 overflow-y-auto custom-scroll p-2 space-y-2">
+                    <div class="bg-white/5 p-3 rounded-lg text-xs text-gray-300"><strong class="text-yellow-400">Vítej na OTODROP!</strong> Užij si otevírání beden.</div>
+                </div>
+            </div>
+
             <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
                 <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
                     <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
@@ -249,7 +262,8 @@
                     <div id="profile-pill-nick" class="text-[10px] text-gray-400 font-bold"></div>
                 </div>
             </div>
-            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-[#161a24] border border-white/10 text-gray-200 hover:text-white px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide">Sign In</button>
+            
+            <button onclick="openAuthModal()" id="auth-open-btn" class="bg-[#161a24] border border-white/10 text-gray-200 hover:text-white px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-colors">Sign In</button>
             <button onclick="toggleMobileMenu()" class="md:hidden bg-[#0d1017] hover:bg-[#161a24] text-gray-300 px-3 py-2 rounded-lg border border-white/10"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
     </header>
@@ -3053,14 +3067,29 @@ function updateSelectorBottomBar() {
     let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
 
     const isCreator = currentUser && String(currentUser.id || currentUser._id) === String(room.creatorId);
+    const isFull = (room.players?.length || 0) === (room.capacity || 2);
     let creatorControlsHtml = '';
-
+    
     if (isWaiting && isCreator) {
-        creatorControlsHtml = `
-            <div class="flex flex-col gap-2 ml-4">
-                <button onclick="cancelCaseBattle('${room.id}')" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-lg z-50 pointer-events-auto">ZRUŠIT BATTLE</button>
-            </div>
-        `;
+        if (!isFull) {
+            creatorControlsHtml = `
+                <div class="flex flex-col gap-2 ml-4">
+                    <button onclick="window.cancelCaseBattle('${room.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg pointer-events-auto">Zrušit Battle</button>
+                </div>
+            `;
+        } else {
+            creatorControlsHtml = `
+                <div class="flex flex-col gap-2 ml-4 z-50">
+                    <button onclick="startCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(192,242,12,0.3)] animate-pulse pointer-events-auto">START BATTLE!</button>
+                </div>
+            `;
+        }
+    }
+    
+    // Tlačítko pro odchod (pokud hra běží a já jsem divák nebo hráč)
+    let leaveBtn = '';
+    if(!isWaiting) {
+        leaveBtn = `<button onclick="window.leaveCaseBattleRoom()" class="ml-4 text-gray-500 hover:text-white text-xs font-black uppercase transition-colors"><i data-lucide="log-out" class="w-4 h-4 inline"></i> Odejít</button>`;
     }
 
     header.innerHTML = `
@@ -3073,6 +3102,7 @@ function updateSelectorBottomBar() {
                 </div>
             </div>
             ${creatorControlsHtml}
+            ${leaveBtn}
             <div class="flex gap-2 max-w-[300px] overflow-x-auto hide-scrollbar items-center px-2">
                 ${(room.caseQueue || [{caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG, casePrice: room.casePrice}]).slice(0, 10).map(q => `
                     <div class="flex-shrink-0 text-center opacity-80 hover:opacity-100 transition-opacity">
@@ -4107,15 +4137,17 @@ function renderSelectorPage() {
             if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
 
             if (currentUser) {
-                if (authBtn) authBtn.textContent = currentUser.nickname || currentUser.displayName || 'Účet';
+                if (authBtn) authBtn.classList.add('hidden'); // SKRYJE SE
                 if (profilePill) profilePill.classList.remove('hidden');
+                if (profilePill) profilePill.classList.add('flex');
                 if (pillAvatar) pillAvatar.src = currentUser.avatar || FALLBACK_IMG;
                 if (pillName) pillName.textContent = currentUser.displayName || currentUser.nickname || 'User';
                 if (pillNick) pillNick.textContent = `@${currentUser.nickname || 'user'}`;
                 if (adminHint) adminHint.classList.toggle('hidden', !currentUser.isAdmin);
             } else {
-                if (authBtn) authBtn.textContent = 'Sign In';
+                if (authBtn) authBtn.classList.remove('hidden'); // UKÁŽE SE
                 if (profilePill) profilePill.classList.add('hidden');
+                if (profilePill) profilePill.classList.remove('flex');
                 if (adminHint) adminHint.classList.add('hidden');
             }
         }
@@ -4476,29 +4508,48 @@ window.liveGiveaways = [
 window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
     if (!grid) return;
-    grid.innerHTML = window.liveGiveaways.map(g => `
+    
+    // Načtení paměti
+    const joinedGws = JSON.parse(localStorage.getItem('joinedGiveaways') || '[]');
+
+    window.liveGiveaways = [
+        { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 124 },
+        { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 89 },
+        { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 342 }
+    ];
+
+    grid.innerHTML = window.liveGiveaways.map(g => {
+        const isJoined = joinedGws.includes(g.id);
+        const currentPlayers = isJoined ? g.players + 1 : g.players;
+        return `
         <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden group shadow-lg">
             <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color}; box-shadow: 0 0 15px ${g.color};"></div>
-            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300 border border-white/10"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${g.players}</div>
-            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black border border-[#c0f20c]/30 shadow-[0_0_10px_rgba(192,242,12,0.2)]"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
+            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300 border border-white/10"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${currentPlayers}</div>
+            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black border border-[#c0f20c]/30"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
             <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform duration-500">
             <div class="mt-6 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
             <div class="text-xl font-black mt-1 mb-4" style="color: ${g.color}">${formatMoney(g.price)}</div>
-            <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${g.joined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-[0_0_15px_rgba(192,242,12,0.2)] active:scale-95'}">
-                ${g.joined ? 'PŘIPOJENO' : 'JOIN GIVEAWAY'}
+            <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${isJoined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-lg active:scale-95'}">
+                ${isJoined ? 'PŘIPOJENO' : 'JOIN GIVEAWAY'}
             </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
     lucide.createIcons();
 };
 
 window.joinGiveaway = function(id) {
     if(!requireAuthAction()) return;
-    let g = window.liveGiveaways.find(x => x.id === id);
-    if(g && !g.joined) {
-        g.players += 1;
-        g.joined = true;
+    const joinedGws = JSON.parse(localStorage.getItem('joinedGiveaways') || '[]');
+    if(!joinedGws.includes(id)) {
+        joinedGws.push(id);
+        localStorage.setItem('joinedGiveaways', JSON.stringify(joinedGws));
         showToast('Úspěšně ses zapojil do Giveawaye!');
+        
+        // Přidání fake notifikace o zapojení
+        const notifList = document.getElementById('notif-list');
+        if(notifList) notifList.insertAdjacentHTML('afterbegin', `<div class="bg-white/5 p-3 rounded-lg text-xs text-gray-300 border-l-2 border-[#c0f20c]">Zapojil ses do Giveawaye! Výsledky brzy.</div>`);
+        
         window.initGiveaways(); 
     }
 };
@@ -4526,40 +4577,53 @@ async function searchUsers() {
     }
 };
 
-function viewUserProfile(userId, userName, avatar = FALLBACK_IMG) {
+window.renderOwnPublicProfile = function() {
+    if(!currentUser) return showToast('Nejsi přihlášen', true);
+    window.viewUserProfile(currentUser.id || currentUser._id, currentUser.displayName || currentUser.nickname, currentUser.avatar, true);
+};
+
+window.viewUserProfile = function(userId, userName, avatar = FALLBACK_IMG, isMe = false) {
     const card = document.getElementById('user-profile-card');
     const inv = document.getElementById('user-profile-inventory');
     if(!card || !inv) return;
 
+    let actionsHtml = isMe 
+        ? `<button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>Odhlásit se</button>`
+        : `<button onclick="showToast('Žádost o přátelství odeslána!')" class="bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>Přidat do přátel</button>
+           <button onclick="showToast('Trade offer odeslán')" class="bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4 ml-2"><i data-lucide="arrow-right-left" class="w-4 h-4 inline mr-2"></i>Trade</button>`;
+
     card.innerHTML = `
-        <div class="flex items-center gap-6 bg-[#1a1e29] p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-transparent opacity-50"></div>
-            <img src="${avatar}" class="w-24 h-24 rounded-2xl object-cover shadow-2xl border-2 border-yellow-400 relative z-10">
-            <div class="relative z-10">
-                <h2 class="text-3xl font-black text-white uppercase drop-shadow-md">${userName || 'Hráč'}</h2>
-                <div class="text-yellow-400 font-bold text-sm mt-1 tracking-widest">VEŘEJNÝ PROFIL</div>
+        <div class="flex items-center justify-between bg-[#1a1e29] p-8 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-transparent opacity-50"></div>
+            <div class="flex items-center gap-6 relative z-10">
+                <img src="${avatar}" onerror="handleImgError(this)" class="w-24 h-24 rounded-2xl object-cover shadow-2xl border-2 border-yellow-400">
+                <div>
+                    <h2 class="text-3xl font-black text-white uppercase drop-shadow-md">${userName || 'Hráč'}</h2>
+                    <div class="text-yellow-400 font-bold text-sm mt-1 tracking-widest">LEVEL ${(userProfile?.exp || 0) / 100}</div>
+                    ${actionsHtml}
+                </div>
             </div>
         </div>
     `;
 
-    // Mock cizího inventáře (vybere náhodně z databáze ať klient vidí, že to funguje)
-    const mockInv = Object.values(skinsDB).sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 8) + 4);
-
-    inv.innerHTML = mockInv.map(item => `
-        <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1" style="border-color: ${item.color};">
-            <img src="${item.img}" class="h-16 w-full object-contain mb-2 drop-shadow-md">
-            <div class="text-[9px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div>
-            <div class="text-xs text-center font-black text-white mt-1">${formatMoney(item.price)}</div>
-        </div>
-    `).join('');
+    // Zobrazení inventáře
+    let displayInv = isMe ? userInventory : Object.values(skinsDB).sort(() => 0.5 - Math.random()).slice(0, 6); // Mock pro ostatní
+    
+    if(displayInv.length === 0) {
+        inv.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10 font-bold">Inventář je prázdný.</div>';
+    } else {
+        inv.innerHTML = displayInv.map(item => `
+            <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1" style="border-color: ${item.color};">
+                <img src="${item.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-2 drop-shadow-md">
+                <div class="text-[9px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div>
+                <div class="text-xs text-center font-black text-white mt-1">${formatMoney(item.price)}</div>
+            </div>
+        `).join('');
+    }
 
     switchPage('user-profile');
+    lucide.createIcons();
 };
-
-function renderOwnPublicProfile() {
-    if(!currentUser) return;
-    window.viewUserProfile(currentUser.id, currentUser.nickname || currentUser.displayName, currentUser.avatar);
-}
 
 async function cancelCaseBattle(roomId) {
     if(!confirm('Opravdu chceš zrušit tento Battle? Peníze se ti vrátí.')) return;
@@ -4574,6 +4638,19 @@ async function cancelCaseBattle(roomId) {
     }
 }
 
+
+window.toggleNotifications = function() {
+    const dropdown = document.getElementById('notif-dropdown');
+    const badge = document.getElementById('notif-badge');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        dropdown.classList.toggle('flex');
+    }
+    if (badge) {
+        badge.classList.add('hidden'); // Vynuluje červené číslo po přečtení
+    }
+};
+
 // --- CRITICAL GLOBAL BINDINGS ---
 window.switchPage = switchPage;
 window.openAuthModal = openAuthModal;
@@ -4584,6 +4661,8 @@ window.renderSelectorPage = renderSelectorPage;
 window.updateCbCaseCount = updateCbCaseCount;
 window.setCaseBattleListTab = setCaseBattleListTab;
 window.setCaseBattleFilter = setCaseBattleFilter;
+window.leaveCaseBattleRoom = leaveCaseBattleRoom;
+window.toggleNotifications = toggleNotifications;
 window.cancelCaseBattle = cancelCaseBattle;
 window.searchUsers = searchUsers;
 window.viewUserProfile = viewUserProfile;
