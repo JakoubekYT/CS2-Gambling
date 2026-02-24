@@ -253,7 +253,7 @@
                 </div>
             </div>
 
-            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
+            <div id="profile-pill" onclick="switchPage('profile')" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
                 <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
                     <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
                 </div>
@@ -493,6 +493,10 @@
 
             <section id="page-profile" class="page hidden max-w-6xl mx-auto space-y-6 fade-in">
                 <h2 class="text-3xl font-black uppercase">Profil & Přátelé</h2>
+                <div class="flex gap-4 mb-6">
+                    <button onclick="logoutLocalProfile()" class="bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-xs font-black uppercase transition-all"><i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i> Odhlásit se</button>
+                    <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500 hover:text-white px-4 py-2 rounded-lg text-xs font-black uppercase transition-all"><i data-lucide="shield" class="w-4 h-4 inline mr-1"></i> Admin Panel</button>
+                </div>
                 <div class="bg-[#14171c] border border-yellow-400/25 rounded-2xl p-4">
                     <h3 class="font-black text-xl mb-3">Můj veřejný profil</h3>
                     <div id="my-public-profile-card" class="space-y-3"></div>
@@ -2854,12 +2858,17 @@ function updateSelectorBottomBar() {
                         return `<div class="relative"><img src="${avatar}" onerror="handleImgError(this)" class="w-8 h-8 rounded-full border-2 border-[#12161f] object-cover">${idx === 0 ? '<i data-lucide="crown" class="w-3 h-3 text-yellow-400 absolute -top-1 -right-1"></i>' : ''}</div>`;
                     }).join('');
 
+                    const isWaitingForPlayers = r.status === 'waiting' && (r.players || []).length < capacity;
+                    const actionBtn = isWaitingForPlayers 
+                        ? `<button onclick="joinCaseBattleRoom('${r.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full">Join Battle</button>`
+                        : `<button onclick="window.viewCaseBattle('${r.id}')" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full"><i data-lucide="eye" class="w-3 h-3 inline"></i> View Battle</button>`;
+
                     return `<div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 items-center bg-[#12161f] hover:bg-[#161a24] border border-white/5 hover:border-white/10 rounded-xl px-6 py-4 transition-all">
-                        <div class="flex justify-center"><div class="w-12 h-12 transform rotate-45 border-2 border-[#c0f20c] rounded-lg shadow-[0_0_15px_rgba(192,242,12,0.15)] flex items-center justify-center overflow-hidden"><div class="-rotate-45 text-white font-black text-lg">${rounds}</div></div></div>
+                        <div class="flex justify-center"><div class="w-12 h-12 transform rotate-45 border-2 border-[#c0f20c] rounded-lg flex items-center justify-center bg-[#0b0d11]"><div class="-rotate-45 text-white font-black text-lg">${rounds}</div></div></div>
                         <div class="flex flex-wrap gap-2 items-center">${scenarioHtml}${hiddenCount > 0 ? `<div class="text-xs font-black text-gray-300">+${hiddenCount}</div>` : ''}</div>
-                        <div class="text-green-400 font-black text-sm drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]">${formatMoney(entryCost)}</div>
+                        <div class="text-yellow-400 font-black text-sm">${formatMoney(entryCost)}</div>
                         <div class="flex items-center -space-x-3">${avatarsHtml}<div class="text-gray-400 text-xs font-bold ml-4">${(r.players || []).length} / ${capacity}</div></div>
-                        <div><button onclick="joinCaseBattleRoom('${r.id}')" class="border border-[#c0f20c] text-[#c0f20c] hover:bg-[#c0f20c] hover:text-black font-black uppercase text-xs px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all w-full"><i data-lucide="eye" class="w-4 h-4"></i> View Battle</button></div>
+                        <div>${actionBtn}</div>
                     </div>`;
                 }).join('') || '<div class="text-gray-500 text-xs px-6 py-8">Žádné otevřené místnosti.</div>';
 
@@ -2939,6 +2948,16 @@ function updateSelectorBottomBar() {
         };
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
+        window.viewCaseBattle = async function(roomId) {
+            try {
+                const data = await apiRequest(`/api/case-battle/room/${roomId}`);
+                cbActiveRoomId = roomId;
+                window.cbSetPanels(true);
+                renderCaseBattleRoom(data.room, false);
+            } catch (err) {
+                showToast(err.message || 'Nepodařilo se načíst bitvu', true);
+            }
+        };
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function leaveCaseBattleRoom() { if (!cbActiveRoomId) return; try { await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST'); } catch(_e) {} cbActiveRoomId = null; cbAnimationSession += 1; cbAnimationLock = false; cbLastAnimatedSignature = ''; cbSetPanels(false); document.getElementById('cb-stage').innerHTML=''; document.getElementById('cb-log').innerHTML=''; loadCaseBattleRooms(); }
         async function startCaseBattleRoom() { if (!requireAuthAction()) return; if (!cbActiveRoomId) return showToast('Nejdřív vytvoř/připoj room.', true); try { const data = await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true }); cbAddLog(`Battle spuštěn. Vstup: ${formatMoney(data.fee || 0)} / hráč`); renderCaseBattleRoom(data.room, true); await loadSessionFromBackend(); } catch (err) { showToast(err.message, true); } }
@@ -3067,23 +3086,17 @@ function updateSelectorBottomBar() {
     let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
 
     const isCreator = currentUser && String(currentUser.id || currentUser._id) === String(room.creatorId);
-    const isFull = (room.players?.length || 0) === (room.capacity || 2);
     let creatorControlsHtml = '';
     
-    if (isWaiting && isCreator) {
-        if (!isFull) {
-            creatorControlsHtml = `
-                <div class="flex flex-col gap-2 ml-4">
-                    <button onclick="window.cancelCaseBattle('${room.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg pointer-events-auto">Zrušit Battle</button>
-                </div>
-            `;
-        } else {
-            creatorControlsHtml = `
-                <div class="flex flex-col gap-2 ml-4 z-50">
-                    <button onclick="startCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(192,242,12,0.3)] animate-pulse pointer-events-auto">START BATTLE!</button>
-                </div>
-            `;
+    if (isWaiting) {
+        let btns = '';
+        if (isCreator) {
+            btns += `<button onclick="window.cancelCaseBattle('${room.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg pointer-events-auto mr-2">Zrušit Battle</button>`;
         }
+        if (isCreator && (room.players?.length || 0) === (room.capacity || 2)) {
+            btns += `<button onclick="startCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(192,242,12,0.3)] animate-pulse pointer-events-auto">START</button>`;
+        }
+        creatorControlsHtml = `<div class="flex items-center ml-4 z-50">${btns}</div>`;
     }
     
     // Tlačítko pro odchod (pokud hra běží a já jsem divák nebo hráč)
@@ -3254,8 +3267,12 @@ function updateSelectorBottomBar() {
                     const spinners = [];
                     for (let i = 0; i < playersCount; i++) {
                         const track = document.getElementById(`cb-spin-track-${i}`);
-                        const drop = room.players[i].drops?.[round];
-                        if (!track || !drop) continue;
+                let drop = room.players[i].drops?.[round];
+                if (!track) continue;
+                if (!drop) {
+                    console.warn("Backend neposlal drop, použita záchrana!");
+                    drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Error Skin', price: 0, color: '#4b69ff' };
+                }
 
                         let html = '';
                         for (let j = 0; j < 60; j++) {
@@ -4133,6 +4150,7 @@ function renderSelectorPage() {
             const pillName = document.getElementById('profile-pill-name');
             const pillNick = document.getElementById('profile-pill-nick');
             const adminHint = document.getElementById('admin-hint');
+            const adminBtn = document.getElementById('admin-nav-btn');
 
             if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
 
@@ -4144,11 +4162,13 @@ function renderSelectorPage() {
                 if (pillName) pillName.textContent = currentUser.displayName || currentUser.nickname || 'User';
                 if (pillNick) pillNick.textContent = `@${currentUser.nickname || 'user'}`;
                 if (adminHint) adminHint.classList.toggle('hidden', !currentUser.isAdmin);
+                if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
             } else {
                 if (authBtn) authBtn.classList.remove('hidden'); // UKÁŽE SE
                 if (profilePill) profilePill.classList.add('hidden');
                 if (profilePill) profilePill.classList.remove('flex');
                 if (adminHint) adminHint.classList.add('hidden');
+                if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
             }
         }
 
@@ -4500,40 +4520,30 @@ function renderCreateBattleQueue() {
 
 // Globální state pro giveaways
 window.liveGiveaways = [
-    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 2, joined: false },
-    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 1, joined: false },
-    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 3, joined: false }
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 1, joined: false },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0, joined: false }
 ];
 
 window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
     if (!grid) return;
     
-    // Načtení paměti
     const joinedGws = JSON.parse(localStorage.getItem('joinedGiveaways') || '[]');
-
-    window.liveGiveaways = [
-        { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 124 },
-        { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 89 },
-        { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 342 }
-    ];
 
     grid.innerHTML = window.liveGiveaways.map(g => {
         const isJoined = joinedGws.includes(g.id);
         const currentPlayers = isJoined ? g.players + 1 : g.players;
         return `
-        <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden group shadow-lg">
-            <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color}; box-shadow: 0 0 15px ${g.color};"></div>
-            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300 border border-white/10"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${currentPlayers}</div>
-            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black border border-[#c0f20c]/30"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
-            <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform duration-500">
-            <div class="mt-6 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
+        <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden shadow-lg">
+            <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color};"></div>
+            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${currentPlayers}</div>
+            <img src="${g.img}" class="h-32 object-contain mt-6 drop-shadow-md">
+            <div class="mt-4 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
             <div class="text-xl font-black mt-1 mb-4" style="color: ${g.color}">${formatMoney(g.price)}</div>
             <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${isJoined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-lg active:scale-95'}">
                 ${isJoined ? 'PŘIPOJENO' : 'JOIN GIVEAWAY'}
             </button>
-        </div>
-        `;
+        </div>`;
     }).join('');
     lucide.createIcons();
 };
@@ -4544,12 +4554,7 @@ window.joinGiveaway = function(id) {
     if(!joinedGws.includes(id)) {
         joinedGws.push(id);
         localStorage.setItem('joinedGiveaways', JSON.stringify(joinedGws));
-        showToast('Úspěšně ses zapojil do Giveawaye!');
-        
-        // Přidání fake notifikace o zapojení
-        const notifList = document.getElementById('notif-list');
-        if(notifList) notifList.insertAdjacentHTML('afterbegin', `<div class="bg-white/5 p-3 rounded-lg text-xs text-gray-300 border-l-2 border-[#c0f20c]">Zapojil ses do Giveawaye! Výsledky brzy.</div>`);
-        
+        showToast('Připojeno do Giveawaye!');
         window.initGiveaways(); 
     }
 };
