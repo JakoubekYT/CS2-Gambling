@@ -450,6 +450,10 @@
                         <p id="inv-stats" class="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">0 předmětů v hodnotě 0.00 EUR</p>
                     </div>
                     <div class="flex gap-2">
+                        <div class="relative hidden sm:block">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input id="inv-search" type="text" oninput="renderInventory()" placeholder="Hledat..." class="bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white outline-none">
+                        </div>
                         <select id="inv-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white font-bold text-sm uppercase cursor-pointer" onchange="filterInventory()">
                             <option value="all">Všechny</option>
                             <option value="blue">Modré</option>
@@ -543,7 +547,18 @@
                         <h2 id="selector-title" class="text-4xl font-black uppercase italic tracking-tighter text-white">VYBER SKIN</h2>
                     </div>
                 </div>
-                <div class="flex justify-end"><select id="selector-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-bold text-xs uppercase" onchange="selectorOffset = 0; renderSelectorPage()"><option value="price-low">Cena: nejnižší</option><option value="price-high">Cena: nejvyšší</option><option value="name">Jméno A-Z</option></select></div><div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
+                <div class="flex items-center justify-end gap-3 mt-4 mb-4">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input id="selector-search" type="text" oninput="selectorOffset = 0; renderSelectorPage()" placeholder="Hledat skin..." class="bg-[#161a24] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-200 outline-none focus:border-yellow-400/50">
+                    </div>
+                    <select id="selector-sort" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-bold text-xs uppercase" onchange="selectorOffset = 0; renderSelectorPage()">
+                        <option value="price-low">Cena: nejnižší</option>
+                        <option value="price-high">Cena: nejvyšší</option>
+                        <option value="name">Jméno A-Z</option>
+                    </select>
+                </div>
+                <div id="selector-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"></div>
             </section>
 
         </main>
@@ -727,6 +742,8 @@
         let isSpinning = false;
         let cbListTab = 'all';
         let cbModeFilter = 'all';
+        window.cbBuilderState = { mode: '1v1', teamFormat: '1v1', gameMode: 'classic', privacy: 'public' };
+        const cbBuilderState = window.cbBuilderState;
         const cbSelectedCases = new Map();
         let caseBattleRooms = [];
         let chatMessages = [];
@@ -2456,34 +2473,52 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
     if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
     pool.sort((a,b) => a.price - b.price);
 
-    // FÉROVÁ MATEMATIKA (RTP = 92%, Kasino má skrytý 8% profit z každé bedny)
-    let targetEV = price * 0.92; 
+    // FÉROVÁ MATEMATIKA: RTP ~90% (Hráč "téměř" vyhraje, ale kasino vydělává)
+    let targetEV = price * 0.90; 
 
-    // Hlavní (nejvzácnější) skin si bere cca 15% z celkového EV
-    let coverChance = constraints.exactChance || ((targetEV * 0.15) / cSkin.price * 100);
-    if (coverChance > 10 && !constraints.exactChance) coverChance = 10;
-    if (coverChance < 0.01) coverChance = 0.01;
-
+    // Hlavní (nejvzácnější) skin
+    let coverChance = constraints.exactChance || Math.max(0.01, Math.min(5, ((targetEV * 0.15) / cSkin.price * 100)));
     let contents = [{ skin: cSkin, chance: coverChance }];
+    
+    // Rozdělení filler skinů do 3 kategorií
+    let closeLossPool = pool.filter(s => s.price >= price * 0.4 && s.price <= price * 0.85); // Těsná prohra
+    let smallWinPool = pool.filter(s => s.price >= price * 1.1 && s.price <= price * 2.5);   // Malá výhra
+    let badLossPool = pool.filter(s => s.price < price * 0.4);                               // Špatná prohra
+
+    // Pojistka, pokud jsou pooly prázdné
+    if(!closeLossPool.length) closeLossPool = pool;
+    if(!smallWinPool.length) smallWinPool = pool;
+    if(!badLossPool.length) badLossPool = pool;
+
+    // Rozdělení zbývajících 100% šance
     let chanceLeft = 100 - coverChance;
     
-    // Zvýšená rozmanitost: 14 filler skinů
-    const step = Math.max(1, Math.floor(pool.length / 14));
-    const fillers = [];
-    for(let i=0; i<Math.min(14, pool.length); i++) fillers.push(pool[i * step]);
-    fillers.reverse(); // Od nejdražšího po nejlevnější
-    
-    // Plynulé rozložení pravděpodobností (nepřímá úměra k ceně)
-    let totalWeight = fillers.reduce((sum, f) => sum + (1 / f.price), 0);
-    fillers.forEach((f) => {
-        let ch = ((1 / f.price) / totalWeight) * chanceLeft;
-        contents.push({ skin: f, chance: ch });
-    });
+    // 60% šance jde na "Těsnou prohru" (udržuje hráče ve hře)
+    let closeLossTotalChance = chanceLeft * 0.60;
+    // 25% šance na "Špatnou prohru"
+    let badLossTotalChance = chanceLeft * 0.25;
+    // 15% šance na "Malou výhru"
+    let smallWinTotalChance = chanceLeft * 0.15;
 
-    // Seřazení a zaokrouhlení
+    const addFromPool = (sourcePool, totalChanceAssigned, itemCount) => {
+        let selected = [];
+        for(let i=0; i<Math.min(itemCount, sourcePool.length); i++) {
+            selected.push(sourcePool[Math.floor(Math.random() * sourcePool.length)]);
+        }
+        let weightSum = selected.reduce((sum, s) => sum + (1/s.price), 0);
+        selected.forEach(s => {
+            contents.push({ skin: s, chance: ((1/s.price) / weightSum) * totalChanceAssigned });
+        });
+    };
+
+    addFromPool(closeLossPool, closeLossTotalChance, 6);
+    addFromPool(badLossPool, badLossTotalChance, 4);
+    addFromPool(smallWinPool, smallWinTotalChance, 3);
+
+    // Zaokrouhlení a seřazení
     contents.sort((a, b) => a.chance - b.chance);
-    const totalChance = contents.reduce((a, b) => a + b.chance, 0);
-    contents[contents.length - 1].chance += (100 - totalChance); // dorovnání na přesných 100%
+    let totalChance = contents.reduce((a, b) => a + b.chance, 0);
+    contents[contents.length - 1].chance += (100 - totalChance); 
     
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
     manualCaseIds.add(id);
@@ -3271,9 +3306,7 @@ function updateSelectorBottomBar() {
             if(id === 'profile') { loadFriends(); }
             if(id === 'case-battle') initCaseBattle();
             if(id !== 'case-battle' && cbPollTimer) { clearInterval(cbPollTimer); cbPollTimer = null; cbAnimationSession += 1; cbAnimationLock = false; }
-            if(id === 'giveaways') { 
-                if (typeof initGiveaways === 'function') initGiveaways(); 
-            }
+            if(id === 'giveaways') initGiveaways();
             if(id === 'free-cases') { const grid = document.getElementById('cases-grid'); if (grid) grid.innerHTML = ''; }
             activeCaseId = null;
         }
@@ -3757,6 +3790,12 @@ function updateSelectorBottomBar() {
             else if(sortVal === 'price-low') displayItems.sort((a, b) => a.price - b.price);
             else if(sortVal === 'name') displayItems.sort((a, b) => a.name.localeCompare(b.name));
 
+            // Pod aplikací select filtrů přidej:
+            const searchVal = (document.getElementById('inv-search')?.value || '').toLowerCase().trim();
+            if(searchVal) {
+                displayItems = displayItems.filter(i => i.name.toLowerCase().includes(searchVal));
+            }
+
             let totalVal = 0;
             grid.innerHTML = displayItems.map((item, idx) => {
                 totalVal += item.price;
@@ -3892,18 +3931,30 @@ function updateSelectorBottomBar() {
     const slotIndex = Number(window.currentSelectorSlot || 0);
     const sortMode = document.getElementById('selector-sort')?.value || 'price-low';
     
+    let available = [];
+    let targets = [];
+
     if (type === 'input') {
-        let available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+        available = userInventory.filter(item => !upgInputs.some(ui => ui && ui.uid === item.uid));
+    }
+
+    let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+    // Vždy ukaž jen skiny dražší než vklad (nebo všechny, pokud je vklad 0)
+    targets = Object.values(skinsDB).filter(s => s.price > (totalVal > 0 ? totalVal : 0));
+
+    const sq = (document.getElementById('selector-search')?.value || '').toLowerCase().trim();
+    if (sq) {
+        if (type === 'input') available = available.filter(s => s.name.toLowerCase().includes(sq));
+        else targets = targets.filter(s => s.name.toLowerCase().includes(sq));
+    }
+
+    if (type === 'input') {
         if(sortMode === 'price-high') available.sort((a,b)=>b.price-a.price);
         else if(sortMode === 'name') available.sort((a,b)=>a.name.localeCompare(b.name));
         else available.sort((a,b)=>a.price-b.price);
         return { type, slotIndex, list: available };
     }
-    
-    let totalVal = upgInputs.reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
-    // UKAŽ VŠECHNY SKINY JAKO CÍL (vždy víc než 0)
-    let targets = Object.values(skinsDB).filter(s => s.price >= 0.01);
-    
+
     if(sortMode === 'price-high') targets.sort((a,b)=>b.price-a.price);
     else if(sortMode === 'name') targets.sort((a,b)=>a.name.localeCompare(b.name));
     else targets.sort((a,b)=>a.price-b.price);
@@ -4352,7 +4403,27 @@ function renderCreateBattleQueue() {
 
 
 function initGiveaways() {
-    // giveaways init placeholder to prevent runtime breakage
+    const grid = document.getElementById('giveaway-grid');
+    if (!grid) return;
+    
+    const giveaways = [
+        { name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: findSkin("M4A4", "Howl")?.img || FALLBACK_IMG, color: "#ebca44", players: 1245 },
+        { name: "Karambit | Fade", price: 1450, time: "4h 12m", img: findSkin("Karambit", "Fade")?.img || FALLBACK_IMG, color: "#ebca44", players: 890 },
+        { name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: findSkin("AWP", "Dragon Lore")?.img || FALLBACK_IMG, color: "#ebca44", players: 3420 }
+    ];
+
+    grid.innerHTML = giveaways.map(g => `
+        <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden group shadow-lg">
+            <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color}; box-shadow: 0 0 15px ${g.color};"></div>
+            <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${g.players}</div>
+            <div class="absolute top-4 left-4 bg-[#c0f20c]/20 text-[#c0f20c] px-2.5 py-1 rounded text-[10px] font-black"><i data-lucide="timer" class="w-3 h-3 inline mr-1"></i>${g.time}</div>
+            <img src="${g.img}" class="h-40 object-contain mt-8 drop-shadow-md group-hover:scale-105 transition-transform duration-500">
+            <div class="mt-6 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
+            <div class="text-xl font-black mt-1" style="color: ${g.color}">${formatMoney(g.price)}</div>
+            <button onclick="if(requireAuthAction()){ showToast('Připojeno!'); this.textContent='PŘIPOJENO'; this.disabled=true; this.classList.add('opacity-50'); }" class="mt-6 w-full bg-[#1a1e29] border border-white/10 rounded-xl py-3 text-xs font-black uppercase text-white hover:bg-white/10 transition-all z-10">Join Giveaway</button>
+        </div>
+    `).join('');
+    lucide.createIcons();
 }
 
 // --- CRITICAL GLOBAL BINDINGS ---
