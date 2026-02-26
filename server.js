@@ -1042,22 +1042,41 @@ function weightedRoll(contents, luckModifier = 0) {
   const list = Array.isArray(contents) ? contents : [];
   if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '', rarity: 'consumer' };
 
-  const sortedContents = [...list].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+  const sortedContents = [...list].sort((a, b) => Number(a.chance || 0) - Number(b.chance || 0));
+  const clampedLuck = Math.max(-10, Math.min(10, Number(luckModifier || 0)));
+
+  if (clampedLuck >= 9) {
+    const topPool = sortedContents.slice(0, Math.min(3, sortedContents.length));
+    const forced = topPool[Math.floor(Math.random() * topPool.length)] || sortedContents[0];
+    return {
+      name: forced.name || forced.skinName || forced.label || 'Skin',
+      price: Number(forced.price || 0),
+      color: forced.color || '#4b69ff',
+      img: forced.img || '',
+      rarity: forced.rarity || 'consumer'
+    };
+  }
+
+  if (clampedLuck <= -9) {
+    const forced = sortedContents[sortedContents.length - 1] || {};
+    return {
+      name: forced.name || forced.skinName || forced.label || 'Skin',
+      price: Number(forced.price || 0),
+      color: forced.color || '#4b69ff',
+      img: forced.img || '',
+      rarity: forced.rarity || 'consumer'
+    };
+  }
 
   let power = 1;
-  const clampedLuck = Math.max(-10, Math.min(10, Number(luckModifier || 0)));
-  if (clampedLuck > 0) {
-    power = 1 + (clampedLuck * 0.2);
-  } else if (clampedLuck < 0) {
-    power = 1 / (1 + (Math.abs(clampedLuck) * 0.2));
-  }
+  if (clampedLuck > 0) power = 1 + (clampedLuck * 0.25);
+  else if (clampedLuck < 0) power = 1 / (1 + (Math.abs(clampedLuck) * 0.25));
 
   const rawRoll = Math.random();
   const riggedRoll = Math.pow(rawRoll, power) * 100;
 
   let sum = 0;
   let win = sortedContents[sortedContents.length - 1] || {};
-
   for (const item of sortedContents) {
     sum += Number(item.chance || 0);
     if (riggedRoll <= sum) {
