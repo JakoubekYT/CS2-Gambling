@@ -234,6 +234,7 @@
             <button onclick="switchPage('giveaways')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
             <button onclick="switchPage('cases')" class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="star" class="w-4 h-4"></i>Cases</button>
             <button onclick="switchPage('case-battle')" class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
+            <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden text-sm font-black text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors cursor-pointer bg-red-500/10 px-3 py-1 rounded-lg"><i data-lucide="shield-alert" class="w-4 h-4"></i>Admin</button>
         </nav>
         <div class="flex items-center gap-3">
             <button class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg font-black flex items-center gap-2">
@@ -253,7 +254,7 @@
                 </div>
             </div>
 
-            <div id="profile-pill" onclick="switchPage('profile')" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
+            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
                 <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
                     <img id="profile-pill-avatar" src="" alt="avatar" class="w-full h-full rounded-full object-cover bg-black">
                 </div>
@@ -269,7 +270,7 @@
     </header>
 
     <button id="live-chat-toggle" onclick="toggleLiveChat()" class="hidden lg:flex fixed right-6 bottom-6 z-[90] w-12 h-12 rounded-lg bg-[#12161f] border border-yellow-400/40 text-yellow-300 items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:bg-[#1a1e29] hover:text-yellow-200 transition-all">
-        <i data-lucide="message-square" class="w-5 h-5"></i>
+        <i data-lucide="message-square" class="w-5 h-5 pointer-events-none"></i>
     </button>
 
     <div id="live-chat" class="hidden fixed right-6 bottom-20 z-[95] w-80 h-56 bg-[#0b0d11]/95 border border-yellow-400/30 rounded-xl p-3 text-sm overflow-hidden shadow-2xl lg:flex-col">
@@ -495,7 +496,6 @@
                 <h2 class="text-3xl font-black uppercase">Profil & Přátelé</h2>
                 <div class="flex gap-4 mb-6">
                     <button onclick="logoutLocalProfile()" class="bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-xs font-black uppercase transition-all"><i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i> Odhlásit se</button>
-                    <button id="admin-nav-btn" onclick="switchPage('admin')" class="hidden bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500 hover:text-white px-4 py-2 rounded-lg text-xs font-black uppercase transition-all"><i data-lucide="shield" class="w-4 h-4 inline mr-1"></i> Admin Panel</button>
                 </div>
                 <div class="bg-[#14171c] border border-yellow-400/25 rounded-2xl p-4">
                     <h3 class="font-black text-xl mb-3">Můj veřejný profil</h3>
@@ -512,8 +512,13 @@
                         </div>
                     </div>
                     <div class="bg-[#14171c] border border-yellow-400/20 rounded-2xl p-4 space-y-3">
-                        <div class="flex gap-2"><input id="friend-search" type="text" placeholder="Najdi uživatele" class="flex-1 bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-2 text-white"><button onclick="searchUsers()" class="bg-blue-500 text-white font-black rounded-xl px-4">Hledat</button></div>
-                        <div id="friend-search-results" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                        <div class="relative w-full">
+                            <div class="flex gap-2 relative z-20">
+                                <input id="friend-search" type="text" onkeyup="window.searchUsers()" placeholder="Zadej min. 2 znaky..." class="flex-1 bg-black/40 border border-yellow-400/20 rounded-xl px-3 py-3 text-white outline-none focus:border-yellow-400/60">
+                                <button onclick="window.searchUsers()" class="bg-blue-500 hover:bg-blue-400 text-white font-black rounded-xl px-6 transition-colors">Hledat</button>
+                            </div>
+                            <div id="friend-search-results" class="absolute top-full left-0 w-full mt-2 bg-[#12161f] border border-white/10 rounded-xl shadow-2xl z-[100] max-h-64 overflow-y-auto custom-scroll"></div>
+                        </div>
                         <h3 class="font-black">Moji přátelé</h3>
                         <div id="friends-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
                     </div>
@@ -786,6 +791,8 @@
         let cbPollTimer = null;
         let cbAnimationSession = 0;
         let cbAnimationLock = false;
+        let cbLastAnimatedSignature = '';
+        window.cbLastAnimatedSignature = '';
         let casesAffordableOnly = false;
         let casesCategoryFilter = 'all';
         let casesSortDirection = 'asc';
@@ -2487,73 +2494,58 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
         casesDB.push(c);
     }
     
-    // Logika extrémních 50/50 beden
+    // Logika 50/50 beden
     if (constraints.is5050) {
         const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
-        c.contents = [
-            { skin: cSkin, chance: 50 },
-            { skin: trash, chance: 50 }
-        ];
-        manualCaseIds.add(id);
+        c.contents = [{ skin: cSkin, chance: 50 }, { skin: trash, chance: 50 }];
         return;
     }
 
-    // Filtrování vhodných skinů pro výplň bedny (musí být levnější než hlavní skin)
-    let pool = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price < cSkin.price && s.price < (price * 2.5));
-    if (constraints.weapon) pool = pool.filter(s => s.weapon === constraints.weapon);
-    if (constraints.rarity) pool = pool.filter(s => s.rarityName === constraints.rarity);
-    if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
-    pool.sort((a,b) => a.price - b.price);
-
-    // FÉROVÁ MATEMATIKA: RTP ~90% (Hráč "téměř" vyhraje, ale kasino vydělává)
-    let targetEV = price * 0.90; 
-
-    // Hlavní (nejvzácnější) skin
-    let coverChance = constraints.exactChance || Math.max(0.01, Math.min(5, ((targetEV * 0.15) / cSkin.price * 100)));
+    // --- CASEHUG PROFIT FORMULA ---
+    // RTP (Return to player) = 92% -> Kasino má 8% garantovaný zisk dlouhodobě
+    
+    // 1. TOP DROP (Pokrytí)
+    let coverChance = constraints.exactChance || Math.max(0.01, Math.min(5, ((price * 0.92 * 0.10) / cSkin.price * 100)));
     let contents = [{ skin: cSkin, chance: coverChance }];
     
-    // Rozdělení filler skinů do 3 kategorií
-    let closeLossPool = pool.filter(s => s.price >= price * 0.4 && s.price <= price * 0.85); // Těsná prohra
-    let smallWinPool = pool.filter(s => s.price >= price * 1.1 && s.price <= price * 2.5);   // Malá výhra
-    let badLossPool = pool.filter(s => s.price < price * 0.4);                               // Špatná prohra
+    // 2. POOLY SKINŮ
+    // Soft Loss: Skiny, kde hráč "trochu" prohraje, ale nepadne na nulu (40% - 95% ceny bedny)
+    let softLossSkins = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price >= (price * 0.40) && s.price <= (price * 0.95));
+    // Small Win: Skiny, kde hráč trochu vydělá (110% - 300% ceny bedny)
+    let smallWinSkins = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price >= (price * 1.1) && s.price <= (price * 3.0));
+    
+    // Fallback pokud je málo skinů v dané relaci
+    if(softLossSkins.length < 5) softLossSkins = Object.values(skinsDB).filter(s => s.price < price).sort((a,b)=>b.price-a.price).slice(0, 10);
+    if(smallWinSkins.length < 3) smallWinSkins = Object.values(skinsDB).filter(s => s.price > price).sort((a,b)=>a.price-b.price).slice(0, 5);
 
-    // Pojistka, pokud jsou pooly prázdné
-    if(!closeLossPool.length) closeLossPool = pool;
-    if(!smallWinPool.length) smallWinPool = pool;
-    if(!badLossPool.length) badLossPool = pool;
+    // Výběr unikátních skinů do bedny (10 Soft Loss, 4 Small Win)
+    let selectedSoft = softLossSkins.sort(() => 0.5 - Math.random()).slice(0, 10);
+    let selectedWin = smallWinSkins.sort(() => 0.5 - Math.random()).slice(0, 4);
 
-    // Rozdělení zbývajících 100% šance
     let chanceLeft = 100 - coverChance;
     
-    // 60% šance jde na "Těsnou prohru" (udržuje hráče ve hře)
-    let closeLossTotalChance = chanceLeft * 0.60;
-    // 25% šance na "Špatnou prohru"
-    let badLossTotalChance = chanceLeft * 0.25;
-    // 15% šance na "Malou výhru"
-    let smallWinTotalChance = chanceLeft * 0.15;
+    // Rozložení: 75% šance na Soft Loss (hráč lehce prodělá, kasino získá)
+    let softLossTotalChance = chanceLeft * 0.75;
+    let softWeightSum = selectedSoft.reduce((sum, s) => sum + (1/s.price), 0);
+    selectedSoft.forEach(s => {
+        contents.push({ skin: s, chance: ((1/s.price) / softWeightSum) * softLossTotalChance });
+    });
 
-    const addFromPool = (sourcePool, totalChanceAssigned, itemCount) => {
-        let selected = [];
-        for(let i=0; i<Math.min(itemCount, sourcePool.length); i++) {
-            selected.push(sourcePool[Math.floor(Math.random() * sourcePool.length)]);
-        }
-        let weightSum = selected.reduce((sum, s) => sum + (1/s.price), 0);
-        selected.forEach(s => {
-            contents.push({ skin: s, chance: ((1/s.price) / weightSum) * totalChanceAssigned });
-        });
-    };
+    // Rozložení: Zbytek šance (cca 25%) na Small Win (hráč je nadšený)
+    let winTotalChance = chanceLeft - softLossTotalChance;
+    let winWeightSum = selectedWin.reduce((sum, s) => sum + (1/s.price), 0);
+    selectedWin.forEach(s => {
+        contents.push({ skin: s, chance: ((1/s.price) / winWeightSum) * winTotalChance });
+    });
 
-    addFromPool(closeLossPool, closeLossTotalChance, 6);
-    addFromPool(badLossPool, badLossTotalChance, 4);
-    addFromPool(smallWinPool, smallWinTotalChance, 3);
-
-    // Zaokrouhlení a seřazení
-    contents.sort((a, b) => a.chance - b.chance);
-    let totalChance = contents.reduce((a, b) => a + b.chance, 0);
-    contents[contents.length - 1].chance += (100 - totalChance); 
+    // Zaokrouhlení, oprava setin a seřazení od nejcennějšího (aby šance na webu vypadaly logicky)
+    contents.sort((a, b) => b.skin.price - a.skin.price);
     
+    // Poslední položka (nejlevnější) vyrovná pole na přesných 100%
+    let calculatedTotal = contents.reduce((sum, item) => sum + Math.floor(item.chance * 1000)/1000, 0);
+    contents[contents.length - 1].chance += (100 - calculatedTotal);
+
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
-    manualCaseIds.add(id);
 }
 
 // INICIALIZACE VŠECH KLIENTOVÝCH BEDEN S OBRÁZKY CASEHUG
@@ -2860,8 +2852,8 @@ function updateSelectorBottomBar() {
 
                     const isWaitingForPlayers = r.status === 'waiting' && (r.players || []).length < capacity;
                     const actionBtn = isWaitingForPlayers 
-                        ? `<button onclick="joinCaseBattleRoom('${r.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full">Join Battle</button>`
-                        : `<button onclick="window.viewCaseBattle('${r.id}')" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full"><i data-lucide="eye" class="w-3 h-3 inline"></i> View Battle</button>`;
+                        ? `<button onclick="joinCaseBattleRoom('${r.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full shadow-md">Join Battle</button>`
+                        : `<button onclick="window.viewCaseBattle('${r.id}')" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white font-black uppercase text-xs px-4 py-2 rounded-lg transition-colors w-full shadow-md"><i data-lucide="eye" class="w-3 h-3 inline"></i> View Battle</button>`;
 
                     return `<div class="grid grid-cols-[80px_1fr_100px_150px_140px] gap-4 items-center bg-[#12161f] hover:bg-[#161a24] border border-white/5 hover:border-white/10 rounded-xl px-6 py-4 transition-all">
                         <div class="flex justify-center"><div class="w-12 h-12 transform rotate-45 border-2 border-[#c0f20c] rounded-lg flex items-center justify-center bg-[#0b0d11]"><div class="-rotate-45 text-white font-black text-lg">${rounds}</div></div></div>
@@ -2948,7 +2940,7 @@ function updateSelectorBottomBar() {
         };
 
         async function joinCaseBattleRoom(roomId) { if (!requireAuthAction()) return; try { const data = await apiRequest(`/api/case-battle/join/${roomId}`, 'POST'); cbActiveRoomId = roomId; cbSetPanels(true); cbAddLog('Připojeno do roomky.'); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
-        window.viewCaseBattle = async function(roomId) {
+        const viewCaseBattle = window.viewCaseBattle = async function(roomId) {
             try {
                 const data = await apiRequest(`/api/case-battle/room/${roomId}`);
                 cbActiveRoomId = roomId;
@@ -2960,7 +2952,49 @@ function updateSelectorBottomBar() {
         };
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function leaveCaseBattleRoom() { if (!cbActiveRoomId) return; try { await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST'); } catch(_e) {} cbActiveRoomId = null; cbAnimationSession += 1; cbAnimationLock = false; cbLastAnimatedSignature = ''; cbSetPanels(false); document.getElementById('cb-stage').innerHTML=''; document.getElementById('cb-log').innerHTML=''; loadCaseBattleRooms(); }
-        async function startCaseBattleRoom() { if (!requireAuthAction()) return; if (!cbActiveRoomId) return showToast('Nejdřív vytvoř/připoj room.', true); try { const data = await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true }); cbAddLog(`Battle spuštěn. Vstup: ${formatMoney(data.fee || 0)} / hráč`); renderCaseBattleRoom(data.room, true); await loadSessionFromBackend(); } catch (err) { showToast(err.message, true); } }
+        window.startCaseBattleRoom = async function() {
+    if (!requireAuthAction()) return;
+    if (!cbActiveRoomId) return showToast('Nejdřív vytvoř nebo připoj room.', true); 
+    
+    const btn = document.querySelector('button[onclick="startCaseBattleRoom()"]');
+    if (btn) { btn.textContent = 'STARTOVÁNÍ...'; btn.disabled = true; }
+
+    try {
+        // Zavoláme backend pro start (jestli funguje)
+        await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true }).catch(e => console.warn(e));
+        
+        // ZÁCHRANNÝ FRONTEND MECHANISMUS (Zabrání zamrznutí točení)
+        const room = caseBattleRooms.find(r => r.id === cbActiveRoomId);
+        if (room) {
+            room.status = 'done'; // Okamžitě změníme status pro spuštění UI
+            const rounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
+            
+            // Projedeme hráče a BOTA, pokud nemají dropy, vygenerujeme jim je zde
+            room.players.forEach(p => {
+                if (!p.drops || p.drops.length !== rounds) {
+                    p.drops = [];
+                    p.score = 0;
+                    for (let i = 0; i < rounds; i++) {
+                        let cId = Array.isArray(room.caseQueue) ? room.caseQueue[i].caseId : room.caseId;
+                        let cObj = casesDB.find(c => c.id === cId) || casesDB[0];
+                        
+                        let luck = p.bot ? 0 : (userProfile?.luckModifier || 0); // Bot nemá luck
+                        let drop = rollCaseSkin(cObj, luck);
+                        p.drops.push(drop);
+                        p.score += drop.price;
+                    }
+                }
+            });
+
+            // Odstranění zarážek a vynucené točení
+            window.cbLastAnimatedSignature = ''; 
+            cbAnimationLock = false;
+            renderCaseBattleRoom(room, true);
+        }
+    } catch (err) { 
+        showToast(err.message, true); 
+    }
+};
 
         async function refreshCaseBattleRoom() {
             if (!cbActiveRoomId) return;
@@ -3267,12 +3301,17 @@ function updateSelectorBottomBar() {
                     const spinners = [];
                     for (let i = 0; i < playersCount; i++) {
                         const track = document.getElementById(`cb-spin-track-${i}`);
-                let drop = room.players[i].drops?.[round];
-                if (!track) continue;
-                if (!drop) {
-                    console.warn("Backend neposlal drop, použita záchrana!");
-                    drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Error Skin', price: 0, color: '#4b69ff' };
-                }
+                        if (!track) continue;
+                        
+                        // KRITICKÁ OPRAVA: Pokud backend nepošle drop (bot/error), frontend si ho vylosuje sám, aby hra nezamrzla!
+                        let drop = null;
+                        if (room.players[i] && room.players[i].drops) {
+                            drop = room.players[i].drops[round];
+                        }
+                        if (!drop) {
+                            console.warn(`ZÁCHRANA: Hráči ${i} chybí drop v kole ${round}. Generuji náhradní!`);
+                            drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' };
+                        }
 
                         let html = '';
                         for (let j = 0; j < 60; j++) {
@@ -3579,16 +3618,38 @@ function updateSelectorBottomBar() {
             }
         });
 
-        function rollCaseSkin(caseObj) {
-            const roll = Math.random() * 100;
-            let sum = 0;
-            let win = caseObj.contents[0].skin;
-            for(const item of caseObj.contents) {
-                sum += item.chance;
-                if(roll <= sum) { win = item.skin; break; }
-            }
-            return win;
-        }
+        function rollCaseSkin(caseObj, userLuck = 0) {
+    let sortedContents = [...caseObj.contents].sort((a, b) => b.skin.price - a.skin.price); 
+    
+    // GOD MODE (Luck 9 nebo 10) -> Vnutí vždy TOP 3 nejcennější skiny z bedny
+    if (userLuck >= 9) {
+        let topSkins = sortedContents.slice(0, 3);
+        return topSkins[Math.floor(Math.random() * topSkins.length)].skin;
+    }
+    // TRASH MODE (Luck -9 nebo -10) -> Vnutí vždy nejlevnější odpad z bedny
+    if (userLuck <= -9) {
+        return sortedContents[sortedContents.length - 1].skin;
+    }
+
+    // Lehký rigging pro hodnoty 1 až 8 (Zvyšuje šanci na vzácné skiny exponenciálně)
+    let power = 1;
+    if (userLuck > 0) power = 1 + (userLuck * 0.35); 
+    else if (userLuck < 0) power = 1 / (1 + (Math.abs(userLuck) * 0.35));
+
+    let rawRoll = Math.random(); 
+    let riggedRoll = Math.pow(rawRoll, power) * 100;
+
+    let sum = 0;
+    // Obrátíme obsah pro procházení od nejobyčejnějšího po nejvzácnější
+    let reverseContents = [...sortedContents].reverse();
+    let win = reverseContents[0].skin; 
+    
+    for(const item of reverseContents) {
+        sum += item.chance;
+        if(riggedRoll <= sum) { win = item.skin; break; }
+    }
+    return win;
+}
 
         function renderMultiResultCard(skin) {
             return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
@@ -3688,7 +3749,7 @@ function updateSelectorBottomBar() {
             for (let rowIndex = 0; rowIndex < normalizedCount; rowIndex++) {
                 const track = tracks[rowIndex];
                 if (!track) continue;
-                const winningSkin = rollCaseSkin(caseObj);
+                const winningSkin = rollCaseSkin(caseObj, userProfile?.luckModifier || 0);
                 winningSkins.push(winningSkin);
                 const tape = Array.from({ length: 60 }, (_, itemIndex) => {
                     const skin = itemIndex === 50 ? winningSkin : caseObj.contents[Math.floor(Math.random() * caseObj.contents.length)].skin;
@@ -4325,7 +4386,8 @@ function renderSelectorPage() {
                 showToast(err.message, true);
             }
         }
-        async function loadAdminUsers() {
+
+const loadAdminUsers = window.loadAdminUsers = async function() {
     if (!currentUser?.isAdmin) return;
     const wrap = document.getElementById('admin-users');
     if (!wrap) return;
@@ -4335,33 +4397,37 @@ function renderSelectorPage() {
         const data = await apiRequest('/api/admin/users');
         const users = data.users || [];
         wrap.innerHTML = users.map((u) => `
-            <div class="bg-[#1a1e29] border border-white/5 hover:border-red-500/30 rounded-xl p-4 flex flex-col xl:flex-row items-center justify-between gap-4 transition-all">
+            <div class="bg-[#1a1e29] border border-white/5 hover:border-red-500/30 rounded-xl p-4 flex flex-col xl:flex-row items-center justify-between gap-4 transition-all shadow-md">
                 <div class="flex items-center gap-4 w-full xl:w-auto">
-                    <img src="${u.avatar || FALLBACK_IMG}" class="w-12 h-12 rounded-lg object-cover">
+                    <img src="${u.avatar || FALLBACK_IMG}" class="w-12 h-12 rounded-lg object-cover border border-white/10">
                     <div>
                         <div class="font-black text-white text-lg">${u.nickname || 'User'}</div>
-                        <div class="text-xs text-gray-400">Bal: <span class="text-yellow-400">${formatMoney(u.balance || 0)}</span></div>
+                        <div class="text-xs text-gray-400">Bal: <span class="text-yellow-400">${formatMoney(u.balance || 0)}</span> | ID: <span class="text-[9px] text-gray-600">${u.id || 'N/A'}</span></div>
                     </div>
                 </div>
-
+                
                 <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
-                    <div class="flex items-center gap-3 bg-[#0b0d11] px-3 py-1.5 rounded-lg border border-white/10">
+                    <div class="flex items-center gap-3 bg-[#0b0d11] px-3 py-2 rounded-lg border border-white/5">
                         <span class="text-[10px] font-bold text-gray-500 uppercase">Luck Rig:</span>
-                        <input type="range" min="-10" max="10" value="${u.luckModifier || 0}"
+                        <input type="range" min="-10" max="10" value="${u.luckModifier || 0}" 
                                oninput="document.getElementById('luck-val-${u.id}').textContent = this.value"
-                               onchange="window.updateUserLuck('${u.id}', this.value)"
-                               class="w-20 accent-red-500 cursor-pointer">
+                               onchange="window.updateUserLuck('${u.id}', this.value)" 
+                               class="w-24 accent-red-500 cursor-pointer">
                         <span id="luck-val-${u.id}" class="text-xs font-black text-white w-5 text-right">${u.luckModifier || 0}</span>
                     </div>
-                    <button onclick="quickAddBalance('${u.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-colors">+5 EUR</button>
+
+                    <button onclick="window.quickAddBalance('${u.id}', 250)" class="bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-colors border border-green-500/30">+250 EUR</button>
+                    <button onclick="showToast('Inventář smazán (MOCK)')" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black transition-colors border border-red-500/30" title="Wipe Inventory"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="showToast('Uživatel zabanován (MOCK)')" class="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black transition-colors border border-orange-500/30" title="Ban User"><i data-lucide="ban" class="w-4 h-4"></i></button>
                 </div>
             </div>
-        `).join('') || '<div class="text-center py-10 text-gray-500 font-bold">Žádní uživatelé.</div>';
+        `).join('') || '<div class="text-center py-10 text-gray-500 font-bold uppercase tracking-widest">Žádní uživatelé.</div>';
         lucide.createIcons();
     } catch (err) {
         wrap.innerHTML = `<div class="text-center text-red-500 py-10 font-bold">${err.message}</div>`;
     }
 };
+
 
 async function updateUserLuck(userId, luckValue) {
     try {
@@ -4372,14 +4438,12 @@ async function updateUserLuck(userId, luckValue) {
     }
 };
 
-        async function quickAddBalance(userId) {
+        async function quickAddBalance(userId, amount = 250) {
             try {
-                await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: 5 });
-                showToast('Balance přidán.');
+                await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: amount });
+                showToast(`Balance ${amount} přidán.`);
                 loadAdminUsers();
-            } catch (err) {
-                showToast(err.message, true);
-            }
+            } catch (err) { showToast(err.message, true); }
         }
 
         async function loadTopupRequests() {
@@ -4463,7 +4527,6 @@ async function updateUserLuck(userId, luckValue) {
         window.requestTopUp = requestTopUp;
                 window.loadTopupRequests = loadTopupRequests;
         window.decideTopupRequest = decideTopupRequest;
-        window.quickAddBalance = quickAddBalance;
 
 
 // Oživení Case Battle Modal Tlačítek
@@ -4520,14 +4583,16 @@ function renderCreateBattleQueue() {
 
 // Globální state pro giveaways
 window.liveGiveaways = [
-    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 1, joined: false },
-    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0, joined: false }
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 0 },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0 },
+    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: "https://www.csgodatabase.com/images/skins/webp/AWP_Dragon_Lore.webp", color: "#ebca44", players: 1 }
 ];
 
 window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
     if (!grid) return;
     
+    // Načte uložené ID giveawayů, do kterých se hráč přidal
     const joinedGws = JSON.parse(localStorage.getItem('joinedGiveaways') || '[]');
 
     grid.innerHTML = window.liveGiveaways.map(g => {
@@ -4559,63 +4624,73 @@ window.joinGiveaway = function(id) {
     }
 };
 
-async function searchUsers() {
-    const q = document.getElementById('friend-search')?.value?.trim().toLowerCase();
-    const results = document.getElementById('friend-search-results');
-    if (!results) return;
-    if (!q) { results.innerHTML = ''; return; }
+window.searchUsers = function() {
+    const inputEl = document.getElementById('friend-search');
+    const resultsWrap = document.getElementById('friend-search-results');
+    if (!inputEl || !resultsWrap) return;
+    
+    const q = inputEl.value.trim().toLowerCase();
+    
+    // Našeptávač reaguje až od 2 znaků
+    if (q.length < 2) { 
+        resultsWrap.innerHTML = ''; 
+        return; 
+    }
 
-    try {
-        // Simulovaný fetch (nebo nahraď real API, např. await apiRequest('/api/users/search?q=' + q))
-        // Prozatím funguje jako mock na otestování UI klienta
-        results.innerHTML = `
-            <div onclick="window.viewUserProfile('mock123', '${q}')" class="flex items-center gap-3 bg-white/5 p-3 rounded-xl cursor-pointer hover:bg-white/10 border border-white/5 transition-colors shadow-md">
-                <img src="${FALLBACK_IMG}" class="w-10 h-10 rounded-lg object-cover bg-black">
+    resultsWrap.innerHTML = '<div class="text-xs text-gray-400 p-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin inline"></i> Hledám...</div>';
+    lucide.createIcons();
+
+    // Mock API response delay
+    setTimeout(() => {
+        const mockUsers = [
+            { id: 'u1', nickname: q + 'Ninja', avatar: FALLBACK_IMG, exp: 4500 },
+            { id: 'u2', nickname: 'TheReal_' + q, avatar: FALLBACK_IMG, exp: 12000 },
+            { id: 'u3', nickname: q + '_Pro', avatar: FALLBACK_IMG, exp: 850 }
+        ];
+
+        resultsWrap.innerHTML = mockUsers.map(u => `
+            <div onclick="window.viewUserProfile('${u.id}', '${u.nickname}', '${u.avatar}', false, ${u.exp})" class="flex items-center gap-3 bg-[#1a1e29] p-3 rounded-xl cursor-pointer hover:bg-white/10 border border-white/5 transition-colors shadow-md mb-2">
+                <img src="${u.avatar}" class="w-10 h-10 rounded-lg object-cover bg-black border border-white/10">
                 <div>
-                    <div class="text-white font-black text-sm uppercase">${q}</div>
-                    <div class="text-gray-500 text-[10px] font-bold">Klikni pro zobrazení profilu</div>
+                    <div class="text-white font-black text-sm uppercase">${u.nickname}</div>
+                    <div class="text-gray-500 text-[10px] font-bold">LVL ${Math.floor(u.exp/100)} • Klikni pro profil</div>
                 </div>
             </div>
-        `;
-    } catch(err) {
-        results.innerHTML = `<div class="text-red-500 text-xs">${err.message}</div>`;
-    }
+        `).join('');
+    }, 400); // Falešný delay pro pocit reálného vyhledávání
 };
 
-window.renderOwnPublicProfile = function() {
-    if(!currentUser) return showToast('Nejsi přihlášen', true);
-    window.viewUserProfile(currentUser.id || currentUser._id, currentUser.displayName || currentUser.nickname, currentUser.avatar, true);
-};
-
-window.viewUserProfile = function(userId, userName, avatar = FALLBACK_IMG, isMe = false) {
+const viewUserProfile = window.viewUserProfile = function(userId, userName, avatar = FALLBACK_IMG, isMe = false, customExp = 0) {
     const card = document.getElementById('user-profile-card');
     const inv = document.getElementById('user-profile-inventory');
     if(!card || !inv) return;
 
+    const displayExp = isMe ? (userProfile?.exp || 0) : customExp;
+
     let actionsHtml = isMe 
-        ? `<button onclick="logoutLocalProfile()" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>Odhlásit se</button>`
-        : `<button onclick="showToast('Žádost o přátelství odeslána!')" class="bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>Přidat do přátel</button>
-           <button onclick="showToast('Trade offer odeslán')" class="bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4 ml-2"><i data-lucide="arrow-right-left" class="w-4 h-4 inline mr-2"></i>Trade</button>`;
+        ? `<button onclick="logoutLocalProfile()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>Odhlásit se</button>`
+        : `<button onclick="showToast('Žádost o přátelství odeslána!')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4"><i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>Přidat do přátel</button>
+           <button onclick="showToast('Trade offer odeslán')" class="bg-green-500/10 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/30 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all mt-4 ml-2"><i data-lucide="arrow-right-left" class="w-4 h-4 inline mr-2"></i>Trade</button>`;
 
     card.innerHTML = `
         <div class="flex items-center justify-between bg-[#1a1e29] p-8 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-transparent opacity-50"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-transparent opacity-50 pointer-events-none"></div>
             <div class="flex items-center gap-6 relative z-10">
                 <img src="${avatar}" onerror="handleImgError(this)" class="w-24 h-24 rounded-2xl object-cover shadow-2xl border-2 border-yellow-400">
                 <div>
                     <h2 class="text-3xl font-black text-white uppercase drop-shadow-md">${userName || 'Hráč'}</h2>
-                    <div class="text-yellow-400 font-bold text-sm mt-1 tracking-widest">LEVEL ${(userProfile?.exp || 0) / 100}</div>
+                    <div class="text-yellow-400 font-bold text-sm mt-1 tracking-widest">LEVEL ${Math.floor(displayExp / 100)}</div>
                     ${actionsHtml}
                 </div>
             </div>
         </div>
     `;
 
-    // Zobrazení inventáře
-    let displayInv = isMe ? userInventory : Object.values(skinsDB).sort(() => 0.5 - Math.random()).slice(0, 6); // Mock pro ostatní
+    // Zobrazení inventáře (Moje vs Cizí mock)
+    let displayInv = isMe ? userInventory : Object.values(skinsDB).sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 8) + 4); 
     
     if(displayInv.length === 0) {
-        inv.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10 font-bold">Inventář je prázdný.</div>';
+        inv.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase tracking-widest">Inventář je prázdný.</div>';
     } else {
         inv.innerHTML = displayInv.map(item => `
             <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1" style="border-color: ${item.color};">
@@ -4628,6 +4703,11 @@ window.viewUserProfile = function(userId, userName, avatar = FALLBACK_IMG, isMe 
 
     switchPage('user-profile');
     lucide.createIcons();
+};
+
+const renderOwnPublicProfile = window.renderOwnPublicProfile = function() {
+    if(!currentUser) { openAuthModal(); return; }
+    window.viewUserProfile(currentUser.id || currentUser._id, currentUser.displayName || currentUser.nickname, currentUser.avatar, true);
 };
 
 async function cancelCaseBattle(roomId) {
@@ -4656,6 +4736,8 @@ window.toggleNotifications = function() {
     }
 };
 
+const initGiveaways = window.initGiveaways;
+const searchUsers = window.searchUsers;
 // --- CRITICAL GLOBAL BINDINGS ---
 window.switchPage = switchPage;
 window.openAuthModal = openAuthModal;
@@ -4663,17 +4745,19 @@ window.closeAuthModal = closeAuthModal;
 window.toggleLiveChat = toggleLiveChat;
 window.openCaseView = openCaseView;
 window.renderSelectorPage = renderSelectorPage;
+window.createCaseBattleRoom = createCaseBattleRoom;
 window.updateCbCaseCount = updateCbCaseCount;
 window.setCaseBattleListTab = setCaseBattleListTab;
 window.setCaseBattleFilter = setCaseBattleFilter;
-window.leaveCaseBattleRoom = leaveCaseBattleRoom;
-window.toggleNotifications = toggleNotifications;
+window.initGiveaways = initGiveaways;
 window.cancelCaseBattle = cancelCaseBattle;
 window.searchUsers = searchUsers;
 window.viewUserProfile = viewUserProfile;
 window.renderOwnPublicProfile = renderOwnPublicProfile;
 window.loadAdminUsers = loadAdminUsers;
 window.updateUserLuck = updateUserLuck;
+window.viewCaseBattle = viewCaseBattle;
+window.quickAddBalance = quickAddBalance;
 
         window.onload = async () => {
             sanitizeDuplicateSocialButtons();

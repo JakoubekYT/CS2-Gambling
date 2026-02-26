@@ -1041,37 +1041,57 @@ function buildSyntheticCaseContents(caseMeta = {}) {
 function weightedRoll(contents, luckModifier = 0) {
   const list = Array.isArray(contents) ? contents : [];
   if (!list.length) return { name: 'Unknown Skin', price: 0, color: '#4b69ff', img: '', rarity: 'consumer' };
-  const prices = list.map((x) => Number(x.price || 0));
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const normalizedLuck = Math.max(-10, Math.min(10, Number(luckModifier || 0))) / 10;
-  const adjusted = list.map((item) => {
-    const baseChance = Math.max(0, Number(item.chance || 0)) || 1;
-    if (maxPrice <= minPrice) return { item, weight: baseChance };
-    const price = Number(item.price || 0);
-    const normalizedPrice = (price - minPrice) / (maxPrice - minPrice);
-    const expensiveBias = (normalizedPrice - 0.5) * 2;
-    const multiplier = Math.max(0.1, 1 + (normalizedLuck * expensiveBias * 0.6));
-    return { item, weight: baseChance * multiplier };
-  });
 
-  const total = adjusted.reduce((a, x) => a + Number(x.weight || 0), 0) || adjusted.length;
-  let r = Math.random() * total;
-  for (const entry of adjusted) {
-    const item = entry.item;
-    r -= Number(entry.weight || 0) || (total / adjusted.length);
-    if (r <= 0) {
-      return {
-        name: item.name || item.skinName || item.label || 'Skin',
-        price: Number(item.price || 0),
-        color: item.color || '#4b69ff',
-        img: item.img || '',
-        rarity: item.rarity || 'consumer'
-      };
+  const sortedContents = [...list].sort((a, b) => Number(a.chance || 0) - Number(b.chance || 0));
+  const clampedLuck = Math.max(-10, Math.min(10, Number(luckModifier || 0)));
+
+  if (clampedLuck >= 9) {
+    const topPool = sortedContents.slice(0, Math.min(3, sortedContents.length));
+    const forced = topPool[Math.floor(Math.random() * topPool.length)] || sortedContents[0];
+    return {
+      name: forced.name || forced.skinName || forced.label || 'Skin',
+      price: Number(forced.price || 0),
+      color: forced.color || '#4b69ff',
+      img: forced.img || '',
+      rarity: forced.rarity || 'consumer'
+    };
+  }
+
+  if (clampedLuck <= -9) {
+    const forced = sortedContents[sortedContents.length - 1] || {};
+    return {
+      name: forced.name || forced.skinName || forced.label || 'Skin',
+      price: Number(forced.price || 0),
+      color: forced.color || '#4b69ff',
+      img: forced.img || '',
+      rarity: forced.rarity || 'consumer'
+    };
+  }
+
+  let power = 1;
+  if (clampedLuck > 0) power = 1 + (clampedLuck * 0.25);
+  else if (clampedLuck < 0) power = 1 / (1 + (Math.abs(clampedLuck) * 0.25));
+
+  const rawRoll = Math.random();
+  const riggedRoll = Math.pow(rawRoll, power) * 100;
+
+  let sum = 0;
+  let win = sortedContents[sortedContents.length - 1] || {};
+  for (const item of sortedContents) {
+    sum += Number(item.chance || 0);
+    if (riggedRoll <= sum) {
+      win = item;
+      break;
     }
   }
-  const last = list[list.length - 1] || {};
-  return { name: last.name || 'Skin', price: Number(last.price || 0), color: last.color || '#4b69ff', img: last.img || '', rarity: last.rarity || 'consumer' };
+
+  return {
+    name: win.name || win.skinName || win.label || 'Skin',
+    price: Number(win.price || 0),
+    color: win.color || '#4b69ff',
+    img: win.img || '',
+    rarity: win.rarity || 'consumer'
+  };
 }
 
 function expandCaseQueue(caseQueue, fallbackRounds = 1) {
