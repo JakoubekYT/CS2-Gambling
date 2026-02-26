@@ -2552,7 +2552,7 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
     
     // Ošetření součtu na přesných 100%
     let totalChance = contents.reduce((a, b) => a + b.chance, 0);
-    contents[contents.length - 1].chance += (100 - totalChance); 
+    contents[contents.length - 1].chance += (100 - totalChance); // Fix rounding
     
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
     manualCaseIds.add(id);
