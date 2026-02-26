@@ -2494,68 +2494,58 @@ function createSmartCase(id, name, price, color, imgName, coverWeapon, coverSkin
         casesDB.push(c);
     }
     
-    // Logika extrémních 50/50 beden
+    // Logika 50/50 beden
     if (constraints.is5050) {
         const trash = Object.values(skinsDB).find(s => s.price < (price * 0.1)) || Object.values(skinsDB)[0];
-        c.contents = [
-            { skin: cSkin, chance: 50 },
-            { skin: trash, chance: 50 }
-        ];
-        manualCaseIds.add(id);
+        c.contents = [{ skin: cSkin, chance: 50 }, { skin: trash, chance: 50 }];
         return;
     }
 
-    // Filtrování vhodných skinů pro výplň bedny (musí být levnější než hlavní skin)
-    let pool = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price < cSkin.price && s.price < (price * 2.5));
-    if (constraints.weapon) pool = pool.filter(s => s.weapon === constraints.weapon);
-    if (constraints.rarity) pool = pool.filter(s => s.rarityName === constraints.rarity);
-    if (pool.length === 0) pool = Object.values(skinsDB).filter(s => s.price < price);
-    pool.sort((a,b) => a.price - b.price);
-    // PROFIT MATEMATIKA (RTP ~ 90-95%) -> Kasino vydělá, hráč nedostane úplný odpad
-    let targetEV = price * 0.90;
-
-    // 1. Šance na hlavní (cover) skin (od 0.01% do max 8%)
-    let coverChance = constraints.exactChance || Math.max(0.01, Math.min(8, ((targetEV * 0.15) / cSkin.price * 100)));
+    // --- CASEHUG PROFIT FORMULA ---
+    // RTP (Return to player) = 92% -> Kasino má 8% garantovaný zisk dlouhodobě
+    
+    // 1. TOP DROP (Pokrytí)
+    let coverChance = constraints.exactChance || Math.max(0.01, Math.min(5, ((price * 0.92 * 0.10) / cSkin.price * 100)));
     let contents = [{ skin: cSkin, chance: coverChance }];
     
-    // 2. Vytvoření poolů pro Měkkou prohru (Soft Loss)
-    let softLossMin = price * 0.15; // Nesmí padnout absolutní odpad! Min 15% ceny bedny.
-    let softLossMax = price * 0.80; 
-    let winMin = price * 1.1;
-    let winMax = price * 3.0;
-
-    let softLossPool = pool.filter(s => s.price >= softLossMin && s.price <= softLossMax);
-    let smallWinPool = pool.filter(s => s.price >= winMin && s.price <= winMax);
+    // 2. POOLY SKINŮ
+    // Soft Loss: Skiny, kde hráč "trochu" prohraje, ale nepadne na nulu (40% - 95% ceny bedny)
+    let softLossSkins = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price >= (price * 0.40) && s.price <= (price * 0.95));
+    // Small Win: Skiny, kde hráč trochu vydělá (110% - 300% ceny bedny)
+    let smallWinSkins = Object.values(skinsDB).filter(s => s.id !== cSkin.id && s.price >= (price * 1.1) && s.price <= (price * 3.0));
     
-    // Fallback pokud je málo skinů v dané ceně
-    if (softLossPool.length < 3) softLossPool = pool.filter(s => s.price < price);
-    if (smallWinPool.length < 2) smallWinPool = pool.filter(s => s.price > price);
+    // Fallback pokud je málo skinů v dané relaci
+    if(softLossSkins.length < 5) softLossSkins = Object.values(skinsDB).filter(s => s.price < price).sort((a,b)=>b.price-a.price).slice(0, 10);
+    if(smallWinSkins.length < 3) smallWinSkins = Object.values(skinsDB).filter(s => s.price > price).sort((a,b)=>a.price-b.price).slice(0, 5);
+
+    // Výběr unikátních skinů do bedny (10 Soft Loss, 4 Small Win)
+    let selectedSoft = softLossSkins.sort(() => 0.5 - Math.random()).slice(0, 10);
+    let selectedWin = smallWinSkins.sort(() => 0.5 - Math.random()).slice(0, 4);
 
     let chanceLeft = 100 - coverChance;
-
-    const assignChances = (sourcePool, totalAllocatedChance, maxItems) => {
-        if (!sourcePool.length) return;
-        let selected = [...sourcePool].sort(() => 0.5 - Math.random()).slice(0, maxItems);
-        let weightSum = selected.reduce((sum, s) => sum + (1 / s.price), 0);
-        selected.forEach(s => {
-            contents.push({ skin: s, chance: ((1 / s.price) / weightSum) * totalAllocatedChance });
-        });
-    };
-
-    // Alokace šancí: 80% případů padne Soft-Loss (hráč ztratí, ale získá hezký skin)
-    assignChances(softLossPool, chanceLeft * 0.80, 8);
-    // 20% případů padne menší výhra
-    assignChances(smallWinPool, chanceLeft * 0.20, 3);
-
-    // Seřazení podle šance (nejvzácnější dole)
-    contents.sort((a, b) => a.chance - b.chance);
     
-    // Ošetření součtu na přesných 100%
-    let totalChance = contents.reduce((a, b) => a + b.chance, 0);
-    contents[contents.length - 1].chance += (100 - totalChance); // Fix rounding
+    // Rozložení: 75% šance na Soft Loss (hráč lehce prodělá, kasino získá)
+    let softLossTotalChance = chanceLeft * 0.75;
+    let softWeightSum = selectedSoft.reduce((sum, s) => sum + (1/s.price), 0);
+    selectedSoft.forEach(s => {
+        contents.push({ skin: s, chance: ((1/s.price) / softWeightSum) * softLossTotalChance });
+    });
+
+    // Rozložení: Zbytek šance (cca 25%) na Small Win (hráč je nadšený)
+    let winTotalChance = chanceLeft - softLossTotalChance;
+    let winWeightSum = selectedWin.reduce((sum, s) => sum + (1/s.price), 0);
+    selectedWin.forEach(s => {
+        contents.push({ skin: s, chance: ((1/s.price) / winWeightSum) * winTotalChance });
+    });
+
+    // Zaokrouhlení, oprava setin a seřazení od nejcennějšího (aby šance na webu vypadaly logicky)
+    contents.sort((a, b) => b.skin.price - a.skin.price);
     
+    // Poslední položka (nejlevnější) vyrovná pole na přesných 100%
+    let calculatedTotal = contents.reduce((sum, item) => sum + Math.floor(item.chance * 1000)/1000, 0);
+    contents[contents.length - 1].chance += (100 - calculatedTotal);
+
     c.contents = contents.map(x => ({...x, chance: Math.round(x.chance * 1000) / 1000}));
-    manualCaseIds.add(id);
 }
 
 // INICIALIZACE VŠECH KLIENTOVÝCH BEDEN S OBRÁZKY CASEHUG
@@ -2963,47 +2953,48 @@ function updateSelectorBottomBar() {
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
         async function leaveCaseBattleRoom() { if (!cbActiveRoomId) return; try { await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST'); } catch(_e) {} cbActiveRoomId = null; cbAnimationSession += 1; cbAnimationLock = false; cbLastAnimatedSignature = ''; cbSetPanels(false); document.getElementById('cb-stage').innerHTML=''; document.getElementById('cb-log').innerHTML=''; loadCaseBattleRooms(); }
         window.startCaseBattleRoom = async function() {
-            if (!requireAuthAction()) return;
-            if (!cbActiveRoomId) return showToast('Nejdřív vytvoř/připoj room.', true); 
-            
-            const btn = document.querySelector('button[onclick="startCaseBattleRoom()"]');
-            if (btn) { btn.textContent = 'STARTOVÁNÍ...'; btn.disabled = true; }
+    if (!requireAuthAction()) return;
+    if (!cbActiveRoomId) return showToast('Nejdřív vytvoř nebo připoj room.', true); 
+    
+    const btn = document.querySelector('button[onclick="startCaseBattleRoom()"]');
+    if (btn) { btn.textContent = 'STARTOVÁNÍ...'; btn.disabled = true; }
 
-            try {
-                // Zkusíme zavolat backend
-                const data = await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true }).catch(() => null);
-                
-                // ZÁCHRANA PŘED ZAMRZNUTÍM: Pokud backend selže nebo nepošle dropy, frontend si to odřídí sám!
-                const room = caseBattleRooms.find(r => r.id === cbActiveRoomId);
-                if (room) {
-                    room.status = 'done';
-                    const rounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
-                    
-                    room.players.forEach((p, pIdx) => {
-                        if (!p.drops || p.drops.length === 0) {
-                            p.drops = [];
-                            p.score = 0;
-                            for (let i = 0; i < rounds; i++) {
-                                // Zjistíme, jaká bedna se točí v tomto kole
-                                let cId = Array.isArray(room.caseQueue) && room.caseQueue[i] ? room.caseQueue[i].caseId : room.caseId;
-                                let cObj = casesDB.find(c => c.id === cId) || casesDB[0];
-                                
-                                // Bot má luck 0, Hráč má svůj luck
-                                let lck = p.bot ? 0 : (userProfile?.luckModifier || 0);
-                                let drop = rollCaseSkin(cObj, lck);
-                                p.drops.push(drop);
-                                p.score += (drop.price || 0);
-                            }
-                        }
-                    });
-                    cbAnimationLock = false;
-                    cbLastAnimatedSignature = ''; // Vynutí spuštění animace
-                    renderCaseBattleRoom(room, true);
+    try {
+        // Zavoláme backend pro start (jestli funguje)
+        await apiRequest(`/api/case-battle/start/${cbActiveRoomId}`, 'POST', { forceBots: true }).catch(e => console.warn(e));
+        
+        // ZÁCHRANNÝ FRONTEND MECHANISMUS (Zabrání zamrznutí točení)
+        const room = caseBattleRooms.find(r => r.id === cbActiveRoomId);
+        if (room) {
+            room.status = 'done'; // Okamžitě změníme status pro spuštění UI
+            const rounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
+            
+            // Projedeme hráče a BOTA, pokud nemají dropy, vygenerujeme jim je zde
+            room.players.forEach(p => {
+                if (!p.drops || p.drops.length !== rounds) {
+                    p.drops = [];
+                    p.score = 0;
+                    for (let i = 0; i < rounds; i++) {
+                        let cId = Array.isArray(room.caseQueue) ? room.caseQueue[i].caseId : room.caseId;
+                        let cObj = casesDB.find(c => c.id === cId) || casesDB[0];
+                        
+                        let luck = p.bot ? 0 : (userProfile?.luckModifier || 0); // Bot nemá luck
+                        let drop = rollCaseSkin(cObj, luck);
+                        p.drops.push(drop);
+                        p.score += drop.price;
+                    }
                 }
-            } catch (err) { 
-                showToast(err.message, true); 
-            }
-        };
+            });
+
+            // Odstranění zarážek a vynucené točení
+            window.cbLastAnimatedSignature = ''; 
+            cbAnimationLock = false;
+            renderCaseBattleRoom(room, true);
+        }
+    } catch (err) { 
+        showToast(err.message, true); 
+    }
+};
 
         async function refreshCaseBattleRoom() {
             if (!cbActiveRoomId) return;
@@ -3628,36 +3619,37 @@ function updateSelectorBottomBar() {
         });
 
         function rollCaseSkin(caseObj, userLuck = 0) {
-            // Seřazeno od nejvzácnějšího (nejnižší šance) po nejběžnější
-            let sortedContents = [...caseObj.contents].sort((a, b) => a.chance - b.chance); 
-            
-            // GOD MODE: Pokud má hráč štěstí 9 nebo 10, ignorujeme matematiku a dáme mu Top 3 nejlepší skiny.
-            if (userLuck >= 9) {
-                let topSkins = sortedContents.slice(0, 3);
-                return topSkins[Math.floor(Math.random() * topSkins.length)].skin;
-            }
-            // LOSER MODE: Pokud má hráč štěstí -9 nebo -10, dostane ten absolutně nejhorší skin.
-            if (userLuck <= -9) {
-                return sortedContents[sortedContents.length - 1].skin;
-            }
+    let sortedContents = [...caseObj.contents].sort((a, b) => b.skin.price - a.skin.price); 
+    
+    // GOD MODE (Luck 9 nebo 10) -> Vnutí vždy TOP 3 nejcennější skiny z bedny
+    if (userLuck >= 9) {
+        let topSkins = sortedContents.slice(0, 3);
+        return topSkins[Math.floor(Math.random() * topSkins.length)].skin;
+    }
+    // TRASH MODE (Luck -9 nebo -10) -> Vnutí vždy nejlevnější odpad z bedny
+    if (userLuck <= -9) {
+        return sortedContents[sortedContents.length - 1].skin;
+    }
 
-            // Lehký rigging pro hodnoty 1 až 8 (Zvyšuje šanci na začátek pole - vzácné skiny)
-            let power = 1;
-            if (userLuck > 0) power = 1 + (userLuck * 0.3); // Posun k výhře
-            else if (userLuck < 0) power = 1 / (1 + (Math.abs(userLuck) * 0.3)); // Posun k prohře
+    // Lehký rigging pro hodnoty 1 až 8 (Zvyšuje šanci na vzácné skiny exponenciálně)
+    let power = 1;
+    if (userLuck > 0) power = 1 + (userLuck * 0.35); 
+    else if (userLuck < 0) power = 1 / (1 + (Math.abs(userLuck) * 0.35));
 
-            let rawRoll = Math.random(); // 0.0 - 1.0
-            let riggedRoll = Math.pow(rawRoll, power) * 100; // Aplikace křivky
+    let rawRoll = Math.random(); 
+    let riggedRoll = Math.pow(rawRoll, power) * 100;
 
-            let sum = 0;
-            let win = sortedContents[sortedContents.length - 1].skin; 
-            
-            for(const item of sortedContents) {
-                sum += item.chance;
-                if(riggedRoll <= sum) { win = item.skin; break; }
-            }
-            return win;
-        }
+    let sum = 0;
+    // Obrátíme obsah pro procházení od nejobyčejnějšího po nejvzácnější
+    let reverseContents = [...sortedContents].reverse();
+    let win = reverseContents[0].skin; 
+    
+    for(const item of reverseContents) {
+        sum += item.chance;
+        if(riggedRoll <= sum) { win = item.skin; break; }
+    }
+    return win;
+}
 
         function renderMultiResultCard(skin) {
             return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
