@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>OTODROP | CS2 CASES & UPGRADES</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -269,7 +270,7 @@
         </div>
     </header>
 
-    <button id="live-chat-toggle" onclick="toggleLiveChat()" class="hidden lg:flex fixed right-6 bottom-6 z-[90] w-12 h-12 rounded-lg bg-[#12161f] border border-yellow-400/40 text-yellow-300 items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:bg-[#1a1e29] hover:text-yellow-200 transition-all">
+    <button id="live-chat-toggle" onclick="toggleLiveChat()" class="hidden lg:flex fixed right-6 bottom-6 z-[90] w-12 h-12 rounded-lg bg-[#12161f] border border-yellow-400/40 text-yellow-300 items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:bg-[#1a1e29] hover:text-yellow-200 transition-all [&>*]:pointer-events-none">
         <i data-lucide="message-square" class="w-5 h-5 pointer-events-none"></i>
     </button>
 
@@ -3310,7 +3311,12 @@ function updateSelectorBottomBar() {
                         }
                         if (!drop) {
                             console.warn(`ZÁCHRANA: Hráči ${i} chybí drop v kole ${round}. Generuji náhradní!`);
-                            drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' };
+                            if (qCase) {
+                                let luck = room.players[i]?.bot ? 0 : (userProfile?.luckModifier || 0);
+                                drop = window.rollCaseSkin ? window.rollCaseSkin(qCase, luck) : (pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' });
+                            } else {
+                                drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' };
+                            }
                         }
 
                         let html = '';
@@ -4353,21 +4359,25 @@ function renderSelectorPage() {
                 if (!currentUser) {
                     balanceBase = 0;
                     userInventory = [];
+                    userProfile = { exp: 0 };
                     updateAuthUI();
                     return null;
                 }
                 const state = await apiRequest('/api/state');
                 balanceBase = Number(state.balance || 0);
                 userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                userProfile = { ...userProfile, luckModifier: currentUser.luckModifier || 0 };
                 updateAuthUI();
                 updateUI();
                 return currentUser;
             } catch (_err) {
                 currentUser = null;
+                userProfile = { exp: 0 };
                 updateAuthUI();
                 return null;
             }
         }
+        window.loadSessionFromBackend = loadSessionFromBackend;
 
         let lastTopupRequestTime = 0;
         async function requestTopUp() {
@@ -4433,6 +4443,11 @@ async function updateUserLuck(userId, luckValue) {
     try {
         await apiRequest('/api/admin/update-luck', 'POST', { userId, luckValue: Number(luckValue) });
         showToast(`Štěstí pro uživatele upraveno na ${luckValue}`);
+        
+        // Pokud měníme štěstí sobě samému, musíme si aktualizovat profil v paměti
+        if (currentUser && currentUser._id === userId) {
+            await window.loadSessionFromBackend();
+        }
     } catch (err) {
         showToast(err.message, true);
     }
@@ -4583,10 +4598,12 @@ function renderCreateBattleQueue() {
 
 // Globální state pro giveaways
 window.liveGiveaways = [
-    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 0 },
-    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0 },
-    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", img: "https://www.csgodatabase.com/images/skins/webp/AWP_Dragon_Lore.webp", color: "#ebca44", players: 1 }
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", endTime: Date.now() + 1 * 60 * 60 * 1000 + 24 * 60 * 1000, img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 0 },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", endTime: Date.now() + 4 * 60 * 60 * 1000 + 12 * 60 * 1000, img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0 },
+    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", endTime: Date.now() + 12 * 60 * 60 * 1000, img: "https://www.csgodatabase.com/images/skins/webp/AWP_Dragon_Lore.webp", color: "#ebca44", players: 1 }
 ];
+
+window.giveawayInterval = null;
 
 window.initGiveaways = function() {
     const grid = document.getElementById('giveaway-grid');
@@ -4601,16 +4618,42 @@ window.initGiveaways = function() {
         return `
         <div class="bg-[#12161f] border border-white/5 rounded-2xl p-6 flex flex-col items-center relative overflow-hidden shadow-lg">
             <div class="absolute top-0 left-0 w-full h-1" style="background-color: ${g.color};"></div>
+            <div class="absolute top-4 left-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-yellow-400 font-mono tracking-widest"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i><span id="gw-timer-${g.id}">...</span></div>
             <div class="absolute top-4 right-4 bg-black/60 px-2.5 py-1 rounded text-[10px] font-black text-gray-300"><i data-lucide="users" class="w-3 h-3 inline mr-1"></i>${currentPlayers}</div>
             <img src="${g.img}" class="h-32 object-contain mt-6 drop-shadow-md">
-            <div class="mt-4 text-sm font-black text-gray-300 uppercase tracking-widest">${g.name}</div>
+            <div class="mt-4 text-sm font-black text-gray-300 uppercase tracking-widest text-center h-10 w-full">${g.name}</div>
             <div class="text-xl font-black mt-1 mb-4" style="color: ${g.color}">${formatMoney(g.price)}</div>
-            <button onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${isJoined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-lg active:scale-95'}">
+            <button id="btn-gw-${g.id}" onclick="window.joinGiveaway(${g.id})" class="w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 ${isJoined ? 'bg-white/10 text-gray-400 cursor-not-allowed' : 'bg-[#c0f20c] hover:bg-[#a3cc0a] text-black shadow-lg active:scale-95'}">
                 ${isJoined ? 'PŘIPOJENO' : 'JOIN GIVEAWAY'}
             </button>
         </div>`;
     }).join('');
     lucide.createIcons();
+
+    if (window.giveawayInterval) clearInterval(window.giveawayInterval);
+    window.giveawayInterval = setInterval(() => {
+        const now = Date.now();
+        window.liveGiveaways.forEach(g => {
+            const el = document.getElementById(`gw-timer-${g.id}`);
+            if (!el) return;
+            const remaining = g.endTime - now;
+            if (remaining <= 0) {
+                el.innerHTML = "VYLOSOVÁNO";
+                el.classList.replace('text-yellow-400', 'text-red-500');
+                const btn = document.getElementById(`btn-gw-${g.id}`);
+                if (btn && !btn.disabled) {
+                    btn.className = "w-full rounded-xl py-3 text-xs font-black uppercase transition-all z-10 bg-white/10 text-gray-400 cursor-not-allowed";
+                    btn.innerHTML = "POZASTAVENO";
+                    btn.disabled = true;
+                }
+            } else {
+                const h = Math.floor(remaining / (1000 * 60 * 60));
+                const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((remaining % (1000 * 60)) / 1000);
+                el.innerHTML = `${h}h ${m}m ${s}s`;
+            }
+        });
+    }, 1000);
 };
 
 window.joinGiveaway = function(id) {
