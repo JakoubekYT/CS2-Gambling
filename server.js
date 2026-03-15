@@ -1767,7 +1767,7 @@ app.get('/api/image-cache', async (req, res) => {
         }
       });
       if (!response.ok) {
-        return res.redirect(remoteUrl);
+        return res.status(404).send('Not found');
       }
       const ct = response.headers.get('content-type') || '';
       if (!ct.startsWith('image/')) {
@@ -1779,9 +1779,8 @@ app.get('/api/image-cache', async (req, res) => {
 
     return res.sendFile(filePath);
   } catch (err) {
-    const remoteUrl = (req.query.url || '').toString();
-    if (/^https?:\/\//i.test(remoteUrl)) return res.redirect(remoteUrl);
-    return res.status(500).json({ ok: false, message: 'Image cache error.' });
+    console.error('Image cache error:', err.message);
+    return res.status(404).send('Image not available');
   }
 });
 
