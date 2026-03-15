@@ -17,39 +17,35 @@ const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/,
 // Load pre-downloaded skin image mapping (from download-skin-images.js)
 const SKINS_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
 const SKIN_MAPPING_PATH = path.join(SKINS_CACHE_DIR, '_name_to_hash.json');
-let skinNameMap = {}; // normalized name → { hash, ext, url }
+let skinNameMap = {}; // normalized name -> { url }
 
 try {
   if (fs.existsSync(SKIN_MAPPING_PATH)) {
     const rawMap = JSON.parse(fs.readFileSync(SKIN_MAPPING_PATH, 'utf8'));
-    // Zásadní: musíme klíče v mapě normalizovat, aby odpovídaly vstupu z normalizeSkinName
+    // Normalize all keys for consistent lookup
     for (const [name, entry] of Object.entries(rawMap)) {
       const norm = normalizeSkinName(name);
       skinNameMap[norm] = entry;
     }
-    console.log(`✅ Loaded and normalized ${Object.keys(skinNameMap).length} skin image mappings`);
+    console.log(`[OK] Loaded and normalized ${Object.keys(skinNameMap).length} skin image mappings`);
   } else {
-    console.warn('⚠️  No skin-image mapping found. Run: node download-skin-images.js');
+    console.warn('[WARN] No skin-image mapping found.');
   }
 } catch(e) {
-  console.warn('⚠️  Failed to load skin mapping:', e.message);
+  console.warn('[WARN] Failed to load skin mapping:', e.message);
 }
 
 function normalizeSkinName(str) {
-  if (!str) return '';
-  // Musí odpovídat logice v downloaderu a frontend lookupu
+  if (!str) return "";
   return str.toString().toLowerCase()
-    .replace(/[★\s]+/g, ' ')
-    .replace(/[^a-z0-9 |]/g, '')
+    .replace(/[^\x00-\x7F]/g, "")
+    .replace(/[^a-z0-9| ]/g, "")
+    .split("|").map(s => s.trim()).join("|")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function getSkinLocalPath(skinName) {
-  const key = normalizeSkinName(skinName);
-  const entry = skinNameMap[key];
-  if (!entry) return null;
-  const filePath = path.join(SKINS_CACHE_DIR, entry.file || `${entry.hash}${entry.ext || '.png'}`);
-  if (fs.existsSync(filePath) && fs.statSync(filePath).size > 500) return filePath;
   return null;
 }
 
@@ -71,7 +67,7 @@ const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
 
 mongoose
   .connect(MONGO_URI)
-  .then(() => console.log('MongoDB connected ✅'))
+  .then(() => console.log('MongoDB connected Ă˘Ĺ›â€¦'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // --- SCHEMA ---
@@ -265,18 +261,18 @@ function toClientUser(user) {
 
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated && req.isAuthenticated()) return next();
-  return res.status(401).json({ ok: false, message: 'Nejsi přihlášený.' });
+  return res.status(401).json({ ok: false, message: 'Nejsi pÄąâ„˘ihlÄ‚Ë‡ÄąË‡enÄ‚Ëť.' });
 }
 
 function ensureDbReady(req, res, next) {
   if (mongoose.connection.readyState === 1) return next();
-  return res.status(503).json({ ok: false, message: 'Databáze není připojená. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).' });
+  return res.status(503).json({ ok: false, message: 'DatabÄ‚Ë‡ze nenÄ‚Â­ pÄąâ„˘ipojenÄ‚Ë‡. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).' });
 }
 
 function mapServerError(err, fallback = 'Chyba serveru.') {
   const msg = String(err?.message || '');
   if (/buffering timed out|ECONNREFUSED|ENOTFOUND|MongoServerSelectionError|failed to connect|topology/i.test(msg)) {
-    return 'Nelze se připojit k databázi. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).';
+    return 'Nelze se pÄąâ„˘ipojit k databÄ‚Ë‡zi. Zkontroluj MONGO_URI a MongoDB Network Access (0.0.0.0/0).';
   }
   return fallback;
 }
@@ -406,7 +402,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
       async (_accessToken, _refreshToken, profile, done) => {
         try {
           const email = (profile.emails?.[0]?.value || '').trim().toLowerCase();
-          if (!email) return done(new Error('Google účet neposlal email.'));
+          if (!email) return done(new Error('Google Ä‚ĹźĂ„Ĺ¤et neposlal email.'));
 
           let user = await User.findOne({ email });
           if (!user) {
@@ -433,7 +429,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             await user.save();
           }
 
-          if (!user) return done(new Error('Google účet se nepodařilo vytvořit/načíst.'));
+          if (!user) return done(new Error('Google Ä‚ĹźĂ„Ĺ¤et se nepodaÄąâ„˘ilo vytvoÄąâ„˘it/naĂ„Ĺ¤Ä‚Â­st.'));
 
           return done(null, user);
         } catch (err) {
@@ -458,18 +454,18 @@ app.post('/api/auth/register', ensureDbReady, async (req, res) => {
     const phone = (req.body.phone || '').toString().trim().slice(0, 32);
 
     if (!email || !email.includes('@')) {
-      return res.status(400).json({ ok: false, message: 'Vyplň platný e-mail.' });
+      return res.status(400).json({ ok: false, message: 'VyplÄąÂ platnÄ‚Ëť e-mail.' });
     }
     if (password.length < 6) {
-      return res.status(400).json({ ok: false, message: 'Heslo musí mít aspoň 6 znaků.' });
+      return res.status(400).json({ ok: false, message: 'Heslo musÄ‚Â­ mÄ‚Â­t aspoÄąÂ 6 znakÄąĹ».' });
     }
     if (!nickname) {
-      return res.status(400).json({ ok: false, message: 'Vyplň nickname.' });
+      return res.status(400).json({ ok: false, message: 'VyplÄąÂ nickname.' });
     }
 
     const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(409).json({ ok: false, message: 'Tento e-mail už existuje.' });
+      return res.status(409).json({ ok: false, message: 'Tento e-mail uÄąÄľ existuje.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -505,12 +501,12 @@ app.post('/api/auth/login', ensureDbReady, async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user || !user.passwordHash) {
-      return res.status(401).json({ ok: false, message: 'Špatný email nebo heslo.' });
+      return res.status(401).json({ ok: false, message: 'ÄąÂ patnÄ‚Ëť email nebo heslo.' });
     }
 
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) {
-      return res.status(401).json({ ok: false, message: 'Špatný email nebo heslo.' });
+      return res.status(401).json({ ok: false, message: 'ÄąÂ patnÄ‚Ëť email nebo heslo.' });
     }
 
     user.lastLoginAt = new Date();
@@ -522,7 +518,7 @@ app.post('/api/auth/login', ensureDbReady, async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba přihlášení.') });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba pÄąâ„˘ihlÄ‚Ë‡ÄąË‡enÄ‚Â­.') });
   }
 });
 
@@ -561,7 +557,7 @@ app.put('/api/profile', ensureDbReady, ensureAuth, async (req, res) => {
   try {
     const nickname = normalizeNickname(req.body.nickname);
     if (!nickname) {
-      return res.status(400).json({ ok: false, message: 'Vyplň nickname.' });
+      return res.status(400).json({ ok: false, message: 'VyplÄąÂ nickname.' });
     }
 
     req.user.nickname = nickname;
@@ -573,7 +569,7 @@ app.put('/api/profile', ensureDbReady, ensureAuth, async (req, res) => {
     return res.json({ ok: true, user: toClientUser(req.user) });
   } catch (err) {
     console.error('Profile update error:', err);
-    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba ukládání profilu.') });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba uklÄ‚Ë‡dÄ‚Ë‡nÄ‚Â­ profilu.') });
   }
 });
 
@@ -591,7 +587,7 @@ app.post('/api/state', ensureDbReady, ensureAuth, async (req, res) => {
     const nextInventory = Array.isArray(req.body.inventory) ? req.body.inventory : [];
 
     if (!Number.isFinite(nextBalance) || nextBalance < 0) {
-      return res.status(400).json({ ok: false, message: 'Neplatný balance.' });
+      return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ëť balance.' });
     }
 
     req.user.balance = Math.round(nextBalance * 100) / 100;
@@ -601,7 +597,7 @@ app.post('/api/state', ensureDbReady, ensureAuth, async (req, res) => {
     return res.json({ ok: true });
   } catch (err) {
     console.error('State save error:', err);
-    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba ukládání stavu.') });
+    return res.status(500).json({ ok: false, message: mapServerError(err, 'Chyba uklÄ‚Ë‡dÄ‚Ë‡nÄ‚Â­ stavu.') });
   }
 });
 
@@ -632,11 +628,11 @@ app.post('/api/admin/update-luck', ensureDbReady, ensureAuth, ensureAdmin, async
   const { userId, luckValue } = req.body || {};
   const luckModifier = Math.max(-10, Math.min(10, Number(luckValue || 0)));
   if (!userId || !Number.isFinite(luckModifier)) {
-    return res.status(400).json({ ok: false, message: 'Neplatný userId nebo luckValue.' });
+    return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ëť userId nebo luckValue.' });
   }
 
   const user = await User.findById(String(userId));
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   user.luckModifier = luckModifier;
   await user.save();
@@ -653,7 +649,7 @@ app.post('/api/admin/set-balance', ensureDbReady, ensureAuth, ensureAdmin, async
   }
 
   const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   user.balance = Math.round(balance * 100) / 100;
   await user.save();
@@ -665,15 +661,15 @@ app.post('/api/admin/add-balance', ensureDbReady, ensureAuth, ensureAdmin, async
   const amount = Number(req.body.amount);
 
   if (!userIdentifier || !Number.isFinite(amount) || amount === 0) {
-    return res.status(400).json({ ok: false, message: 'Zadej userIdentifier/email a amount (nenulové číslo).' });
+    return res.status(400).json({ ok: false, message: 'Zadej userIdentifier/email a amount (nenulovÄ‚Â© Ă„Ĺ¤Ä‚Â­slo).' });
   }
 
   const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   user.balance = Math.max(0, Math.round((Number(user.balance || 0) + amount) * 100) / 100);
   await user.save();
-  pushNotification(user._id, 'admin-balance', `Admin upravil zůstatek o ${amount} EUR. Nový stav: ${user.balance} EUR.`);
+  pushNotification(user._id, 'admin-balance', `Admin upravil zÄąĹ»statek o ${amount} EUR. NovÄ‚Ëť stav: ${user.balance} EUR.`);
   return res.json({ ok: true, userId: user._id, email: user.email, balance: user.balance });
 });
 
@@ -685,21 +681,21 @@ app.post('/api/admin/inventory-edit', ensureDbReady, ensureAuth, ensureAdmin, as
   const uid = (req.body.uid || '').toString();
 
   const user = await findUserByAdminIdentifier(userIdentifier, req.body.email);
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   if (!Array.isArray(user.inventory)) user.inventory = [];
 
   if (mode === 'add') {
-    if (!item || !item.name) return res.status(400).json({ ok: false, message: 'Chybí item.' });
+    if (!item || !item.name) return res.status(400).json({ ok: false, message: 'ChybÄ‚Â­ item.' });
     user.inventory.unshift({ ...item, uid: item.uid || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
   } else if (mode === 'remove') {
     user.inventory = user.inventory.filter((it) => String(it.uid) !== uid);
   } else {
-    return res.status(400).json({ ok: false, message: 'Neplatný mode.' });
+    return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ëť mode.' });
   }
 
   await user.save();
-  pushNotification(user._id, 'admin-inventory', `Admin upravil tvůj inventář (${mode === 'add' ? 'přidal item' : 'odebral item'}).`);
+  pushNotification(user._id, 'admin-inventory', `Admin upravil tvÄąĹ»j inventÄ‚Ë‡Äąâ„˘ (${mode === 'add' ? 'pÄąâ„˘idal item' : 'odebral item'}).`);
   return res.json({ ok: true, userId: user._id, inventoryCount: user.inventory.length });
 });
 
@@ -709,15 +705,15 @@ app.post('/api/wallet/request-topup', ensureDbReady, ensureAuth, async (req, res
   const note = (req.body.note || '').toString().trim().slice(0, 300);
 
   if (!Number.isFinite(amount) || amount <= 0) {
-    return res.status(400).json({ ok: false, message: 'Neplatná částka.' });
+    return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ë‡ Ă„Ĺ¤Ä‚Ë‡stka.' });
   }
   if (!isAdminUser(req.user) && amount > USER_TOPUP_MAX) {
-    return res.status(400).json({ ok: false, message: `Maximální žádost je ${USER_TOPUP_MAX} EUR.` });
+    return res.status(400).json({ ok: false, message: `MaximÄ‚Ë‡lnÄ‚Â­ ÄąÄľÄ‚Ë‡dost je ${USER_TOPUP_MAX} EUR.` });
   }
 
   const alreadyPending = await WalletRequest.findOne({ userId: req.user._id, status: 'pending' });
   if (alreadyPending) {
-    return res.status(409).json({ ok: false, message: 'Už máš otevřenou žádost. Počkej na schválení adminem.' });
+    return res.status(409).json({ ok: false, message: 'UÄąÄľ mÄ‚Ë‡ÄąË‡ otevÄąâ„˘enou ÄąÄľÄ‚Ë‡dost. PoĂ„Ĺ¤kej na schvÄ‚Ë‡lenÄ‚Â­ adminem.' });
   }
 
   const request = await WalletRequest.create({
@@ -773,9 +769,9 @@ app.get('/api/admin/topup-requests', ensureDbReady, ensureAuth, ensureAdmin, asy
 app.post('/api/admin/topup-requests/:id/decision', ensureDbReady, ensureAuth, ensureAdmin, async (req, res) => {
   const approve = Boolean(req.body.approve);
   const request = await WalletRequest.findById(req.params.id);
-  if (!request) return res.status(404).json({ ok: false, message: 'Žádost nenalezena.' });
+  if (!request) return res.status(404).json({ ok: false, message: 'ÄąËťÄ‚Ë‡dost nenalezena.' });
   if (request.status !== 'pending') {
-    return res.status(409).json({ ok: false, message: 'Žádost už byla zpracována.' });
+    return res.status(409).json({ ok: false, message: 'ÄąËťÄ‚Ë‡dost uÄąÄľ byla zpracovÄ‚Ë‡na.' });
   }
 
   request.status = approve ? 'approved' : 'rejected';
@@ -784,15 +780,15 @@ app.post('/api/admin/topup-requests/:id/decision', ensureDbReady, ensureAuth, en
 
   if (approve) {
     const user = await User.findById(request.userId);
-    if (!user) return res.status(404).json({ ok: false, message: 'Uživatel žádosti nenalezen.' });
+    if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel ÄąÄľÄ‚Ë‡dosti nenalezen.' });
     user.balance = Math.round((Number(user.balance || 0) + Number(request.amount || 0)) * 100) / 100;
     user.lastTopUpAt = new Date();
     await user.save();
-    pushNotification(user._id, 'topup-approved', `Admin schválil top-up ${request.amount} EUR. Nový zůstatek: ${user.balance} EUR.`);
+    pushNotification(user._id, 'topup-approved', `Admin schvÄ‚Ë‡lil top-up ${request.amount} EUR. NovÄ‚Ëť zÄąĹ»statek: ${user.balance} EUR.`);
   } else {
     const user = await User.findById(request.userId).select('nickname displayName');
     if (user) {
-      pushNotification(user._id, 'topup-rejected', 'Admin zamítl tvoji žádost o top-up.');
+      pushNotification(user._id, 'topup-rejected', 'Admin zamÄ‚Â­tl tvoji ÄąÄľÄ‚Ë‡dost o top-up.');
     }
   }
 
@@ -803,17 +799,17 @@ app.post('/api/admin/topup-requests/:id/decision', ensureDbReady, ensureAuth, en
 app.post('/api/wallet/topup', ensureDbReady, ensureAuth, async (req, res) => {
   const amount = Number(req.body.amount);
   if (!Number.isFinite(amount) || amount <= 0) {
-    return res.status(400).json({ ok: false, message: 'Neplatná částka.' });
+    return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ë‡ Ă„Ĺ¤Ä‚Ë‡stka.' });
   }
   if (!isAdminUser(req.user) && amount > USER_TOPUP_MAX) {
-    return res.status(400).json({ ok: false, message: `Maximální jednorázový top-up je ${USER_TOPUP_MAX} EUR.` });
+    return res.status(400).json({ ok: false, message: `MaximÄ‚Ë‡lnÄ‚Â­ jednorÄ‚Ë‡zovÄ‚Ëť top-up je ${USER_TOPUP_MAX} EUR.` });
   }
 
   const now = Date.now();
   const lastTopUpAt = req.user.lastTopUpAt ? new Date(req.user.lastTopUpAt).getTime() : 0;
   if (!isAdminUser(req.user) && lastTopUpAt && now - lastTopUpAt < USER_TOPUP_COOLDOWN_MS) {
     const remainingMin = Math.ceil((USER_TOPUP_COOLDOWN_MS - (now - lastTopUpAt)) / (60 * 1000));
-    return res.status(429).json({ ok: false, message: `Další top-up za ${remainingMin} min.` });
+    return res.status(429).json({ ok: false, message: `DalÄąË‡Ä‚Â­ top-up za ${remainingMin} min.` });
   }
 
   req.user.balance = Math.round((Number(req.user.balance || 0) + amount) * 100) / 100;
@@ -856,11 +852,11 @@ app.get('/api/friends', ensureDbReady, ensureAuth, async (req, res) => {
 
 app.post('/api/friends/add', ensureDbReady, ensureAuth, async (req, res) => {
   const friendId = (req.body.userId || '').toString();
-  if (!friendId || friendId === String(req.user._id)) return res.status(400).json({ ok: false, message: 'Neplatný uživatel.' });
+  if (!friendId || friendId === String(req.user._id)) return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ëť uÄąÄľivatel.' });
 
   const me = await User.findById(req.user._id);
   const friend = await User.findById(friendId);
-  if (!me || !friend) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!me || !friend) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   if (!Array.isArray(me.friends)) me.friends = [];
   if (me.friends.some((id) => String(id) === friendId)) return res.json({ ok: true, status: 'already-friends' });
@@ -868,7 +864,7 @@ app.post('/api/friends/add', ensureDbReady, ensureAuth, async (req, res) => {
   if (!Array.isArray(friend.friendRequests)) friend.friendRequests = [];
   if (!friend.friendRequests.some((id) => String(id) === String(me._id))) friend.friendRequests.push(me._id);
   await friend.save();
-  pushNotification(friend._id, 'friend-request', `${me.nickname || me.displayName || 'Uživatel'} ti poslal žádost o přátelství.`);
+  pushNotification(friend._id, 'friend-request', `${me.nickname || me.displayName || 'UÄąÄľivatel'} ti poslal ÄąÄľÄ‚Ë‡dost o pÄąâ„˘Ä‚Ë‡telstvÄ‚Â­.`);
   return res.json({ ok: true, status: 'request-sent' });
 });
 
@@ -877,7 +873,7 @@ app.post('/api/friends/respond', ensureDbReady, ensureAuth, async (req, res) => 
   const accept = Boolean(req.body.accept);
   const me = await User.findById(req.user._id);
   const other = await User.findById(userId);
-  if (!me || !other) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!me || !other) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   me.friendRequests = (me.friendRequests || []).filter((id) => String(id) !== userId);
   if (accept) {
@@ -885,7 +881,7 @@ app.post('/api/friends/respond', ensureDbReady, ensureAuth, async (req, res) => 
     if (!Array.isArray(other.friends)) other.friends = [];
     if (!me.friends.some((id) => String(id) === userId)) me.friends.push(other._id);
     if (!other.friends.some((id) => String(id) === String(me._id))) other.friends.push(me._id);
-    pushNotification(other._id, 'friend-accepted', `${me.nickname || me.displayName || 'Uživatel'} přijal tvoji žádost o přátelství.`);
+    pushNotification(other._id, 'friend-accepted', `${me.nickname || me.displayName || 'UÄąÄľivatel'} pÄąâ„˘ijal tvoji ÄąÄľÄ‚Ë‡dost o pÄąâ„˘Ä‚Ë‡telstvÄ‚Â­.`);
     await other.save();
   }
   await me.save();
@@ -897,18 +893,18 @@ app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
   const amount = Number(req.body.amount);
 
   if (!toUserId || !Number.isFinite(amount) || amount <= 0) {
-    return res.status(400).json({ ok: false, message: 'Neplatný převod.' });
+    return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ëť pÄąâ„˘evod.' });
   }
   if (String(req.user._id) === toUserId) {
-    return res.status(400).json({ ok: false, message: 'Nemůžeš poslat peníze sám sobě.' });
+    return res.status(400).json({ ok: false, message: 'NemÄąĹ»ÄąÄľeÄąË‡ poslat penÄ‚Â­ze sÄ‚Ë‡m sobĂ„â€ş.' });
   }
   if (Number(req.user.balance || 0) < amount) {
-    return res.status(400).json({ ok: false, message: 'Nedostatek prostředků.' });
+    return res.status(400).json({ ok: false, message: 'Nedostatek prostÄąâ„˘edkÄąĹ».' });
   }
 
   const target = await User.findById(toUserId);
   if (!target) {
-    return res.status(404).json({ ok: false, message: 'Cílový uživatel nenalezen.' });
+    return res.status(404).json({ ok: false, message: 'CÄ‚Â­lovÄ‚Ëť uÄąÄľivatel nenalezen.' });
   }
 
   req.user.balance = Math.round((Number(req.user.balance || 0) - amount) * 100) / 100;
@@ -916,15 +912,15 @@ app.post('/api/transfer', ensureDbReady, ensureAuth, async (req, res) => {
   await req.user.save();
   await target.save();
 
-  pushNotification(target._id, 'donation', `${req.user.nickname || req.user.displayName || 'Uživatel'} ti poslal ${amount} EUR.`);
-  pushNotification(req.user._id, 'donation-sent', `Poslal jsi ${amount} EUR uživateli ${target.nickname || target.displayName || 'user'}.`);
+  pushNotification(target._id, 'donation', `${req.user.nickname || req.user.displayName || 'UÄąÄľivatel'} ti poslal ${amount} EUR.`);
+  pushNotification(req.user._id, 'donation-sent', `Poslal jsi ${amount} EUR uÄąÄľivateli ${target.nickname || target.displayName || 'user'}.`);
   return res.json({ ok: true, balance: req.user.balance });
 });
 
 
 app.get('/api/profile/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const user = await User.findById(req.params.id).select('nickname displayName avatar inventory createdAt lastLoginAt');
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
   return res.json({
     ok: true,
     profile: {
@@ -941,7 +937,7 @@ app.get('/api/profile/:id', ensureDbReady, ensureAuth, async (req, res) => {
 
 app.get('/api/users/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const user = await User.findById(req.params.id).select('nickname displayName avatar inventory');
-  if (!user) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!user) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
   return res.json({
     ok: true,
     user: {
@@ -1021,7 +1017,7 @@ app.post('/api/giveaways/state', ensureDbReady, optionalAuth, async (req, res) =
 
 app.post('/api/giveaways/ticket', ensureDbReady, ensureAuth, async (req, res) => {
   const tierId = String(req.body?.tierId || '');
-  if (!tierId) return res.status(400).json({ ok: false, message: 'Chybí tier.' });
+  if (!tierId) return res.status(400).json({ ok: false, message: 'ChybÄ‚Â­ tier.' });
   const st = await GiveawayState.findOne({ tierId });
   if (!st) return res.status(404).json({ ok: false, message: 'Giveaway nenalezena.' });
   const now = Date.now();
@@ -1167,11 +1163,11 @@ async function debitUserBalance(userId, amount, reason = 'Case battle fee') {
   if (fee <= 0) return { fee: 0, balance: null };
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error('Hráč nebyl nalezen.');
+    throw new Error('HrÄ‚Ë‡Ă„Ĺ¤ nebyl nalezen.');
   }
   const balance = toMoney(user.balance || 0);
   if (balance < fee) {
-    throw new Error(`${user.nickname || user.displayName || 'Uživatel'} nemá dostatek prostředků (${reason}).`);
+    throw new Error(`${user.nickname || user.displayName || 'UÄąÄľivatel'} nemÄ‚Ë‡ dostatek prostÄąâ„˘edkÄąĹ» (${reason}).`);
   }
   user.balance = toMoney(balance - fee);
   await user.save();
@@ -1231,13 +1227,13 @@ async function resolveBattleOutcome(roomId) {
       if (!Array.isArray(winnerUser.inventory)) winnerUser.inventory = [];
       winnerUser.inventory = potItems.concat(winnerUser.inventory);
       await winnerUser.save();
-      pushNotification(winnerUser._id, 'battle', `Vyhrál jsi Case Battle a získal ${potItems.length} itemů.`);
+      pushNotification(winnerUser._id, 'battle', `VyhrÄ‚Ë‡l jsi Case Battle a zÄ‚Â­skal ${potItems.length} itemÄąĹ».`);
     }
   }
 
   room.status = 'done';
   room.winnerId = winnerId;
-  room.logs = [...(room.logs || []), `Battle dokončen. Vítěz: ${winner?.nickname || 'N/A'} (${toMoney(winner?.score || 0)} EUR)`].slice(-120);
+  room.logs = [...(room.logs || []), `Battle dokonĂ„Ĺ¤en. VÄ‚Â­tĂ„â€şz: ${winner?.nickname || 'N/A'} (${toMoney(winner?.score || 0)} EUR)`].slice(-120);
   room.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
   await room.save();
 
@@ -1256,7 +1252,7 @@ async function maybeStartCaseBattle(room) {
   room.totalRounds = expandedQueue.length;
   room.rounds = expandedQueue.length;
   room.status = 'in_progress';
-  room.logs = [...(room.logs || []), `Battle spuštěn (${room.rounds} kol).`].slice(-120);
+  room.logs = [...(room.logs || []), `Battle spuÄąË‡tĂ„â€şn (${room.rounds} kol).`].slice(-120);
 
   const userIds = activePlayers.filter((p) => !p.bot).map((p) => String(p.userId));
   const users = await User.find({ _id: { $in: userIds } }).select('_id luckModifier').lean();
@@ -1321,7 +1317,7 @@ app.get('/api/case-battle/rooms', ensureDbReady, async (_req, res) => {
 app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) => {
   await pruneBattleRooms();
   const existing = await BattleRoom.findOne({ status: { $in: ['waiting', 'in_progress'] }, creatorId: String(req.user._id) });
-  if (existing) return res.status(400).json({ ok: false, message: 'Už máš otevřený battle. Nejprve ho dokonči nebo opusť.' });
+  if (existing) return res.status(400).json({ ok: false, message: 'UÄąÄľ mÄ‚Ë‡ÄąË‡ otevÄąâ„˘enÄ‚Ëť battle. Nejprve ho dokonĂ„Ĺ¤i nebo opusÄąÄ„.' });
 
   const mode = String(req.body?.mode || req.body?.teamFormat || '1v1');
   const gameMode = String(req.body?.gameMode || 'classic');
@@ -1342,7 +1338,7 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
     try {
       await debitUserBalance(req.user._id, entryCost, 'Entry fee');
     } catch (err) {
-      return res.status(400).json({ ok: false, message: err.message || 'Nedostatek prostředků.' });
+      return res.status(400).json({ ok: false, message: err.message || 'Nedostatek prostÄąâ„˘edkÄąĹ».' });
     }
   }
 
@@ -1368,7 +1364,7 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
     fillWithBots,
     entryCost,
     players: [{ userId: String(req.user._id), nickname: req.user.nickname || req.user.displayName || 'User', avatar: req.user.avatar || '', bot: false, score: 0, drops: [] }],
-    logs: [`Room vytvořena. Entry fee: ${entryCost.toFixed(2)} EUR.`],
+    logs: [`Room vytvoÄąâ„˘ena. Entry fee: ${entryCost.toFixed(2)} EUR.`],
     winnerId: null,
     expiresAt: new Date(Date.now() + BATTLE_ROOM_TTL_MS)
   });
@@ -1377,19 +1373,19 @@ app.post('/api/case-battle/create', ensureDbReady, ensureAuth, async (req, res) 
 
 app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
-  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
-  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží nebo je dokončen.' });
+  if (!room) return res.status(404).json({ ok: false, message: 'MÄ‚Â­stnost nenalezena.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle uÄąÄľ bĂ„â€şÄąÄľÄ‚Â­ nebo je dokonĂ„Ĺ¤en.' });
 
   const alreadyJoined = room.players.some((p) => String(p.userId) === String(req.user._id));
   if (!alreadyJoined) {
-    if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
+    if (room.players.length >= room.capacity) return res.status(400).json({ ok: false, message: 'MÄ‚Â­stnost je plnÄ‚Ë‡.' });
 
     const entryCost = toMoney(room.entryCost || calculateEntryCost(room.caseQueue || [], room.casePrice || 0));
     if (entryCost > 0) {
       try {
         await debitUserBalance(req.user._id, entryCost, 'Join fee');
       } catch (err) {
-        return res.status(400).json({ ok: false, message: err.message || 'Nedostatek prostředků.' });
+        return res.status(400).json({ ok: false, message: err.message || 'Nedostatek prostÄąâ„˘edkÄąĹ».' });
       }
     }
 
@@ -1398,7 +1394,7 @@ app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res
     if (!room.players[preferredSlot]) room.players[preferredSlot] = newPlayer;
     else room.players.push(newPlayer);
     room.players = room.players.filter(Boolean).slice(0, room.capacity);
-    room.logs = [...(room.logs || []), `${newPlayer.nickname} se připojil do battle.`].slice(-120);
+    room.logs = [...(room.logs || []), `${newPlayer.nickname} se pÄąâ„˘ipojil do battle.`].slice(-120);
   }
 
   room.teams = buildTeams(room.players, room.teamFormat || room.mode);
@@ -1413,12 +1409,12 @@ app.post('/api/case-battle/join/:id', ensureDbReady, ensureAuth, async (req, res
 
 app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
-  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
-  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží.' });
-  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Boty může přidávat jen zakladatel.' });
+  if (!room) return res.status(404).json({ ok: false, message: 'MÄ‚Â­stnost nenalezena.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle uÄąÄľ bĂ„â€şÄąÄľÄ‚Â­.' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Boty mÄąĹ»ÄąÄľe pÄąâ„˘idÄ‚Ë‡vat jen zakladatel.' });
 
   const slot = Math.max(0, Math.min(room.capacity - 1, Number(req.body?.slot ?? room.players.length)));
-  if (room.players.length >= room.capacity && room.players[slot]) return res.status(400).json({ ok: false, message: 'Místnost je plná.' });
+  if (room.players.length >= room.capacity && room.players[slot]) return res.status(400).json({ ok: false, message: 'MÄ‚Â­stnost je plnÄ‚Ë‡.' });
 
   const idx = (room.players || []).filter((p) => p.bot).length + 1;
   const bot = { userId: `bot-${Date.now()}-${idx}`, nickname: `Bot ${idx}`, avatar: '', bot: true, score: 0, drops: [] };
@@ -1426,7 +1422,7 @@ app.post('/api/case-battle/fill-bot/:id', ensureDbReady, ensureAuth, async (req,
   else room.players.push(bot);
   room.players = room.players.filter(Boolean).slice(0, room.capacity);
   room.teams = buildTeams(room.players, room.teamFormat || room.mode);
-  room.logs = [...(room.logs || []), `${bot.nickname} obsadil volný slot.`].slice(-120);
+  room.logs = [...(room.logs || []), `${bot.nickname} obsadil volnÄ‚Ëť slot.`].slice(-120);
   room.updatedAt = new Date();
   room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
   await room.save();
@@ -1460,7 +1456,7 @@ app.post('/api/case-battle/cancel/:id', ensureDbReady, ensureAuth, async (req, r
 app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
   if (!room) return res.status(404).json({ ok: false, message: 'Room not found' });
-  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už běží nebo je dokončen.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle uÄąÄľ bĂ„â€şÄąÄľÄ‚Â­ nebo je dokonĂ„Ĺ¤en.' });
 
   if (String(room.creatorId) === String(req.user._id)) {
     const entryCost = toMoney(room.entryCost || 0);
@@ -1487,16 +1483,16 @@ app.post('/api/case-battle/leave/:id', ensureDbReady, ensureAuth, async (req, re
 
   room.updatedAt = new Date();
   room.expiresAt = new Date(Date.now() + BATTLE_ROOM_TTL_MS);
-  room.logs = [...(room.logs || []), `${req.user.nickname || req.user.displayName || 'Hráč'} opustil battle.`].slice(-120);
+  room.logs = [...(room.logs || []), `${req.user.nickname || req.user.displayName || 'HrÄ‚Ë‡Ă„Ĺ¤'} opustil battle.`].slice(-120);
   await room.save();
   return res.json({ ok: true, room: roomSnapshot(room) });
 });
 
 app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, res) => {
   const room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
-  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nenalezena.' });
-  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Pouze zakladatel může spustit battle.' });
-  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle už byl spuštěn nebo dokončen.' });
+  if (!room) return res.status(404).json({ ok: false, message: 'MÄ‚Â­stnost nenalezena.' });
+  if (String(room.creatorId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Pouze zakladatel mÄąĹ»ÄąÄľe spustit battle.' });
+  if (room.status !== 'waiting') return res.status(400).json({ ok: false, message: 'Battle uÄąÄľ byl spuÄąË‡tĂ„â€şn nebo dokonĂ„Ĺ¤en.' });
 
   const forceBots = Boolean(req.body?.forceBots);
   if ((room.fillWithBots || forceBots) && room.players.length < room.capacity) {
@@ -1506,7 +1502,7 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
     }
   }
 
-  if (room.players.length < 2) return res.status(400).json({ ok: false, message: 'Potřebuješ minimálně 2 hráče nebo zapnout boty.' });
+  if (room.players.length < 2) return res.status(400).json({ ok: false, message: 'PotÄąâ„˘ebujeÄąË‡ minimÄ‚Ë‡lnĂ„â€ş 2 hrÄ‚Ë‡Ă„Ĺ¤e nebo zapnout boty.' });
 
   await maybeStartCaseBattle(room);
   const fresh = await BattleRoom.findOne({ roomId: room.roomId });
@@ -1515,7 +1511,7 @@ app.post('/api/case-battle/start/:id', ensureDbReady, ensureAuth, async (req, re
 
 app.get('/api/case-battle/room/:id', ensureDbReady, ensureAuth, async (req, res) => {
   let room = await BattleRoom.findOne({ roomId: String(req.params.id || '') });
-  if (!room) return res.status(404).json({ ok: false, message: 'Místnost nebyla nalezena.' });
+  if (!room) return res.status(404).json({ ok: false, message: 'MÄ‚Â­stnost nebyla nalezena.' });
 
   const runtime = getRoomRuntime(room.roomId);
   if (room.status === 'in_progress' && runtime.doneAt && Date.now() >= runtime.doneAt) {
@@ -1536,7 +1532,7 @@ app.get('/api/chat/messages', ensureDbReady, optionalAuth, async (_req, res) => 
 
 app.post('/api/chat/messages', ensureDbReady, ensureAuth, async (req, res) => {
   const text = (req.body.text || '').toString().trim().slice(0, 140);
-  if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
+  if (!text) return res.status(400).json({ ok: false, message: 'PrÄ‚Ë‡zdnÄ‚Ë‡ zprÄ‚Ë‡va.' });
 
   await ChatMessage.create({
     userId: req.user._id,
@@ -1556,7 +1552,7 @@ app.post('/api/chat/messages', ensureDbReady, ensureAuth, async (req, res) => {
 
 app.post('/api/chat/ai-reply', ensureDbReady, ensureAuth, async (req, res) => {
   const text = (req.body.text || '').toString().trim().slice(0, 200);
-  if (!text) return res.status(400).json({ ok: false, message: 'Prázdná zpráva.' });
+  if (!text) return res.status(400).json({ ok: false, message: 'PrÄ‚Ë‡zdnÄ‚Ë‡ zprÄ‚Ë‡va.' });
   if (!GEMINI_API_KEY) return res.json({ ok: true, reply: null });
 
   try {
@@ -1564,7 +1560,7 @@ app.post('/api/chat/ai-reply', ensureDbReady, ensureAuth, async (req, res) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `Jsi krátký chat hráče CS2. Odpověz jednou větou česky na zprávu: ${text}` }] }],
+        contents: [{ parts: [{ text: `Jsi krÄ‚Ë‡tkÄ‚Ëť chat hrÄ‚Ë‡Ă„Ĺ¤e CS2. OdpovĂ„â€şz jednou vĂ„â€ştou Ă„Ĺ¤esky na zprÄ‚Ë‡vu: ${text}` }] }],
         generationConfig: { maxOutputTokens: 40, temperature: 0.9 }
       })
     });
@@ -1599,11 +1595,11 @@ app.post('/api/trades/send', ensureDbReady, ensureAuth, async (req, res) => {
   const requestedUids = Array.isArray(req.body.requestedUids) ? req.body.requestedUids.map(String) : [];
 
   if (!toUserId || !offeredUids.length) {
-    return res.status(400).json({ ok: false, message: 'Vyber uživatele a nabídnuté itemy.' });
+    return res.status(400).json({ ok: false, message: 'Vyber uÄąÄľivatele a nabÄ‚Â­dnutÄ‚Â© itemy.' });
   }
 
   const target = await User.findById(toUserId);
-  if (!target) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!target) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   const myInv = Array.isArray(req.user.inventory) ? req.user.inventory : [];
   const targetInv = Array.isArray(target.inventory) ? target.inventory : [];
@@ -1611,7 +1607,7 @@ app.post('/api/trades/send', ensureDbReady, ensureAuth, async (req, res) => {
   const offeredItems = myInv.filter((it) => offeredUids.includes(String(it.uid)));
   const requestedItems = targetInv.filter((it) => requestedUids.includes(String(it.uid)));
 
-  if (!offeredItems.length) return res.status(400).json({ ok: false, message: 'Nemáš zvolené itemy pro trade.' });
+  if (!offeredItems.length) return res.status(400).json({ ok: false, message: 'NemÄ‚Ë‡ÄąË‡ zvolenÄ‚Â© itemy pro trade.' });
 
   const trade = await Trade.create({
     fromUserId: req.user._id,
@@ -1621,7 +1617,7 @@ app.post('/api/trades/send', ensureDbReady, ensureAuth, async (req, res) => {
     status: 'pending'
   });
 
-  pushNotification(target._id, 'trade', `${req.user.nickname || 'Uživatel'} ti poslal trade nabídku.`);
+  pushNotification(target._id, 'trade', `${req.user.nickname || 'UÄąÄľivatel'} ti poslal trade nabÄ‚Â­dku.`);
   return res.json({ ok: true, tradeId: trade._id });
 });
 
@@ -1629,19 +1625,19 @@ app.post('/api/trades/:id/respond', ensureDbReady, ensureAuth, async (req, res) 
   const action = (req.body.action || '').toString();
   const trade = await Trade.findById(req.params.id);
   if (!trade) return res.status(404).json({ ok: false, message: 'Trade nenalezen.' });
-  if (String(trade.toUserId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Tohle není tvoje nabídka.' });
-  if (trade.status !== 'pending') return res.status(400).json({ ok: false, message: 'Trade už byl vyřešen.' });
+  if (String(trade.toUserId) !== String(req.user._id)) return res.status(403).json({ ok: false, message: 'Tohle nenÄ‚Â­ tvoje nabÄ‚Â­dka.' });
+  if (trade.status !== 'pending') return res.status(400).json({ ok: false, message: 'Trade uÄąÄľ byl vyÄąâ„˘eÄąË‡en.' });
 
   if (action !== 'accept') {
     trade.status = 'rejected';
     await trade.save();
-    pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabídka byla odmítnuta.');
+    pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabÄ‚Â­dka byla odmÄ‚Â­tnuta.');
     return res.json({ ok: true, status: trade.status });
   }
 
   const fromUser = await User.findById(trade.fromUserId);
   const toUser = await User.findById(trade.toUserId);
-  if (!fromUser || !toUser) return res.status(404).json({ ok: false, message: 'Uživatel nenalezen.' });
+  if (!fromUser || !toUser) return res.status(404).json({ ok: false, message: 'UÄąÄľivatel nenalezen.' });
 
   const fromInv = Array.isArray(fromUser.inventory) ? fromUser.inventory : [];
   const toInv = Array.isArray(toUser.inventory) ? toUser.inventory : [];
@@ -1660,8 +1656,8 @@ app.post('/api/trades/:id/respond', ensureDbReady, ensureAuth, async (req, res) 
   trade.status = 'accepted';
   await trade.save();
 
-  pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabídka byla přijata.');
-  pushNotification(trade.toUserId, 'trade', 'Trade byl úspěšně přijat.');
+  pushNotification(trade.fromUserId, 'trade', 'Tvoje trade nabÄ‚Â­dka byla pÄąâ„˘ijata.');
+  pushNotification(trade.toUserId, 'trade', 'Trade byl Ä‚ĹźspĂ„â€şÄąË‡nĂ„â€ş pÄąâ„˘ijat.');
   return res.json({ ok: true, status: trade.status });
 });
 
@@ -1739,7 +1735,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   });
 } else {
   app.get('/auth/google', (_req, res) => {
-    res.status(503).json({ ok: false, message: 'Google login není nastavený na serveru.' });
+    res.status(503).json({ ok: false, message: 'Google login nenÄ‚Â­ nastavenÄ‚Ëť na serveru.' });
   });
 }
 
@@ -1782,7 +1778,7 @@ app.get('/api/notifications', ensureDbReady, ensureAuth, async (req, res) => {
   const key = String(req.user._id);
   const notes = notificationsByUser.get(key) || [];
   const trades = await Trade.find({ toUserId: req.user._id, status: 'pending' }).sort({ createdAt: -1 }).limit(30);
-  const tradeNotes = trades.map((t) => ({ id: String(t._id), type: 'trade', text: `Nová trade nabídka od uživatele ${String(t.fromUserId).slice(-6)}.`, createdAt: t.createdAt }));
+  const tradeNotes = trades.map((t) => ({ id: String(t._id), type: 'trade', text: `NovÄ‚Ë‡ trade nabÄ‚Â­dka od uÄąÄľivatele ${String(t.fromUserId).slice(-6)}.`, createdAt: t.createdAt }));
   return res.json({ ok: true, notifications: [...tradeNotes, ...notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 60) });
 });
 
@@ -1795,7 +1791,7 @@ app.get('/api/image-cache', async (req, res) => {
   try {
     const remoteUrl = (req.query.url || '').toString();
     if (!/^https?:\/\//i.test(remoteUrl)) {
-      return res.status(400).json({ ok: false, message: 'Neplatná URL.' });
+      return res.status(400).json({ ok: false, message: 'NeplatnÄ‚Ë‡ URL.' });
     }
 
     const hash = crypto.createHash('sha1').update(remoteUrl).digest('hex');
@@ -1878,10 +1874,10 @@ app.get('/api/skin-img', (req, res) => {
   return res.status(404).send('Skin not found');
 });
 
-// GET /api/skins-map - returns the full name→url mapping for frontend
+// GET /api/skins-map - returns the full nameĂ˘â€ â€™url mapping for frontend
 app.get('/api/skins-map', (req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
-  // Send only name → url pairs (not file paths)
+  // Send only name Ă˘â€ â€™ url pairs (not file paths)
   const simplified = {};
   for (const [name, entry] of Object.entries(skinNameMap)) {
     if (entry.url) simplified[name] = entry.url;
@@ -1894,3 +1890,4 @@ app.use(express.static(__dirname));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

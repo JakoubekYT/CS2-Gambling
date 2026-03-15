@@ -672,14 +672,13 @@
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
             if (!raw || raw.length < 5) return FALLBACK_IMG;
-            if (raw.startsWith('/api/') || raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
-            return `/api/image-cache?url=${encodeURIComponent(raw)}`;
+            // POUŽÍVÁME PŘÍMO URL, TVŮJ SERVER JE POMALÝ
+            return raw;
         }
 
         function skinImgByName(name) {
             if (!name) return FALLBACK_IMG;
             const norm = name.toString().toLowerCase().replace(/[★\s]+/g, ' ').replace(/[^a-z0-9 |]/g, '').trim();
-            // Zkusíme normalizovaný klíč v naší mapě
             return skinLocalImgCache.get(norm) || skinLocalImgCache.get(name) || null;
         }
 
@@ -688,29 +687,26 @@
                 const res = await fetch('/api/skins-map');
                 if (!res.ok) return;
                 const map = await res.json();
-                let patched = 0;
+                const clean = (str) => str.toString().toLowerCase().replace(/[★]+/g, '').replace(/[^a-z0-9| ]/g, '').split('|').map(s => s.trim()).join('|').replace(/\s+/g, ' ').trim();
+
                 for (const [name, steamUrl] of Object.entries(map)) {
-                    // Ukládáme pod normalizovaným jménem
-                    const norm = name.toString().toLowerCase().replace(/[★\s]+/g, ' ').replace(/[^a-z0-9 |]/g, '').trim();
-                    const localUrl = `/api/skin-img?name=${encodeURIComponent(name)}`;
-                    skinLocalImgCache.set(norm, localUrl);
-                    skinLocalImgCache.set(name, localUrl); // Pro jistotu i originál
-                    patched++;
+                    const norm = clean(name);
+                    skinLocalImgCache.set(norm, steamUrl);
                 }
 
                 const patchDB = () => {
                     for (const skin of Object.values(skinsDB || {})) {
-                        const key = skin.name || `${skin.weapon} | ${skin.skinName}`;
-                        const local = skinImgByName(key);
-                        if (local) {
-                            skin.img = local;
+                        const nameKey = clean(skin.name || `${skin.weapon} | ${skin.skinName}`);
+                        const url = skinLocalImgCache.get(nameKey);
+                        if (url) {
+                            skin.img = url;
                             skin.imgAlts = [];
                         }
                     }
                 };
                 patchDB();
-                setTimeout(patchDB, 1500); 
-                console.log(`[OTODROP] Cached ${patched} normalized skin images`);
+                setTimeout(patchDB, 800); 
+                console.log(`[OTODROP] Images linked directly to Steam CDN`);
             } catch(e) { console.warn('[OTODROP] Skins-map failed:', e.message); }
         }
         setTimeout(loadSkinsMap, 50);
@@ -3250,7 +3246,7 @@ function updateSelectorBottomBar() {
     if (!room || !header || !teams || !stage) return;
 
     const totalRounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
-    const isDone = room.status === 'done' || room.status === 'finished';
+    const isDone = (room.status === 'done' || room.status === 'finished');
     const isWaiting = room.status === 'waiting';
     let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
 
@@ -3412,10 +3408,13 @@ function updateSelectorBottomBar() {
     if (!isWaiting && signature !== cbLastAnimatedSignature) {
         if (!cbAnimationLock) {
             cbLastAnimatedSignature = signature;
+            // Spustíme animaci a počkáme na ni
             await animateCaseBattleRounds(room);
+            // Po animaci zkusíme refresh, aby se v dalším cyklu ukázal Endgame Sequence
+            refreshCaseBattleRoom(); 
         }
     } else if (isDone && !cbAnimationLock) {
-        // Zobrazíme výsledky jen když se netočí
+        // Zobrazíme výsledky jen když se už netočí
         triggerEndgameSequence(room, (room.players || []).map((p) => Number(p?.score || 0)));
     }
 }
@@ -4634,8 +4633,16 @@ async function updateUserLuck(userId, luckValue) {
                 return;
             }
             try {
-                await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: amount });
-                showToast(`Balance ${amount > 0 ? '+' : ''}${amount} EUR pro uživatele nastavena.`);
+                const res = await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: amount });
+                showToast(`Balance updated: ${amount > 0 ? '+' : ''}${amount} EUR.`);
+                if (res && typeof res.balance !== 'undefined') {
+                    // Only update local balance if the edited user is the current user
+                    const currentId = currentUser ? String(currentUser.id || currentUser._id) : '';
+                    if (String(res.userId) === currentId) {
+                        balanceBase = Number(res.balance);
+                        renderBalance();
+                    }
+                }
                 loadAdminUsers();
             } catch (err) { showToast(err.message, true); }
         }
