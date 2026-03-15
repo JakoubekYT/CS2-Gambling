@@ -645,8 +645,7 @@
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
             if (!raw) return raw;
-            if (raw.startsWith('http')) return `/api/image-cache?url=${encodeURIComponent(raw)}`;
-            return raw;
+            return `/api/image-cache?url=${encodeURIComponent(raw)}`;
         }
 
         const preloadedSkinUrls = new Set();
@@ -2801,7 +2800,8 @@ function updateSelectorBottomBar() {
                     caseName: c.name,
                     casePrice: Number(c.price || 0),
                     caseImg: c.img || '',
-                    count: Number(count)
+                    count: Number(count),
+                    contents: c.contents
                 });
                 totalRounds += Number(count);
                 totalCost += (Number(c.price || 0) * Number(count));
@@ -2813,7 +2813,8 @@ function updateSelectorBottomBar() {
                 caseName: queue[0].caseName,
                 casePrice: totalRounds ? (totalCost / totalRounds) : 0,
                 rounds: totalRounds,
-                caseQueue: queue
+                caseQueue: queue,
+                contents: queue[0].contents
             };
         }
 

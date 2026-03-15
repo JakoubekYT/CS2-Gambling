@@ -1766,6 +1766,10 @@ app.get('/api/image-cache', async (req, res) => {
       if (!response.ok) {
         return res.redirect(remoteUrl);
       }
+      const ct = response.headers.get('content-type') || '';
+      if (!ct.startsWith('image/')) {
+        return res.redirect(remoteUrl);
+      }
       const arrayBuffer = await response.arrayBuffer();
       await fsp.writeFile(filePath, Buffer.from(arrayBuffer));
     }
