@@ -667,13 +667,41 @@
         const CB_BOT_AVATAR = `/api/image-cache?url=${encodeURIComponent('https://ui-avatars.com/api/?name=BOT&background=ef4444&color=fff')}`;
         const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%2314181c"/><path d="M12 46L46 12M46 12H26M46 12V32" stroke="%23facc15" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
 
+        const skinLocalImgCache = new Map();
+
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
             if (!raw || raw.length < 5) return FALLBACK_IMG;
-            if (raw.startsWith('/api/image-cache') || raw.startsWith('data:')) return raw;
-            // Zajištění, že se nepoužívá podezřelá doména http://api/ pokud nejsme v Dockeru
+            if (raw.startsWith('/api/') || raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
             return `/api/image-cache?url=${encodeURIComponent(raw)}`;
         }
+
+        function skinImgByName(name) {
+            if (!name) return FALLBACK_IMG;
+            return skinLocalImgCache.get(name) || null;
+        }
+
+        async function loadSkinsMap() {
+            try {
+                const res = await fetch('/api/skins-map');
+                if (!res.ok) return;
+                const map = await res.json();
+                let patched = 0;
+                for (const [name, steamUrl] of Object.entries(map)) {
+                    const localUrl = `/api/skin-img?name=${encodeURIComponent(name)}`;
+                    skinLocalImgCache.set(name, localUrl);
+                    if (name.startsWith('★ ')) skinLocalImgCache.set(name.slice(2), localUrl);
+                    patched++;
+                }
+                for (const skin of Object.values(skinsDB || {})) {
+                    const key = skin.name || `${skin.weapon} | ${skin.skinName}`;
+                    const local = skinLocalImgCache.get(key) || skinLocalImgCache.get('★ ' + key);
+                    if (local) { skin.img = local; skin.imgAlts = []; }
+                }
+                console.log(`[OTODROP] Patched ${patched} skin images with local cache`);
+            } catch(e) { console.warn('[OTODROP] Could not load skins-map:', e.message); }
+        }
+        setTimeout(loadSkinsMap, 100);
 
         const preloadedSkinUrls = new Set();
         function warmImageUrl(url) {
@@ -883,6 +911,7 @@
         let cbAnimationLock = false;
         let cbLastAnimatedSignature = '';
         window.cbLastAnimatedSignature = '';
+        const cbSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         let casesAffordableOnly = false;
         let casesCategoryFilter = 'all';
         let casesSortDirection = 'asc';
@@ -3471,6 +3500,18 @@ function updateSelectorBottomBar() {
                     await cbSleep(800);
                 }
                 triggerEndgameSequence(room, liveScores);
+                try {
+                    const myId = currentUser?.id || currentUser?._id;
+                    if (myId) {
+                        const myIdx = room.players.findIndex(p => String(p.userId) === String(myId));
+                        if (myIdx >= 0 && room.players[myIdx]?.drops?.length) {
+                            room.players[myIdx].drops.forEach(drop => {
+                                if (drop && drop.name) addToInventory(drop);
+                            });
+                            showToast(`${room.players[myIdx].drops.length} skin(ů) přidán do inventáře!`);
+                        }
+                    }
+                } catch(e) { console.warn('Inventory add error:', e); }
             } catch (e) {
                 console.error("Animace spadla:", e);
             } finally {
@@ -3976,8 +4017,14 @@ function updateSelectorBottomBar() {
                 contentsEl.innerHTML = sortedContents.map(item => {
                     const skin = item.skin || {};
                     const chanceValue = Number(item.chance || 0);
-                    const chanceText = chanceValue < 1 ? `${chanceValue.toFixed(3)}%` : `${chanceValue.toFixed(2)}%`;
-                    return `<div class="bg-[#161a24] border-t-2 rounded-lg p-3 relative flex flex-col items-center group transition-all hover:-translate-y-1" style="border-top-color:${skin.color || '#4b69ff'}"><div class="absolute top-2 left-2 text-[9px] font-bold text-gray-500">${chanceText}</div><img src="${skin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-16 object-contain drop-shadow-md mt-3"><div class="text-[10px] text-gray-300 font-black uppercase text-center mt-2 leading-tight">${skin.weapon || ''} ${skin.skin || ''}</div><div class="text-[11px] font-black mt-2" style="color:${skin.color || '#facc15'}">${formatMoney(skin.price || 0)}</div></div>`;
+                    const chanceText = chanceValue < 0.01 ? `${chanceValue.toFixed(4)}%` : chanceValue < 1 ? `${chanceValue.toFixed(3)}%` : `${chanceValue.toFixed(2)}%`;
+                    const displayName = skin.name || `${skin.weapon || ''} | ${skin.skinName || ''}`;
+                    return `<div class="bg-[#161a24] border-t-2 rounded-lg p-3 relative flex flex-col items-center group transition-all hover:-translate-y-1" style="border-top-color:${skin.color || '#4b69ff'}">
+                        <div class="absolute top-1 left-0 right-0 text-center text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-1">CHANCE ${chanceText}</div>
+                        <img src="${skin.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-16 object-contain drop-shadow-md mt-4">
+                        <div class="text-[10px] font-black uppercase text-center mt-2 leading-tight px-1" style="color:${skin.color || '#facc15'}">${displayName}</div>
+                        <div class="text-[11px] font-black text-white mt-1">${formatMoney(skin.price || 0)}</div>
+                    </div>`;
                 }).join('');
             }
 
@@ -4531,7 +4578,11 @@ const loadAdminUsers = window.loadAdminUsers = async function() {
                         <span id="luck-val-${u.id}" class="text-xs font-black text-white w-5 text-right">${u.luckModifier || 0}</span>
                     </div>
 
-                    <button onclick="window.quickAddBalance('${u.id}', 250)" class="bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-colors border border-green-500/30">+250 EUR</button>
+                    <div class="flex items-center gap-1 bg-[#0b0d11] border border-white/10 rounded-lg overflow-hidden">
+                        <input type="number" id="admin-balance-input-${u.id}" placeholder="±amount" step="1" class="w-20 bg-transparent text-white text-[10px] font-black px-2 py-2 outline-none" />
+                        <button onclick="(function(){const v=parseFloat(document.getElementById('admin-balance-input-${u.id}').value)||0; if(!v){showToast('Zadej částku',true);return;} window.quickAddBalance('${u.id}', v);})()"
+                            class="bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white px-3 py-2 text-[10px] font-black transition-colors border-l border-white/10">✓</button>
+                    </div>
                     <button onclick="showToast('Inventář smazán (MOCK)')" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black transition-colors border border-red-500/30" title="Wipe Inventory"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     <button onclick="showToast('Uživatel zabanován (MOCK)')" class="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white px-3 py-2 rounded-lg text-[10px] font-black transition-colors border border-orange-500/30" title="Ban User"><i data-lucide="ban" class="w-4 h-4"></i></button>
                 </div>
@@ -4558,10 +4609,14 @@ async function updateUserLuck(userId, luckValue) {
     }
 };
 
-        async function quickAddBalance(userId, amount = 250) {
+        async function quickAddBalance(userId, amount) {
+            if (typeof amount !== 'number' || isNaN(amount) || amount === 0) {
+                showToast('Zadej platnou částku (kladnou nebo zápornou).', true);
+                return;
+            }
             try {
                 await apiRequest('/api/admin/add-balance', 'POST', { userIdentifier: userId, amount: amount });
-                showToast(`Balance ${amount} přidán.`);
+                showToast(`Balance ${amount > 0 ? '+' : ''}${amount} EUR pro uživatele nastavena.`);
                 loadAdminUsers();
             } catch (err) { showToast(err.message, true); }
         }

@@ -13,6 +13,35 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/, '');
+
+// Load pre-downloaded skin image mapping (from download-skin-images.js)
+const SKINS_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
+const SKIN_MAPPING_PATH = path.join(SKINS_CACHE_DIR, '_name_to_hash.json');
+let skinNameMap = {}; // normalized name → { hash, ext, url }
+try {
+  if (fs.existsSync(SKIN_MAPPING_PATH)) {
+    skinNameMap = JSON.parse(fs.readFileSync(SKIN_MAPPING_PATH, 'utf8'));
+    console.log(`✅ Loaded ${Object.keys(skinNameMap).length} skin image mappings from cache`);
+  } else {
+    console.warn('⚠️  No skin-image mapping found. Run: node download-skin-images.js');
+  }
+} catch(e) {
+  console.warn('⚠️  Failed to load skin mapping:', e.message);
+}
+
+function normalizeSkinName(str) {
+  return (str || '').toLowerCase().replace(/[★\s]+/g, ' ').replace(/[^a-z0-9 |]/g, '').trim();
+}
+
+function getSkinLocalPath(skinName) {
+  const key = normalizeSkinName(skinName);
+  const entry = skinNameMap[key] || skinNameMap['★ ' + key];
+  if (!entry) return null;
+  const filePath = path.join(SKINS_CACHE_DIR, entry.file || `${entry.hash}${entry.ext || '.png'}`);
+  if (fs.existsSync(filePath) && fs.statSync(filePath).size > 500) return filePath;
+  return null;
+}
+
 const START_BALANCE = 10;
 const SESSION_DAYS = Number(process.env.SESSION_DAYS || 180);
 const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
@@ -1747,10 +1776,10 @@ app.get('/api/notifications', ensureDbReady, ensureAuth, async (req, res) => {
 });
 
 app.get('/api/image-cache', async (req, res) => {
-  // Always set these so browsers never get CORP-blocked
+  // Always set CORS/CORP headers
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.set('Cache-Control', 'public, max-age=86400');
+  res.set('Cache-Control', 'public, max-age=604800'); // 7 days
 
   try {
     const remoteUrl = (req.query.url || '').toString();
@@ -1758,35 +1787,95 @@ app.get('/api/image-cache', async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Neplatná URL.' });
     }
 
-    await ensureImageCacheDir();
     const hash = crypto.createHash('sha1').update(remoteUrl).digest('hex');
-    const ext = path.extname(new URL(remoteUrl).pathname).slice(0, 5) || '.img';
-    const filePath = path.join(IMAGE_CACHE_DIR, `${hash}${ext}`);
+    const extFromPath = path.extname(new URL(remoteUrl).pathname).replace(/[^a-zA-Z0-9.]/g, '').slice(0, 6) || '';
 
-    if (!fs.existsSync(filePath)) {
-      const response = await fetch(remoteUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-          Referer: DOMAIN
+    // Check skins-cache first (pre-downloaded, multiple possible extensions)
+    const SKINS_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
+    const possibleExts = extFromPath ? [extFromPath, '.png', '.webp'] : ['.png', '.webp', '.jpg', '.img'];
+    for (const ext of possibleExts) {
+      const localPath = path.join(SKINS_CACHE_DIR, `${hash}${ext}`);
+      if (fs.existsSync(localPath)) {
+        const stat = fs.statSync(localPath);
+        if (stat.size > 500) {
+          return res.sendFile(localPath);
         }
-      });
-      if (!response.ok) {
-        return res.status(404).send('Not found');
       }
-      const ct = response.headers.get('content-type') || '';
-      if (!ct.startsWith('image/')) {
-        return res.redirect(remoteUrl);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      await fsp.writeFile(filePath, Buffer.from(arrayBuffer));
     }
 
-    return res.sendFile(filePath);
+    // Check in dynamic IMG_CACHE (fallback for non-skin images)
+    await ensureImageCacheDir();
+    const dynExt = extFromPath || '.img';
+    const dynPath = path.join(IMAGE_CACHE_DIR, `${hash}${dynExt}`);
+    if (fs.existsSync(dynPath) && fs.statSync(dynPath).size > 0) {
+      return res.sendFile(dynPath);
+    }
+
+    // Fetch from remote
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    let response;
+    try {
+      response = await fetch(remoteUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': remoteUrl.includes('steamstatic') ? 'https://steamcommunity.com/' : 'https://www.csgodatabase.com/',
+        }
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response || !response.ok) {
+      console.warn(`Image proxy 404: ${response?.status} ${remoteUrl.substring(0, 80)}`);
+      return res.status(404).send('Not found');
+    }
+    const ct = response.headers.get('content-type') || '';
+    if (!ct.startsWith('image/')) {
+      return res.status(404).send('Not an image');
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    if (!arrayBuffer.byteLength) return res.status(404).send('Empty');
+    
+    const saveExt = ct.includes('webp') ? '.webp' : ct.includes('png') ? '.png' : '.jpg';
+    const savePath = path.join(IMAGE_CACHE_DIR, `${hash}${saveExt}`);
+    await fsp.writeFile(savePath, Buffer.from(arrayBuffer));
+    return res.sendFile(savePath);
+
   } catch (err) {
     console.error('Image cache error:', err.message);
     return res.status(404).send('Image not available');
   }
+});
+
+// --- SKIN IMAGE BY NAME ---
+// GET /api/skin-img?name=AK-47+%7C+Redline
+app.get('/api/skin-img', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.set('Cache-Control', 'public, max-age=604800');
+  
+  const name = (req.query.name || '').toString();
+  if (!name) return res.status(400).send('Missing name');
+  
+  const localPath = getSkinLocalPath(name);
+  if (localPath) return res.sendFile(localPath);
+  
+  return res.status(404).send('Skin not found');
+});
+
+// GET /api/skins-map - returns the full name→url mapping for frontend
+app.get('/api/skins-map', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  // Send only name → url pairs (not file paths)
+  const simplified = {};
+  for (const [name, entry] of Object.entries(skinNameMap)) {
+    if (entry.url) simplified[name] = entry.url;
+  }
+  res.json(simplified);
 });
 
 // --- FRONTEND ---
