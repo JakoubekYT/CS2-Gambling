@@ -1777,9 +1777,12 @@ app.get('/api/image-cache', async (req, res) => {
       await fsp.writeFile(filePath, Buffer.from(arrayBuffer));
     }
 
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     return res.sendFile(filePath);
   } catch (err) {
     console.error('Image cache error:', err.message);
+    res.set('Access-Control-Allow-Origin', '*');
     return res.status(404).send('Image not available');
   }
 });

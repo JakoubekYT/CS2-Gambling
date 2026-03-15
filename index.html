@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <title>OTODROP | CS2 CASES & UPGRADES</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS is built locally into /assets/css/style.css -->
+    <link href="/assets/css/style.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -659,7 +660,9 @@
 
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
-            if (!raw || raw.startsWith('/api/image-cache')) return raw;
+            if (!raw || raw.length < 5) return FALLBACK_IMG;
+            if (raw.startsWith('/api/image-cache') || raw.startsWith('data:')) return raw;
+            // Zajištění, že se nepoužívá podezřelá doména http://api/ pokud nejsme v Dockeru
             return `/api/image-cache?url=${encodeURIComponent(raw)}`;
         }
 
@@ -686,28 +689,29 @@
             if (!img || !(img instanceof HTMLImageElement)) return;
 
             const retryCount = Number(img.dataset.retryCount || 0);
-            if (retryCount < 2) {
+            const original = (img.dataset.originalSrc || img.getAttribute('src') || '').trim();
+
+            if (retryCount < 2 && original) {
                 img.dataset.retryCount = String(retryCount + 1);
-                const original = (img.dataset.originalSrc || img.getAttribute('src') || '').trim();
+                if (!img.dataset.originalSrc) img.dataset.originalSrc = original;
                 
-                if (original) {
-                    if (!img.dataset.originalSrc) img.dataset.originalSrc = original;
-                    
-                    // Pokud je URL remote, zkusíme ji prohnat přes cache (pokud už tam není)
-                    let nextSrc = original;
-                    if (!original.includes('/api/image-cache')) {
-                        nextSrc = toCachedImage(original);
-                    }
-                    
-                    setTimeout(() => {
-                        img.onerror = handleImgError;
-                        img.src = `${nextSrc}${nextSrc.includes('?') ? '&' : '?'}retry=${Date.now()}`;
-                    }, 500 * retryCount);
-                    return;
+                // Pokud cache selže, zkusíme direct URL jako fallback (pokud už to není direct)
+                let nextSrc = original;
+                if (original.includes('/api/image-cache')) {
+                    const match = original.match(/url=([^&]+)/);
+                    if (match) nextSrc = decodeURIComponent(match[1]);
+                } else {
+                    nextSrc = toCachedImage(original);
                 }
+                
+                setTimeout(() => {
+                    img.onerror = handleImgError;
+                    img.src = `${nextSrc}${nextSrc.includes('?') ? '&' : '?'}retry=${Date.now()}`;
+                }, 400 * retryCount);
+                return;
             }
 
-            // Fallback na alternativní obrázky
+            // Fallback na alternativní obrázky (webp -> png atd.)
             try {
                 const alts = (img.dataset.alts || '').split('|').filter(Boolean);
                 if(alts.length > 0) {
@@ -722,6 +726,7 @@
 
             img.onerror = null;
             img.src = FALLBACK_IMG;
+            img.classList.add('fallback-img');
             img.dataset.fail = 'true';
         }
 
