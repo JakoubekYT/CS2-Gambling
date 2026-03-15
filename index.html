@@ -1411,10 +1411,13 @@
         setTimeout(loadSkinsMap, 50);
 
         const cbSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        let cbActiveRoomId = null;
         let cbAnimationLock = false;
         let cbAnimationSession = 0;
         let cbLastAnimatedSignature = '';
-        let cbCurrentRoundIdx = -1; // -1 = waiting, 0+ = playing round X
+        let cbCurrentRoundIdx = -1; // -1 = waiting, 0+ = round index
+        let cbRevealedScores = [];  // Current visual scores
+        let cbVisualsFinished = false;
         window.cbLastAnimatedSignature = '';
 
         const preloadedSkinUrls = new Set();
@@ -3781,7 +3784,21 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         };
         async function fillCaseBattleBotSlot(slot) { if (!cbActiveRoomId) return; try { const data = await apiRequest(`/api/case-battle/fill-bot/${cbActiveRoomId}`, 'POST', { slot }); renderCaseBattleRoom(data.room, true); } catch (err) { showToast(err.message, true); } }
-        async function leaveCaseBattleRoom() { if (!cbActiveRoomId) return; try { await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST'); } catch (_e) { } cbActiveRoomId = null; cbAnimationSession += 1; cbAnimationLock = false; cbLastAnimatedSignature = ''; cbSetPanels(false); document.getElementById('cb-stage').innerHTML = ''; document.getElementById('cb-log').innerHTML = ''; loadCaseBattleRooms(); }
+        async function leaveCaseBattleRoom() { 
+            if (!cbActiveRoomId) return; 
+            try { await apiRequest(`/api/case-battle/leave/${cbActiveRoomId}`, 'POST'); } catch (_e) { } 
+            cbActiveRoomId = null; 
+            cbAnimationSession += 1; 
+            cbAnimationLock = false; 
+            cbCurrentRoundIdx = -1;
+            cbRevealedScores = [];
+            cbVisualsFinished = false;
+            cbLastAnimatedSignature = ''; 
+            cbSetPanels(false); 
+            document.getElementById('cb-stage').innerHTML = ''; 
+            document.getElementById('cb-log').innerHTML = ''; 
+            loadCaseBattleRooms(); 
+        }
         window.startCaseBattleRoom = async function () {
             if (!requireAuthAction()) return;
             if (!cbActiveRoomId) return showToast('Nejdřív vytvoř nebo připoj room.', true);
@@ -3938,316 +3955,330 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (rc) rc.textContent = 'BATTLE FINISHED';
             lucide.createIcons();
         }
-        async function renderCaseBattleRoom(room, animate = false) {
-            // Odstraňujeme globální lock z renderu, abychom mohli updatovat UI (hráči, score) i během animace
-            const header = document.getElementById('cb-room-header');
-            const teams = document.getElementById('cb-room-teams');
+        async function startBattleVisuals(room) {
+            if (cbAnimationLock) return;
+            cbAnimationLock = true;
+
+            const rounds = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
+            const playersCount = (room.players || []).length;
+            const ITEM_WIDTH = 140;
+            const WINNER_POS = 60;
+
+            // Reset visual state
+            cbCurrentRoundIdx = 0;
+            cbRevealedScores = room.players.map(() => 0);
+            cbVisualsFinished = false;
+
+            // Build the static stage DOM once before animation starts
+            _buildStageDOM(room);
+
+            try {
+                for (let round = 0; round < rounds; round++) {
+                    cbCurrentRoundIdx = round;
+
+                    // Update round counter UI
+                    const rc = document.getElementById('cb-round-counter');
+                    if (rc) rc.textContent = `${round + 1} / ${rounds}`;
+
+                    // Get item pool for this round
+                    const qCase = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
+                    const caseObj = qCase
+                        ? (casesDB.find(c => c.id === qCase.caseId) || casesDB[0])
+                        : (getCaseByRoom(room) || casesDB[0]);
+                    let pool = ((caseObj?.contents || casesDB[0]?.contents || []).map(c => c.skin).filter(Boolean));
+                    if (!pool.length) pool = Object.values(skinsDB).slice(0, 20);
+
+                    // Build and insert spinner tracks for each player
+                    const spinners = [];
+                    for (let i = 0; i < playersCount; i++) {
+                        const track = document.getElementById(`cb-spin-track-${i}`);
+                        if (!track) continue;
+                        const drop = room.players[i]?.drops?.[round];
+                        if (!drop) continue;
+
+                        // Force position reset (no transition)
+                        track.style.transition = 'none';
+                        track.style.transform = 'translate3d(0,0,0)';
+
+                        let html = '';
+                        for (let j = 0; j < 75; j++) {
+                            const item = (j === WINNER_POS) ? drop : pool[Math.floor(Math.random() * pool.length)];
+                            html += `<div class="flex-shrink-0 w-[${ITEM_WIDTH}px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent" style="border-color:${item.color}">
+                                <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-24 object-contain drop-shadow-lg">
+                                <div class="text-[9px] text-gray-500 font-bold mt-2 uppercase truncate w-full text-center">${item.name}</div>
+                            </div>`;
+                        }
+                        track.innerHTML = html;
+                        spinners.push({ track, drop, idx: i });
+                    }
+
+                    // Wait a frame so browser can paint the track HTML before animating
+                    await cbSleep(200);
+
+                    // Fire all spinners simultaneously
+                    spinners.forEach(s => {
+                        const containerWidth = s.track.parentElement?.clientWidth || 300;
+                        const center = containerWidth / 2;
+                        const stopX = (ITEM_WIDTH * WINNER_POS) - center + (ITEM_WIDTH / 2) + (Math.random() * 30 - 15);
+                        s.track.style.transition = 'transform 5s cubic-bezier(0.12, 0.8, 0.2, 1)';
+                        s.track.style.transform = `translate3d(-${stopX}px, 0, 0)`;
+                    });
+
+                    // Tick sound effect while spinning
+                    const spinStart = Date.now();
+                    let lastTickIdx = -1;
+                    const tickTimer = setInterval(() => {
+                        if (Date.now() - spinStart > 5000) { clearInterval(tickTimer); return; }
+                        const ref = spinners[0];
+                        if (!ref) return;
+                        try {
+                            const mat = new (window.WebKitCSSMatrix || window.DOMMatrix)(getComputedStyle(ref.track).transform);
+                            const x = mat.m41 !== undefined ? mat.m41 : (mat.e || 0);
+                            const pos = Math.floor(Math.abs(x) / ITEM_WIDTH);
+                            if (pos !== lastTickIdx) { lastTickIdx = pos; if (window.SoundEngine) SoundEngine.playTick(); }
+                        } catch (_) {}
+                    }, 25);
+
+                    await cbSleep(5500);
+                    clearInterval(tickTimer);
+
+                    // Reveal result: update score, history card, crown, coins
+                    for (const s of spinners) {
+                        cbRevealedScores[s.idx] = (cbRevealedScores[s.idx] || 0) + Number(s.drop.price || 0);
+
+                        const scoreEl = document.getElementById(`cb-score-${s.idx}`);
+                        if (scoreEl) {
+                            scoreEl.textContent = formatMoney(cbRevealedScores[s.idx]);
+                            scoreEl.classList.add('cb-winner-flash');
+                            setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 800);
+                        }
+
+                        // Flying coin effect
+                        const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
+                        if (spinBox) {
+                            const r = spinBox.getBoundingClientRect();
+                            spawnCbCoin(r.left + r.width / 2, r.top + r.height / 2, r.left + r.width / 2, r.top + r.height + 80);
+                        }
+
+                        // Insert revealed drop card at top of history
+                        const hist = document.getElementById(`cb-history-${s.idx}`);
+                        if (hist) {
+                            const card = document.createElement('div');
+                            card.className = 'bg-[#1a1e29] rounded-lg p-2 text-center border-t-2';
+                            card.style.borderColor = s.drop.color || '#4b69ff';
+                            card.innerHTML = `<img src="${s.drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 mx-auto object-contain">
+                                <div class="text-[9px] text-gray-400 truncate mt-1">${s.drop.name}</div>
+                                <div class="text-[10px] text-yellow-400 font-black">${formatMoney(s.drop.price)}</div>`;
+                            hist.prepend(card);
+                        }
+                    }
+
+                    // Update leader crowns
+                    const topScore = Math.max(...cbRevealedScores, 0);
+                    cbRevealedScores.forEach((sc, i) => {
+                        const crown = document.getElementById(`cb-crown-${i}`);
+                        if (crown) crown.classList.toggle('hidden', sc < topScore || topScore === 0);
+                    });
+
+                    if (window.SoundEngine) SoundEngine.playWin('red');
+                    if (round < rounds - 1) await cbSleep(900);
+                }
+
+                // All rounds done
+                cbVisualsFinished = true;
+                cbCurrentRoundIdx = rounds;
+
+                // Sync won items to inventory
+                try {
+                    const myId = currentUser?.id || currentUser?._id;
+                    if (myId) {
+                        const myIdx = room.players.findIndex(p => String(p.userId) === String(myId));
+                        if (myIdx >= 0) (room.players[myIdx].drops || []).forEach(d => { if (d?.name) addToInventory(d); });
+                    }
+                } catch (_) {}
+
+                triggerEndgameSequence(room, cbRevealedScores);
+
+            } catch (err) {
+                console.error('[CB Visual Engine]', err);
+            } finally {
+                cbAnimationLock = false;
+            }
+        }
+
+        // Builds the complete stage DOM (player columns, spinner zones, history grids).
+        // Call this ONCE before animation starts, and again after animation ends for the final view.
+        // NEVER call from inside the animation loop — that would destroy live spinners.
+        function _buildStageDOM(room) {
             const stage = document.getElementById('cb-stage');
-            if (!room || !header || !teams || !stage) return;
+            if (!stage) return;
 
             const totalRounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
-            const isDone = (room.status === 'done' || room.status === 'finished');
-            const isWaiting = room.status === 'waiting';
-            let totalValue = (room.casePrice || 0) * totalRounds * (room.capacity || 2);
+            const colsCount   = Math.max(2, Number(room.capacity || 2));
+            const isWaiting   = room.status === 'waiting';
+            const gridClass   = colsCount === 4 ? 'grid-cols-4' : colsCount === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
-            const isCreator = currentUser && String(currentUser.id || currentUser._id) === String(room.creatorId);
-            let creatorControlsHtml = '';
+            stage.className = `grid gap-[2px] bg-[#1a1e29] p-[2px] ${gridClass} min-h-[600px] w-full`;
 
-            if (isWaiting) {
-                let btns = '';
-                if (isCreator) {
-                    btns += `<button onclick="window.cancelCaseBattle('${room.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg pointer-events-auto mr-2">Zrušit Battle</button>`;
-                }
-                if (isCreator && (room.players?.length || 0) === (room.capacity || 2)) {
-                    btns += `<button onclick="startCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(192,242,12,0.3)] animate-pulse pointer-events-auto">START</button>`;
-                }
-                creatorControlsHtml = `<div class="flex items-center ml-4 z-50">${btns}</div>`;
-            }
-
-            // Tlačítko pro odchod (pokud hra běží a já jsem divák nebo hráč)
-            let leaveBtn = '';
-            if (!isWaiting) {
-                leaveBtn = `<button onclick="window.leaveCaseBattleRoom()" class="ml-4 text-gray-500 hover:text-white text-xs font-black uppercase transition-colors"><i data-lucide="log-out" class="w-4 h-4 inline"></i> Odejít</button>`;
-            }
-
-            header.innerHTML = `
-        <div class="flex items-center gap-6">
-            <div class="relative">
-                <div class="absolute -inset-1 bg-yellow-400/20 blur rounded-lg"></div>
-                <div class="relative bg-[#161a24] border border-yellow-400/40 rounded-lg px-6 py-3 text-center shadow-[0_0_15px_rgba(250,204,21,0.15)]">
-                    <div class="text-[10px] uppercase text-yellow-500 font-bold tracking-widest">Battle Rounds</div>
-                    <div class="text-2xl font-black text-yellow-300 leading-none mt-1" id="cb-round-counter">${isDone ? 'FINISHED' : `1 of ${totalRounds}`}</div>
-                </div>
-            </div>
-            ${creatorControlsHtml}
-            ${leaveBtn}
-            <div class="flex gap-2 max-w-[300px] overflow-x-auto hide-scrollbar items-center px-2">
-                ${(room.caseQueue || [{ caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG, casePrice: room.casePrice }]).slice(0, 10).map(q => `
-                    <div class="flex-shrink-0 text-center opacity-80 hover:opacity-100 transition-opacity">
-                        <img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-12 object-contain drop-shadow-md">
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-        <div class="text-right">
-            <div class="text-[11px] uppercase text-gray-500 font-black tracking-widest">Total Value</div>
-            <div class="text-3xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.4)] mt-1" id="cb-total-value">${formatMoney(totalValue)}</div>
-        </div>
-    `;
-
-            let ctScore = 0; let tScore = 0;
-            (room.players || []).forEach((p, idx) => {
-                if (idx < Math.ceil((room.capacity || 2) / 2)) ctScore += Number(p.score || 0);
-                else tScore += Number(p.score || 0);
-            });
-
-            teams.innerHTML = `
-        <div class="p-4 flex justify-center items-center gap-4 border-r-2 border-[#1a1e29] ${ctScore > tScore ? 'bg-gradient-to-r from-blue-900/20 to-transparent' : ''}">
-            <div class="flex items-center gap-2 text-blue-400 font-black uppercase tracking-wider text-sm"><i data-lucide="shield" class="w-5 h-5"></i> Counter-Terrorist</div>
-            <div class="text-xl font-black ${ctScore > tScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(ctScore)} ${ctScore > tScore ? '↑' : ''}</div>
-        </div>
-        <div class="p-4 flex justify-center items-center gap-4 ${tScore > ctScore ? 'bg-gradient-to-l from-orange-900/20 to-transparent' : ''}">
-            <div class="text-xl font-black ${tScore > ctScore ? 'text-green-400' : 'text-gray-400'}">${tScore > ctScore ? '↑' : ''} ${formatMoney(tScore)}</div>
-            <div class="flex items-center gap-2 text-orange-400 font-black uppercase tracking-wider text-sm">Terrorist <i data-lucide="swords" class="w-5 h-5"></i></div>
-        </div>
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"><div class="bg-[#12161f] border-2 border-green-500 text-green-400 text-xs font-black px-3 py-1.5 transform rotate-45 shadow-[0_0_20px_rgba(34,197,94,0.3)]"><div class="-rotate-45">VS</div></div></div>
-    `;
-
-            const colsCount = Math.max(2, Number(room.capacity || 2));
-            let gridColsClass = colsCount === 4 ? 'grid-cols-4' : (colsCount === 3 ? 'grid-cols-3' : 'grid-cols-2');
-            stage.className = `grid gap-[2px] bg-[#1a1e29] p-[2px] ${gridColsClass} min-h-[600px] w-full`;
-            let stageHtml = '';
-
+            let html = '';
             for (let i = 0; i < colsCount; i++) {
-                const pl = room.players?.[i];
+                const pl     = room.players?.[i];
+                const avatar = pl ? (pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG)) : FALLBACK_IMG;
+                const nick   = pl?.nickname || 'Hráč';
 
-                let topZoneHtml = '';
+                let topZone = '';
                 if (!pl) {
-                    topZoneHtml = `
-            <div class="flex-1 flex flex-col items-center justify-center p-6 relative min-h-[250px] bg-[#12161f]">
-                <div class="absolute top-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
-                <div class="absolute top-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
-                <div class="absolute bottom-4 left-4 w-2 h-0.5 bg-red-500/60"></div>
-                <div class="absolute bottom-4 right-4 w-2 h-0.5 bg-red-500/60"></div>
-                <i data-lucide="loader-2" class="w-10 h-10 text-[#c0f20c] animate-spin mb-4"></i>
-                <div class="text-white font-black text-xl mb-6 tracking-widest uppercase">Waiting for Player</div>
-                <button onclick="fillCaseBattleBotSlot(${i})" class="bg-[#1a1e29] border border-white/10 hover:border-[#c0f20c] text-gray-300 hover:text-white text-xs font-black px-6 py-3 rounded-xl mb-3 transition-all flex items-center gap-2 shadow-lg">
-                    <i data-lucide="bot" class="w-4 h-4"></i> Play with bot
-                </button>
-            </div>`;
+                    topZone = `<div class="flex-1 flex flex-col items-center justify-center bg-[#12161f] min-h-[250px] gap-4 p-6">
+                        <i data-lucide="loader-2" class="w-10 h-10 text-[#c0f20c] animate-spin"></i>
+                        <div class="text-white font-black uppercase tracking-widest text-center">Waiting for Player</div>
+                        <button onclick="fillCaseBattleBotSlot(${i})" class="bg-white/5 border border-white/10 hover:border-[#c0f20c] text-gray-300 hover:text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all flex items-center gap-2">
+                            <i data-lucide="bot" class="w-4 h-4"></i> Play with bot
+                        </button>
+                    </div>`;
                 } else if (isWaiting) {
-                    topZoneHtml = `
-            <div class="flex-1 flex flex-col items-center justify-center relative min-h-[250px] bg-gradient-to-b from-green-900/10 to-[#12161f]">
-                <div class="w-16 h-16 bg-[#c0f20c]/10 rounded-full flex items-center justify-center mb-4 ring-2 ring-[#c0f20c] shadow-[0_0_30px_rgba(192,242,12,0.2)]">
-                    <i data-lucide="check" class="w-8 h-8 text-[#c0f20c]"></i>
-                </div>
-                <div class="text-[#c0f20c] font-black text-2xl mb-4 tracking-widest uppercase">Ready to Battle</div>
-            </div>`;
+                    topZone = `<div class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-green-900/10 to-[#12161f] min-h-[250px] gap-4">
+                        <div class="w-16 h-16 rounded-full bg-[#c0f20c]/10 ring-2 ring-[#c0f20c] flex items-center justify-center shadow-[0_0_30px_rgba(192,242,12,0.15)]">
+                            <i data-lucide="check" class="w-8 h-8 text-[#c0f20c]"></i>
+                        </div>
+                        <div class="text-[#c0f20c] font-black text-xl uppercase tracking-widest">Ready</div>
+                    </div>`;
                 } else {
-                    topZoneHtml = `
-            <div id="cb-spinner-box-${i}" class="relative h-56 w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/40 to-[#12161f] border-b-2 border-[#1a1e29] overflow-hidden flex flex-col justify-end pb-6">
-                <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-yellow-400 z-30 shadow-[0_0_20px_#facc15] transform -translate-x-1/2"></div>
-                <div id="cb-spin-track-${i}" class="absolute top-6 left-0 h-36 flex items-center will-change-transform z-20"></div>
-                <div id="cb-endgame-${i}" class="absolute inset-0 z-40 hidden flex-col items-center justify-center backdrop-blur-sm transition-all duration-500"></div>
-            </div>`;
-                }
-
-                let userInfoHtml = '';
-                if (pl) {
-                    const avatar = pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG);
-                    userInfoHtml = `
-            <div class="px-5 py-4 flex items-center justify-between bg-[#161a24] border-y-2 border-[#1a1e29] z-50 shadow-md">
-                <div class="flex items-center gap-3 relative">
-                    <img src="${avatar}" onerror="handleImgError(this)" class="w-10 h-10 rounded-lg border border-gray-600 object-cover shadow-lg">
-                    ${pl.bot ? '<div class="text-[9px] bg-red-600 text-white px-1.5 rounded font-black absolute -bottom-2 -right-2 border border-[#161a24]">BOT</div>' : ''}
-                    <div class="text-sm font-black text-white truncate max-w-[120px]">${pl.nickname || 'Player'}</div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <i id="cb-crown-${i}" data-lucide="crown" class="w-5 h-5 text-yellow-400 hidden drop-shadow-[0_0_8px_#facc15]"></i>
-                    <div id="cb-score-${i}" class="text-lg font-black text-gray-300">${formatMoney(pl.score || 0)}</div>
-                </div>
-            </div>`;
-                } else {
-                    userInfoHtml = `<div class="h-[72px] bg-[#161a24] border-y-2 border-[#1a1e29]"></div>`;
+                    topZone = `<div id="cb-spinner-box-${i}" class="relative h-56 w-full bg-[#0d1017] border-b-2 border-[#1a1e29] overflow-hidden">
+                        <div class="absolute left-1/2 top-0 bottom-0 w-[2px] bg-yellow-400 z-30 shadow-[0_0_15px_#facc15] -translate-x-1/2 pointer-events-none"></div>
+                        <div id="cb-spin-track-${i}" class="absolute top-0 left-0 h-full flex items-center will-change-transform z-20"></div>
+                        <div id="cb-endgame-${i}" class="absolute inset-0 z-40 hidden items-center justify-center backdrop-blur-[2px] transition-all duration-500"></div>
+                    </div>`;
                 }
 
                 let historyHtml = '';
                 for (let j = 0; j < totalRounds; j++) {
-                    // ZOBRAZÍME JEN KOLA, KTERÁ UŽ SKONČILA (jsou menší než aktuálně animované)
-                    const drop = pl?.drops?.[j];
-                    if (drop && (j < cbCurrentRoundIdx || isDone)) {
-                        historyHtml += `
-                <div class="bg-[#1a1e29] border-t-[3px] rounded-lg p-3 text-center relative shadow-lg transform animate-[popIn_0.3s_ease-out]" style="border-top-color: ${drop.color || '#4b69ff'}">
-                    <div class="absolute top-1.5 left-1.5 text-[9px] bg-black/60 px-1.5 rounded text-gray-300 font-black">${cbWearTag()}</div>
-                    <img src="${drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-14 w-full object-contain mb-2 drop-shadow-md">
-                    <div class="text-[10px] truncate text-gray-400 font-bold uppercase" translate="no">${drop.name}</div>
-                    <div class="text-xs text-yellow-400 font-black mt-1">${formatMoney(drop.price || 0)}</div>
-                </div>`;
-                    } else {
-                        historyHtml += `<div class="bg-[#161a24] border border-white/5 rounded-lg h-[116px] flex items-center justify-center opacity-20">
-                    <div class="text-[10px] text-gray-600 font-black">${j + 1}</div>
-                </div>`;
-                    }
+                    historyHtml += `<div class="bg-[#161a24] border border-white/5 rounded-lg h-[100px] flex items-center justify-center text-[11px] text-gray-700 font-black">${j + 1}</div>`;
                 }
 
-                stageHtml += `
-        <div id="cb-player-col-${i}" class="bg-[#12161f] flex flex-col h-full relative">
-            ${topZoneHtml}
-            ${userInfoHtml}
-            <div class="flex-1 p-4 overflow-y-auto bg-[#0d1017]">
-                <div id="cb-history-${i}" class="grid grid-cols-2 lg:grid-cols-3 gap-3 content-start">
-                    ${historyHtml}
-                </div>
-            </div>
-        </div>`;
+                html += `<div class="bg-[#12161f] flex flex-col">
+                    ${topZone}
+                    <div class="px-4 py-3 flex items-center justify-between bg-[#161a24] border-y border-white/5">
+                        <div class="flex items-center gap-2 relative">
+                            <img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-lg border border-white/10 object-cover">
+                            ${pl?.bot ? '<div class="absolute -bottom-1 -right-1 text-[8px] bg-red-600 text-white px-1 rounded font-black">BOT</div>' : ''}
+                            <span class="text-xs font-black text-white truncate max-w-[110px]">${nick}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i id="cb-crown-${i}" data-lucide="crown" class="w-4 h-4 text-yellow-400 hidden drop-shadow-[0_0_6px_#facc15]"></i>
+                            <div id="cb-score-${i}" class="text-sm font-black text-gray-300">${formatMoney(0)}</div>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3 overflow-y-auto bg-[#0d1017] custom-scroll max-h-[380px]">
+                        <div id="cb-history-${i}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
+                            ${historyHtml}
+                        </div>
+                    </div>
+                </div>`;
             }
 
-            // POKUD BĚŽÍ ANIMACE, NESMÍME PŘEKRESLOVAT STAGE!
-            // Jen updatujeme skóre a hlavičku, pokud je to potřeba
-            if (!cbAnimationLock) {
-                stage.innerHTML = stageHtml;
-                lucide.createIcons();
-                updateBattleLeaders(room);
+            stage.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        async function renderCaseBattleRoom(room) {
+            if (!room) return;
+
+            const header = document.getElementById('cb-room-header');
+            const teams  = document.getElementById('cb-room-teams');
+            if (!header || !teams) return;
+
+            const totalRounds  = Math.max(1, Number(room.rounds || room.totalRounds || 1));
+            const isWaiting    = room.status === 'waiting';
+            const backendDone  = room.status === 'done' || room.status === 'finished';
+            const visualsDone  = backendDone && cbVisualsFinished;
+            const isCreator    = currentUser && String(currentUser.id || currentUser._id) === String(room.creatorId);
+            const totalValue   = (room.casePrice || 0) * totalRounds * Math.max(2, Number(room.capacity || 2));
+
+            // Controls
+            let ctrlHtml = '';
+            if (isWaiting) {
+                if (isCreator) ctrlHtml += `<button onclick="window.cancelCaseBattle('${room.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all mr-2">Zrušit</button>`;
+                if (isCreator && (room.players?.length || 0) >= (room.capacity || 2)) {
+                    ctrlHtml += `<button onclick="startCaseBattleRoom()" class="bg-[#c0f20c] hover:bg-[#a3cc0a] text-black px-5 py-2 rounded-lg text-xs font-black uppercase animate-pulse shadow-[0_0_20px_rgba(192,242,12,0.3)] transition-all">START</button>`;
+                }
             } else {
-                // I během animace chceme vidět aktuální skóre (které inkrementuje animace)
-                // a hlavičku (round counter)
+                ctrlHtml = `<button onclick="window.leaveCaseBattleRoom()" class="text-gray-500 hover:text-white text-xs font-black uppercase flex items-center gap-1 transition-colors"><i data-lucide="log-out" class="w-4 h-4"></i> Odejít</button>`;
             }
 
-            const signature = cbRoomSignature(room);
+            const roundLabel = isWaiting ? 'WAITING...' : visualsDone ? 'FINISHED' : `1 / ${totalRounds}`;
+            const caseImgs = (room.caseQueue || (room.caseId ? [{ caseImg: getCaseByRoom(room)?.img || FALLBACK_IMG }] : []))
+                .slice(0, 8).map(q => `<img src="${q.caseImg || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-10 w-12 object-contain opacity-70 hover:opacity-100 transition-opacity">`).join('');
 
-            if (!isWaiting && signature !== cbLastAnimatedSignature) {
-                if (!cbAnimationLock) {
-                    cbLastAnimatedSignature = signature;
-                    // Spustíme animaci a počkáme
-                    if (cbAnimationLock) return;
-                    cbAnimationLock = true;
+            header.innerHTML = `
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="relative">
+                        <div class="absolute -inset-1 bg-yellow-400/15 blur rounded-xl"></div>
+                        <div class="relative bg-[#161a24] border border-yellow-400/30 rounded-xl px-5 py-2.5 text-center">
+                            <div class="text-[9px] uppercase text-yellow-600 font-bold tracking-widest">Rounds</div>
+                            <div id="cb-round-counter" class="text-xl font-black text-yellow-300">${roundLabel}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">${caseImgs}</div>
+                    <div class="flex items-center gap-2 ml-2">${ctrlHtml}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] uppercase text-gray-500 font-bold tracking-widest">Total Value</div>
+                    <div class="text-2xl font-black text-yellow-400">${formatMoney(totalValue)}</div>
+                </div>`;
 
-                    const rounds = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
-                    const playersCount = (room.players || []).length;
-                    const ITEM_WIDTH = 140;
+            // Team score bar
+            const scores = cbRevealedScores.length ? cbRevealedScores : room.players.map(() => 0);
+            const half = Math.ceil((room.capacity || 2) / 2);
+            let ctScore = 0, tScore = 0;
+            scores.forEach((s, i) => { if (i < half) ctScore += s; else tScore += s; });
 
-                    // Inicializace skóre podle toho, kolik kol už proběhlo (pro re-joing)
-                    let liveScores = room.players.map(p => 0);
-                    if (cbCurrentRoundIdx > 0) {
-                        for (let i = 0; i < playersCount; i++) {
-                            for (let j = 0; j < cbCurrentRoundIdx; j++) {
-                                liveScores[i] += Number(room.players[i]?.drops?.[j]?.price || 0);
-                            }
+            teams.innerHTML = `
+                <div class="p-3 flex items-center justify-center gap-3 ${ctScore > tScore ? 'bg-blue-900/10' : ''}">
+                    <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+                    <span class="text-xs font-black text-blue-400 uppercase">CT</span>
+                    <span class="font-black text-lg ${ctScore > tScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(ctScore)}</span>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="w-8 h-8 bg-[#12161f] border-2 border-green-500 rounded flex items-center justify-center rotate-45">
+                        <span class="-rotate-45 text-green-400 text-[9px] font-black">VS</span>
+                    </div>
+                </div>
+                <div class="p-3 flex items-center justify-center gap-3 ${tScore > ctScore ? 'bg-orange-900/10' : ''}">
+                    <span class="font-black text-lg ${tScore > ctScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(tScore)}</span>
+                    <span class="text-xs font-black text-orange-400 uppercase">T</span>
+                    <i data-lucide="swords" class="w-4 h-4 text-orange-400"></i>
+                </div>`;
+
+            // Only rebuild stage DOM when NOT mid-animation
+            if (!cbAnimationLock) {
+                _buildStageDOM(room);
+
+                if (visualsDone) {
+                    room.players.forEach((pl, i) => {
+                        const hist    = document.getElementById(`cb-history-${i}`);
+                        const scoreEl = document.getElementById(`cb-score-${i}`);
+                        if (hist && pl.drops) {
+                            hist.innerHTML = pl.drops.map(drop => `
+                                <div class="bg-[#1a1e29] rounded-lg p-2 text-center border-t-2" style="border-color:${drop.color}">
+                                    <img src="${drop.img}" onerror="handleImgError(this)" class="h-12 mx-auto object-contain">
+                                    <div class="text-[9px] text-gray-400 truncate">${drop.name}</div>
+                                    <div class="text-[10px] text-yellow-400 font-black">${formatMoney(drop.price)}</div>
+                                </div>`).join('');
                         }
-                    }
-
-                    try {
-                        // Začínáme od indexu 0, nebo tam, kde jsme přestali (pro blbuvzdornost)
-                        for (let round = (cbCurrentRoundIdx < 0 ? 0 : cbCurrentRoundIdx); round < rounds; round++) {
-                            cbCurrentRoundIdx = round;
-
-                            // 1. PŘEKRESLÍME SCÉNU (Vytvoříme spinnery pro toto konkrétní kolo)
-                            // Dočasně vypneme lock, aby renderCaseBattleRoom směl zapsat do stage.innerHTML
-                            cbAnimationLock = false;
-                            renderCaseBattleRoom(room);
-                            cbAnimationLock = true;
-
-                            const qCase = Array.isArray(room.caseQueue) ? getCaseById(room.caseQueue[round]?.caseId) : getCaseByRoom(room);
-                            const pool = (qCase?.contents || casesDB[0].contents).map(c => c.skin).filter(Boolean);
-
-                            const spinners = [];
-                            for (let i = 0; i < playersCount; i++) {
-                                const track = document.getElementById(`cb-spin-track-${i}`);
-                                if (!track) continue;
-
-                                let drop = room.players[i]?.drops?.[round];
-                                if (!drop) drop = pool[0];
-
-                                // NAPLNÍME SPINNER PRO TOTO KOLO
-                                let html = '';
-                                const WINNER_POS = 60;
-                                for (let j = 0; j < 75; j++) {
-                                    const item = j === WINNER_POS ? drop : (pool[Math.floor(Math.random() * pool.length)]);
-                                    html += `
-                                <div class="flex-shrink-0 w-[${ITEM_WIDTH}px] h-full flex flex-col items-center justify-center px-4 border-b-4 bg-gradient-to-t from-white/5 to-transparent shadow-inner" style="border-color:${item.color}">
-                                    <img src="${item.img}" class="h-20 w-24 object-contain drop-shadow-lg scale-90">
-                                    <div class="text-[9px] text-gray-500 font-bold mt-4 uppercase truncate w-full text-center tracking-tight">${item.name}</div>
-                                </div>`;
-                                }
-                                track.innerHTML = html;
-                                spinners.push({ track, drop, idx: i });
-                            }
-
-                            await cbSleep(800);
-
-                            // 2. SPUŠTĚNÍ SPINU (5 SEOKUND - KEYDROP STYLE)
-                            spinners.forEach(s => {
-                                const centerLine = s.track.parentElement.clientWidth / 2;
-                                const stopOffset = (60 * ITEM_WIDTH) - centerLine + (ITEM_WIDTH / 2) + (Math.random() * 40 - 20);
-
-                                s.track.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.2, 1)'; // KeyDrop Ease-out
-                                s.track.style.transform = `translate3d(-${stopOffset}px, 0, 0)`;
-                            });
-
-                            // Tick zvuk při pohybu
-                            let lastTickIdx = -1;
-                            const startTime = Date.now();
-                            const tickInt = setInterval(() => {
-                                if (Date.now() - startTime > 5000) return clearInterval(tickInt);
-                                const style = window.getComputedStyle(spinners[0].track);
-                                const matrix = new WebKitCSSMatrix(style.transform);
-                                const curIdx = Math.floor(Math.abs(matrix.m41) / ITEM_WIDTH);
-                                if (curIdx !== lastTickIdx) { lastTickIdx = curIdx; SoundEngine.playTick(); }
-                            }, 20);
-
-                            await cbSleep(5500); // Čekáme na dotočení
-
-                            // 3. AKTUALIZACE STAVU PO DOTOČENÍ
-                            for (const s of spinners) {
-                                liveScores[s.idx] += Number(s.drop.price || 0);
-                                const scoreEl = document.getElementById(`cb-score-${s.idx}`);
-                                if (scoreEl) {
-                                    scoreEl.textContent = formatMoney(liveScores[s.idx]);
-                                    scoreEl.classList.add('cb-winner-flash');
-                                    setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 1000);
-                                }
-
-                                // Letící mince
-                                const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
-                                if (spinBox) {
-                                    const rect = spinBox.getBoundingClientRect();
-                                    spawnCbCoin(rect.left + rect.width / 2, rect.top + rect.height / 2, rect.left + rect.width / 2, rect.top + rect.height + 100);
-                                }
-                            }
-
-                            updateBattleLeaders(room, liveScores);
-                            SoundEngine.playWin('milspec');
-                            await cbSleep(1000); // Pauza mezi koly
-                        }
-
-                        // KONEC VŠECH KOL
-                        cbCurrentRoundIdx = rounds;
-                        cbAnimationLock = false;
-                        renderCaseBattleRoom(room); // Finální render už zobrazí všechny itemy v historii
-                        triggerEndgameSequence(room, liveScores);
-
-                        // Final inventory sync if it's our win
-                        try {
-                            const myId = currentUser?.id || currentUser?._id;
-                            if (myId) {
-                                const myIdx = room.players.findIndex(p => String(p.userId) === String(myId));
-                                if (myIdx >= 0) {
-                                    const myDrops = room.players[myIdx].drops || [];
-                                    if (myDrops.length > 0) {
-                                        myDrops.forEach(drop => { if (drop?.name) addToInventory(drop); });
-                                        showToast(`Inventory updated with ${myDrops.length} items!`);
-                                    }
-                                }
-                            }
-                        } catch (e) { console.warn('Inv sync error:', e); }
-
-                    } catch (e) {
-                        console.error("Case Battle visual engine crashed:", e);
-                    } finally {
-                        cbAnimationLock = false;
-                    }
+                        if (scoreEl) scoreEl.textContent = formatMoney(scores[i] || 0);
+                    });
+                    triggerEndgameSequence(room, scores);
                 }
             }
+
+            // Trigger animation if battle just started and we haven't animated yet
+            const sig = cbRoomSignature(room);
+            if (!isWaiting && !cbAnimationLock && !cbVisualsFinished && sig !== cbLastAnimatedSignature) {
+                cbLastAnimatedSignature = sig;
+                startBattleVisuals(room);
+            }
+
+            lucide.createIcons();
         }
 
                 function setCasesCategoryFilter(category) {
