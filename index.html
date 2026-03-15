@@ -3425,14 +3425,15 @@ function updateSelectorBottomBar() {
             cbAnimationLock = true;
             const rounds = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
             const playersCount = room.players?.length || 0;
-            const ITEM_WIDTH = 140;
-            let liveScores = room.players.map(p => Number(p.score || 0));
+            const ITEM_WIDTH = 140; // Šířka jednoho skinu v spinneru
+            let liveScores = room.players.map(p => 0); // Začínáme od nuly, skóre budeme přičítat postupně
 
             try {
                 for (let round = 0; round < rounds; round++) {
                     const rc = document.getElementById('cb-round-counter');
                     if(rc) rc.textContent = `${round + 1} of ${rounds}`;
 
+                    // Získáme bednu pro aktuální kolo
                     const qCase = Array.isArray(room.caseQueue) ? getCaseById(room.caseQueue[round]?.caseId) : getCaseByRoom(room);
                     const pool = (qCase?.contents || casesDB[0].contents).map(c => c.skin).filter(Boolean);
 
@@ -3441,55 +3442,75 @@ function updateSelectorBottomBar() {
                         const track = document.getElementById(`cb-spin-track-${i}`);
                         if (!track) continue;
                         
-                        // KRITICKÁ OPRAVA: Pokud backend nepošle drop (bot/error), frontend si ho vylosuje sám, aby hra nezamrzla!
-                        let drop = null;
-                        if (room.players[i] && room.players[i].drops) {
-                            drop = room.players[i].drops[round];
-                        }
+                        // Drop z backendu
+                        let drop = room.players[i]?.drops?.[round];
                         if (!drop) {
-                            console.warn(`ZÁCHRANA: Hráči ${i} chybí drop v kole ${round}. Generuji náhradní!`);
-                            if (qCase) {
-                                let luck = room.players[i]?.bot ? 0 : (userProfile?.luckModifier || 0);
-                                drop = window.rollCaseSkin ? window.rollCaseSkin(qCase, luck) : (pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' });
-                            } else {
-                                drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Fallback', price: 0, color: '#4b69ff' };
-                            }
+                            // Fallback pro bota nebo chybu
+                            drop = pool[Math.floor(Math.random() * pool.length)] || { img: FALLBACK_IMG, name: 'Empty', price: 0, color: '#4b69ff' };
                         }
 
+                        // Vygenerujeme spinner (vláček skinů)
                         let html = '';
-                        for (let j = 0; j < 60; j++) {
-                            const item = j === 50 ? drop : (pool[Math.floor(Math.random() * pool.length)] || pool[0]);
+                        const SPINNER_ITEMS = 70;
+                        const WINNER_INDEX = 60; // Zastavíme se na 60. položce
+
+                        for (let j = 0; j < SPINNER_ITEMS; j++) {
+                            const item = j === WINNER_INDEX ? drop : (pool[Math.floor(Math.random() * pool.length)] || pool[0]);
                             const displayName = item.name || `${item.weapon || ''} | ${item.skinName || ''}`;
-                            html += `<div class="flex-shrink-0 w-[140px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent" style="border-color: ${item.color || '#4b69ff'}"><img src="${item.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]"><div class="text-[9px] text-gray-300 font-bold uppercase truncate w-full text-center mt-3" translate="no">${displayName}</div></div>`;
+                            html += `
+                                <div class="flex-shrink-0 w-[${ITEM_WIDTH}px] h-full flex flex-col items-center justify-center px-4 border-b-4 bg-gradient-to-t from-white/5 to-transparent transition-opacity duration-300" style="border-color: ${item.color || '#4b69ff'}">
+                                    <div class="relative group">
+                                        <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-24 object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform">
+                                    </div>
+                                    <div class="text-[9px] text-gray-300 font-bold uppercase truncate w-full text-center mt-4 tracking-tighter" translate="no">${displayName}</div>
+                                </div>`;
                         }
+                        
                         track.innerHTML = html;
                         track.style.transition = 'none';
                         track.style.transform = 'translate3d(0,0,0)';
                         spinners.push({ track, drop, idx: i });
                     }
 
-                    await cbSleep(200);
+                    await cbSleep(300); // Pauza před roztočením
 
+                    // START SPINNING
                     spinners.forEach(s => {
-                        void s.track.offsetWidth;
-                        const stopOffset = (50 * ITEM_WIDTH) - (s.track.parentElement.clientWidth / 2) + (ITEM_WIDTH/2) + (Math.random() * 40 - 20);
-                        s.track.style.transition = 'transform 6.5s cubic-bezier(0.12, 0, 0.1, 1)';
+                        void s.track.offsetWidth; // Force reflow
+                        const centerLine = s.track.parentElement.clientWidth / 2;
+                        const stopOffset = (60 * ITEM_WIDTH) - centerLine + (ITEM_WIDTH/2) + (Math.random() * 40 - 20);
+                        
+                        s.track.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
                         s.track.style.transform = `translate3d(-${stopOffset}px, 0, 0)`;
                     });
 
-                    let lastStep = -1;
-                    const tickInt = setInterval(() => {
+                    // Zvukový "Tick" efekt během točení
+                    let lastTickIdx = -1;
+                    const startTime = Date.now();
+                    const tickDuration = 5200;
+                    const tickInterval = setInterval(() => {
                         if(!spinners[0]) return;
-                        const tx = Math.abs(cbParseTranslateX(getComputedStyle(spinners[0].track).transform));
-                        const step = Math.floor(tx / ITEM_WIDTH);
-                        if(step !== lastStep) { lastStep = step; SoundEngine.playTick(); }
-                    }, 40);
+                        const elapsed = Date.now() - startTime;
+                        if(elapsed > tickDuration) { clearInterval(tickInterval); return; }
+                        
+                        const style = window.getComputedStyle(spinners[0].track);
+                        const matrix = new WebKitCSSMatrix(style.transform);
+                        const currentX = Math.abs(matrix.m41);
+                        const currentIdx = Math.floor(currentX / ITEM_WIDTH);
+                        
+                        if(currentIdx !== lastTickIdx) {
+                            lastTickIdx = currentIdx;
+                            SoundEngine.playTick();
+                        }
+                    }, 16);
 
-                    await cbSleep(6800);
-                    clearInterval(tickInt);
+                    await cbSleep(5500); // Čekáme na dotočení
 
+                    // PO DOTOČENÍ - Aktualizace skóre a historie
                     for (const s of spinners) {
                         liveScores[s.idx] += Number(s.drop.price || 0);
+                        
+                        // Animace skóre (Flash efekt)
                         const scoreEl = document.getElementById(`cb-score-${s.idx}`);
                         if(scoreEl) {
                             scoreEl.classList.add('cb-winner-flash');
@@ -3497,41 +3518,58 @@ function updateSelectorBottomBar() {
                             scoreEl.textContent = formatMoney(liveScores[s.idx]);
                         }
 
+                        // Přidání do historie (levý panel/sloupec pod spinnerem)
                         const hist = document.getElementById(`cb-history-${s.idx}`);
                         if(hist) {
                             const newId = `cb-hist-item-${Date.now()}-${s.idx}`;
-                            hist.insertAdjacentHTML('afterbegin', `<div id="${newId}" class="bg-[#1a1e29] border-t-2 rounded-md p-2 relative text-center shadow-lg transform scale-0 animate-[popIn_0.3s_ease-out_forwards]" style="border-color:${s.drop.color}"><div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${cbWearTag()}</div><img src="${s.drop.img}" onerror="handleImgError(this)" class="h-12 w-full object-contain mb-1 drop-shadow-md"><div class="text-[9px] truncate text-gray-400 font-bold">${s.drop.name}</div><div class="text-[10px] text-yellow-400 font-black">${formatMoney(s.drop.price)}</div></div>`);
+                            const wear = ['FN','MW','FT','WW','BS'][Math.floor(Math.random()*5)];
+                            const itemHtml = `
+                                <div id="${newId}" class="bg-[#1a1e29] border-t-2 rounded-md p-2 relative text-center shadow-lg transform scale-0 animate-[popIn_0.4s_cubic-bezier(0.17,0.89,0.32,1.28)_forwards]" style="border-color:${s.drop.color}">
+                                    <div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${wear}</div>
+                                    <img src="${s.drop.img}" onerror="handleImgError(this)" class="h-12 w-full object-contain mb-1 drop-shadow-md">
+                                    <div class="text-[9px] truncate text-gray-400 font-bold uppercase">${s.drop.name}</div>
+                                    <div class="text-[10px] text-yellow-500 font-black mt-1">${formatMoney(s.drop.price)}</div>
+                                </div>`;
+                            hist.insertAdjacentHTML('afterbegin', itemHtml);
                             
-                            // Fly coin effect
-                            const itemEl = document.getElementById(newId);
-                            const trackEl = document.getElementById(`cb-spin-track-${s.idx}`);
-                            if (itemEl && trackEl) {
-                                const tRect = trackEl.getBoundingClientRect();
-                                const iRect = itemEl.getBoundingClientRect();
-                                spawnCbCoin(tRect.left + tRect.width/2, tRect.top + tRect.height/2, iRect.left + iRect.width/2, iRect.top + iRect.height/2);
+                            // Efekt letící mince ze spinneru do historie
+                            const histItem = document.getElementById(newId);
+                            if (histItem) {
+                                const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
+                                const start = spinBox.getBoundingClientRect();
+                                const end = histItem.getBoundingClientRect();
+                                spawnCbCoin(start.left + start.width/2, start.top + start.height/2, end.left + end.width/2, end.top + end.height/2);
                             }
                         }
                     }
 
+                    // Výherce kola dostane korunku/zvýraznění
                     updateBattleLeaders(room, liveScores);
                     SoundEngine.playWin('milspec');
-                    await cbSleep(800);
+                    await cbSleep(1000); // Pauza mezi koly
                 }
+
+                // KONEC HRY
+                await cbSleep(500);
                 triggerEndgameSequence(room, liveScores);
+                
+                // Přidání do inventáře (pokud jsem to já)
                 try {
                     const myId = currentUser?.id || currentUser?._id;
                     if (myId) {
                         const myIdx = room.players.findIndex(p => String(p.userId) === String(myId));
-                        if (myIdx >= 0 && room.players[myIdx]?.drops?.length) {
-                            room.players[myIdx].drops.forEach(drop => {
-                                if (drop && drop.name) addToInventory(drop);
-                            });
-                            showToast(`${room.players[myIdx].drops.length} skin(ů) přidán do inventáře!`);
+                        if (myIdx >= 0) {
+                            const myDrops = room.players[myIdx].drops || [];
+                            if (myDrops.length > 0) {
+                                myDrops.forEach(drop => { if(drop?.name) addToInventory(drop); });
+                                showToast(`${myDrops.length} items added to your inventory!`);
+                            }
                         }
                     }
-                } catch(e) { console.warn('Inventory add error:', e); }
+                } catch(e) { console.warn('Inv sync error:', e); }
+
             } catch (e) {
-                console.error("Animace spadla:", e);
+                console.error("Case Battle animation crashed:", e);
             } finally {
                 cbAnimationLock = false;
             }
