@@ -1747,6 +1747,11 @@ app.get('/api/notifications', ensureDbReady, ensureAuth, async (req, res) => {
 });
 
 app.get('/api/image-cache', async (req, res) => {
+  // Always set these so browsers never get CORP-blocked
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.set('Cache-Control', 'public, max-age=86400');
+
   try {
     const remoteUrl = (req.query.url || '').toString();
     if (!/^https?:\/\//i.test(remoteUrl)) {
@@ -1777,12 +1782,9 @@ app.get('/api/image-cache', async (req, res) => {
       await fsp.writeFile(filePath, Buffer.from(arrayBuffer));
     }
 
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     return res.sendFile(filePath);
   } catch (err) {
     console.error('Image cache error:', err.message);
-    res.set('Access-Control-Allow-Origin', '*');
     return res.status(404).send('Image not available');
   }
 });

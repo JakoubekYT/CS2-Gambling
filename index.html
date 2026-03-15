@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <title>OTODROP | CS2 CASES & UPGRADES</title>
-    <!-- Tailwind CSS is built locally into /assets/css/style.css -->
-    <link href="/assets/css/style.css" rel="stylesheet">
+    <script>
+        // Suppress the Tailwind CDN production warning
+        const _warn = console.warn;
+        console.warn = (...args) => {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+            _warn.apply(console, args);
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>console.warn = _warn;</script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -654,9 +662,10 @@
     
 
 <script>
-        const FALLBACK_IMG = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
-        const CB_BOT_AVATAR = 'https://ui-avatars.com/api/?name=BOT&background=ef4444&color=fff';
-        const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%2314181c\"/><path d=\"M12 46L46 12M46 12H26M46 12V32\" stroke=\"%23facc15\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>');
+        const FALLBACK_IMG_REMOTE = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjx2jJemkV09-5lpS0lfL3D7fQmGRu58ByiOXO89Wj2Vbtr0BkZmmhcI7HclM4M1vXq1LtxLrugcG8tZ7IznFr6SIn43_D30vgT85F9rU";
+        const FALLBACK_IMG = `/api/image-cache?url=${encodeURIComponent(FALLBACK_IMG_REMOTE)}`;
+        const CB_BOT_AVATAR = `/api/image-cache?url=${encodeURIComponent('https://ui-avatars.com/api/?name=BOT&background=ef4444&color=fff')}`;
+        const UPGRADER_ICON = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%2314181c"/><path d="M12 46L46 12M46 12H26M46 12V32" stroke="%23facc15" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
 
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
@@ -684,51 +693,62 @@
             });
         }
 
+        // Inline SVG placeholder so we never make a cross-origin request for the fallback
+        const FALLBACK_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#14171c"/><text x="50" y="55" font-size="30" text-anchor="middle" fill="#374151">?</text></svg>'
+        );
+
         function handleImgError(eventOrImg) {
             const img = (eventOrImg && eventOrImg.target) ? eventOrImg.target : eventOrImg;
             if (!img || !(img instanceof HTMLImageElement)) return;
+            // Prevent infinite loop if we already failsafed
+            if (img.dataset.fail === 'true') return;
 
             const retryCount = Number(img.dataset.retryCount || 0);
-            const original = (img.dataset.originalSrc || img.getAttribute('src') || '').trim();
 
-            if (retryCount < 2 && original) {
-                img.dataset.retryCount = String(retryCount + 1);
-                if (!img.dataset.originalSrc) img.dataset.originalSrc = original;
-                
-                // Pokud cache selže, zkusíme direct URL jako fallback (pokud už to není direct)
-                let nextSrc = original;
-                if (original.includes('/api/image-cache')) {
-                    const match = original.match(/url=([^&]+)/);
-                    if (match) nextSrc = decodeURIComponent(match[1]);
+            // Store the very first src so we can extract the real URL later
+            if (!img.dataset.originalSrc) {
+                img.dataset.originalSrc = img.getAttribute('src') || '';
+            }
+            const original = img.dataset.originalSrc.trim();
+
+            // Retry #1: try routing the original URL through the cache proxy
+            if (retryCount === 0 && original && !original.startsWith('data:')) {
+                img.dataset.retryCount = '1';
+                let proxied = original;
+                if (!original.includes('/api/image-cache')) {
+                    proxied = `/api/image-cache?url=${encodeURIComponent(original)}`;
                 } else {
-                    nextSrc = toCachedImage(original);
+                    // Already cached but failed → extract raw URL and retry directly
+                    const m = original.match(/[?&]url=([^&]+)/);
+                    proxied = m ? decodeURIComponent(m[1]) : original;
                 }
-                
-                setTimeout(() => {
-                    img.onerror = handleImgError;
-                    img.src = `${nextSrc}${nextSrc.includes('?') ? '&' : '?'}retry=${Date.now()}`;
-                }, 400 * retryCount);
+                img.onerror = handleImgError;
+                img.src = proxied + (proxied.includes('?') ? '&' : '?') + '_r=' + Date.now();
                 return;
             }
 
-            // Fallback na alternativní obrázky (webp -> png atd.)
+            // Retry #2: try any alternate URLs stored in data-alts
             try {
                 const alts = (img.dataset.alts || '').split('|').filter(Boolean);
-                if(alts.length > 0) {
+                if (alts.length > 0) {
                     const nextAlt = alts.shift();
                     img.dataset.alts = alts.join('|');
-                    img.dataset.retryCount = '0';
+                    img.dataset.retryCount = '0'; // Reset so alt also gets a proxy retry
+                    img.dataset.originalSrc = nextAlt;
                     img.onerror = handleImgError;
                     img.src = nextAlt;
                     return;
                 }
             } catch(e) {}
 
+            // Final fallback: inline SVG — no external request, no CORP issues ever
             img.onerror = null;
-            img.src = FALLBACK_IMG;
+            img.src = FALLBACK_SVG;
             img.classList.add('fallback-img');
             img.dataset.fail = 'true';
         }
+
 
         function spawnCbCoin(fromX, fromY, toX, toY) {
             const coin = document.createElement('div');
