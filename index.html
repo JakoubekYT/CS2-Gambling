@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        #live-chat-toggle * { pointer-events: none !important; }
         :root {
             --bg-dark: #0b0d11;
             --bg-panel: #14171c;
@@ -643,6 +644,8 @@
 
         function toCachedImage(url) {
             const raw = (url || '').toString().trim();
+            if (!raw) return raw;
+            if (raw.startsWith('http')) return `/api/image-cache?url=${encodeURIComponent(raw)}`;
             return raw;
         }
 
@@ -4598,9 +4601,9 @@ function renderCreateBattleQueue() {
 
 // Globální state pro giveaways
 window.liveGiveaways = [
-    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", endTime: Date.now() + 1 * 60 * 60 * 1000 + 24 * 60 * 1000, img: "https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp", color: "#ebca44", players: 0 },
-    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", endTime: Date.now() + 4 * 60 * 60 * 1000 + 12 * 60 * 1000, img: "https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp", color: "#ebca44", players: 0 },
-    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", endTime: Date.now() + 12 * 60 * 60 * 1000, img: "https://www.csgodatabase.com/images/skins/webp/AWP_Dragon_Lore.webp", color: "#ebca44", players: 1 }
+    { id: 1, name: "M4A4 | Howl", price: 3500, time: "1h 24m", endTime: Date.now() + 1 * 60 * 60 * 1000 + 24 * 60 * 1000, img: toCachedImage("https://www.csgodatabase.com/images/skins/webp/M4A4_Howl.webp"), color: "#ebca44", players: 0 },
+    { id: 2, name: "Karambit | Fade", price: 1450, time: "4h 12m", endTime: Date.now() + 4 * 60 * 60 * 1000 + 12 * 60 * 1000, img: toCachedImage("https://www.csgodatabase.com/images/knives/webp/Karambit_Fade.webp"), color: "#ebca44", players: 0 },
+    { id: 3, name: "AWP | Dragon Lore", price: 12000, time: "12h 00m", endTime: Date.now() + 12 * 60 * 60 * 1000, img: toCachedImage("https://www.csgodatabase.com/images/skins/webp/AWP_Dragon_Lore.webp"), color: "#ebca44", players: 1 }
 ];
 
 window.giveawayInterval = null;

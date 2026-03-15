@@ -1240,6 +1240,8 @@ async function maybeStartCaseBattle(room) {
 
   room.teams = buildTeams(activePlayers, room.teamFormat || room.mode);
   room.expiresAt = new Date(Date.now() + Math.max(60_000, room.rounds * 8_000 + 5 * 60_000));
+  room.markModified('players');
+  room.markModified('teams');
   await room.save();
 
   const runtime = getRoomRuntime(room.roomId);
