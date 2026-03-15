@@ -2368,7 +2368,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             };
 
             let urlWeapon = w.replace(/ /g, "_");
-            let urlName = knifeNightSlug(w, normalizedFinish).replace(/ /g, "_").replace(/'/g, "");
+            let urlName = knifeNightSlug(w, normalizedFinish).replace(/ /g, "_");
             const overrideKey = `${w}|${normalizedFinish}`;
             const primaryRemote = imgOverrides[overrideKey] || `https://www.csgodatabase.com/images/${folder}/webp/${urlWeapon}_${urlName}.webp`;
             // Alternate patterns (some gloves/rare items have different naming on CDN)

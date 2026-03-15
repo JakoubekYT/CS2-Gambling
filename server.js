@@ -1026,14 +1026,16 @@ function buildSyntheticCaseContents(caseMeta = {}) {
   ];
 
   return ranges.map((r, idx) => {
+    const labels = { consumer: 'Consumer Grade', industrial: 'Industrial Grade', milspec: 'Mil-Spec', restricted: 'Restricted', classified: 'Classified', covert: 'Covert', knife: 'Gold' };
+    const label = labels[r.rarity] || 'Skin';
     const value = toMoney(basePrice * (r.min + Math.random() * (r.max - r.min)));
     return {
-      name: `${caseMeta.caseName || 'Case'} ${r.rarity.toUpperCase()} #${idx + 1}`,
+      name: `${caseMeta.caseName || 'Skin'} | ${label}`,
       price: Math.max(0.01, value),
       color: r.color,
       rarity: r.rarity,
       chance: r.chance,
-      img: String(caseMeta.caseImg || '')
+      img: 'https://www.csgodatabase.com/images/skins/webp/AK-47_Slate.webp'
     };
   });
 }
@@ -1085,12 +1087,13 @@ function weightedRoll(contents, luckModifier = 0) {
     }
   }
 
+  const winObj = win.skin ? win.skin : win;
   return {
-    name: win.name || win.skinName || win.label || 'Skin',
-    price: Number(win.price || 0),
-    color: win.color || '#4b69ff',
-    img: win.img || '',
-    rarity: win.rarity || 'consumer'
+    name: winObj.name || winObj.skinName || winObj.label || 'Skin',
+    price: Number(winObj.price || 0),
+    color: winObj.color || '#4b69ff',
+    img: winObj.img || '',
+    rarity: winObj.rarity || 'consumer'
   };
 }
 
