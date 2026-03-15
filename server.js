@@ -18,10 +18,16 @@ const DOMAIN = (process.env.DOMAIN || `http://localhost:${PORT}`).replace(/\/$/,
 const SKINS_CACHE_DIR = path.join(__dirname, 'assets', 'skins-cache');
 const SKIN_MAPPING_PATH = path.join(SKINS_CACHE_DIR, '_name_to_hash.json');
 let skinNameMap = {}; // normalized name → { hash, ext, url }
+
 try {
   if (fs.existsSync(SKIN_MAPPING_PATH)) {
-    skinNameMap = JSON.parse(fs.readFileSync(SKIN_MAPPING_PATH, 'utf8'));
-    console.log(`✅ Loaded ${Object.keys(skinNameMap).length} skin image mappings from cache`);
+    const rawMap = JSON.parse(fs.readFileSync(SKIN_MAPPING_PATH, 'utf8'));
+    // Zásadní: musíme klíče v mapě normalizovat, aby odpovídaly vstupu z normalizeSkinName
+    for (const [name, entry] of Object.entries(rawMap)) {
+      const norm = normalizeSkinName(name);
+      skinNameMap[norm] = entry;
+    }
+    console.log(`✅ Loaded and normalized ${Object.keys(skinNameMap).length} skin image mappings`);
   } else {
     console.warn('⚠️  No skin-image mapping found. Run: node download-skin-images.js');
   }
@@ -30,12 +36,17 @@ try {
 }
 
 function normalizeSkinName(str) {
-  return (str || '').toLowerCase().replace(/[★\s]+/g, ' ').replace(/[^a-z0-9 |]/g, '').trim();
+  if (!str) return '';
+  // Musí odpovídat logice v downloaderu a frontend lookupu
+  return str.toString().toLowerCase()
+    .replace(/[★\s]+/g, ' ')
+    .replace(/[^a-z0-9 |]/g, '')
+    .trim();
 }
 
 function getSkinLocalPath(skinName) {
   const key = normalizeSkinName(skinName);
-  const entry = skinNameMap[key] || skinNameMap['★ ' + key];
+  const entry = skinNameMap[key];
   if (!entry) return null;
   const filePath = path.join(SKINS_CACHE_DIR, entry.file || `${entry.hash}${entry.ext || '.png'}`);
   if (fs.existsSync(filePath) && fs.statSync(filePath).size > 500) return filePath;
