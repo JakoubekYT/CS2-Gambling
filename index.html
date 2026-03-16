@@ -700,6 +700,160 @@
         .cb-winner-flash {
             animation: winnerFlash 0.8s ease-out;
         }
+
+        /* ========================================
+           CASE BATTLE SPINNER — PROFESSIONAL CSS
+           ======================================== */
+
+        /* Spinner Container */
+        .cb-spinner-wrap {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #080a0e 0%, #0d1017 60%, #080a0e 100%);
+            border-bottom: 2px solid rgba(255,255,255,0.06);
+        }
+
+        /* Edge vignette fades */
+        .cb-spin-fade-left,
+        .cb-spin-fade-right {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 22%;
+            z-index: 25;
+            pointer-events: none;
+        }
+        .cb-spin-fade-left  { left:  0; background: linear-gradient(90deg,  #080a0e 0%, transparent 100%); }
+        .cb-spin-fade-right { right: 0; background: linear-gradient(270deg, #080a0e 0%, transparent 100%); }
+
+        /* Center selector line */
+        .cb-spin-selector {
+            position: absolute;
+            left: 50%;
+            top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, transparent, #facc15 20%, #facc15 80%, transparent);
+            z-index: 30;
+            transform: translateX(-50%);
+            box-shadow: 0 0 18px 4px rgba(250, 204, 21, 0.65);
+            pointer-events: none;
+        }
+        /* Triangle arrows flanking selector */
+        .cb-spin-selector::before,
+        .cb-spin-selector::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+        }
+        .cb-spin-selector::before {
+            top: -1px;
+            border-left:  8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top:   10px solid #facc15;
+        }
+        .cb-spin-selector::after {
+            bottom: -1px;
+            border-left:  8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 10px solid #facc15;
+        }
+
+        /* Individual item card inside CB spinner track */
+        .cb-spin-card {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #10141c 0%, #0d1017 100%);
+            border-bottom: 4px solid;
+            border-radius: 10px;
+            padding: 8px 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Subtle rarity radial glow behind item image */
+        .cb-spin-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 70%, var(--card-rarity-color, #4b69ff22) 0%, transparent 70%);
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .cb-spin-card img {
+            height: 72px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6));
+            position: relative;
+        }
+        .cb-spin-card .cb-spin-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 5px;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        /* Winning card highlight — triggered by JS adding class */
+        @keyframes cbWinnerReveal {
+            0%   { transform: scale(1);    box-shadow: none; }
+            40%  { transform: scale(1.14); box-shadow: 0 0 0 3px var(--card-rarity-color, #4b69ff), 0 0 40px var(--card-rarity-color, #4b69ff); }
+            70%  { transform: scale(1.10); box-shadow: 0 0 0 2px var(--card-rarity-color, #4b69ff), 0 0 28px var(--card-rarity-color, #4b69ff); }
+            100% { transform: scale(1.08); box-shadow: 0 0 0 2px var(--card-rarity-color, #4b69ff), 0 0 22px var(--card-rarity-color, #4b69ff); }
+        }
+        .cb-spin-card.winner-reveal {
+            animation: cbWinnerReveal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* History drop card with rarity color */
+        .cb-drop-card {
+            background: linear-gradient(180deg, #1a1e29 0%, #131720 100%);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            border-top: 3px solid;
+            position: relative;
+            overflow: hidden;
+            animation: dropCardIn 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+            transform-origin: top;
+        }
+        .cb-drop-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, var(--card-rarity-color, #4b69ff18), transparent 70%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        @keyframes dropCardIn {
+            from { transform: scaleY(0.6) translateY(-10px); opacity: 0; }
+            to   { transform: scaleY(1)   translateY(0);     opacity: 1; }
+        }
+
+        /* End-game panel winner / loser states */
+        .cb-panel-winner {
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.8), 0 0 40px rgba(34,197,94,0.35), 0 0 80px rgba(34,197,94,0.15);
+            animation: cbPanelWinPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes cbPanelWinPulse {
+            0%,100% { box-shadow: 0 0 0 2px rgba(34,197,94,0.8), 0 0 40px rgba(34,197,94,0.35), 0 0 80px rgba(34,197,94,0.15); }
+            50%     { box-shadow: 0 0 0 2px rgba(34,197,94,1.0), 0 0 55px rgba(34,197,94,0.50), 0 0 110px rgba(34,197,94,0.20); }
+        }
+        .cb-panel-loser {
+            filter: saturate(0.3) brightness(0.6);
+            opacity: 0.72;
+            transition: filter 0.8s ease, opacity 0.8s ease;
+        }
     </style>
 </head>
 
@@ -3937,20 +4091,52 @@ Zeus x27|Charged Up|8.50|#8847ff
         }
 
         function triggerEndgameSequence(room, finalScores) {
-            const winnerId = String(room?.winnerId || '');
+            const winnerId   = String(room?.winnerId || '');
+            const maxScore   = Math.max(...(finalScores.map(s => Number(s || 0))), 0);
+
             (room.players || []).forEach((pl, idx) => {
-                const overlay = document.getElementById(`cb-endgame-${idx}`);
+                const overlay   = document.getElementById(`cb-endgame-${idx}`);
+                const spinnerBox = document.getElementById(`cb-spinner-box-${idx}`);
+                // The player column root — parent of the spinner box
+                const columnEl  = spinnerBox?.closest('.bg-\[\#12161f\]') || spinnerBox?.parentElement?.parentElement;
+
                 if (!overlay) return;
-                const won = winnerId ? String(pl.userId) === winnerId : Number(finalScores[idx] || 0) >= Math.max(...finalScores, 0);
+
+                const myScore = Number(finalScores[idx] || 0);
+                const won = winnerId
+                    ? String(pl.userId) === winnerId
+                    : myScore >= maxScore && maxScore > 0;
+
                 if (won) {
-                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-t from-green-900/80 to-transparent backdrop-blur-[2px] transition-all duration-500';
-                    overlay.innerHTML = `<div class="text-center transform scale-110"><div class="text-xs uppercase text-green-300 font-black mb-1 drop-shadow-md">Winner</div><div class="text-3xl font-black text-green-400 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]">${formatMoney(finalScores[idx] || 0)}</div></div>`;
+                    // ── WINNER overlay ────────────────────────────────────────
+                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center transition-all duration-700';
+                    overlay.style.background = 'linear-gradient(to top, rgba(21,128,61,0.82) 0%, rgba(21,128,61,0.25) 55%, transparent 100%)';
+                    overlay.innerHTML = `
+                        <div class="text-center" style="animation: popIn 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards">
+                            <div style="font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#86efac; font-weight:900; margin-bottom:4px;">🏆 Winner</div>
+                            <div style="font-size:2rem; font-weight:900; color:#4ade80;
+                                        text-shadow: 0 0 24px rgba(74,222,128,0.9), 0 0 48px rgba(74,222,128,0.5);
+                                        line-height:1;">+${formatMoney(myScore)}</div>
+                        </div>`;
+                    // Green glow ring on the player column
+                    if (columnEl) columnEl.classList.add('cb-panel-winner');
                 } else {
-                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-all duration-500';
-                    overlay.innerHTML = `<div class="text-center"><i data-lucide="thumbs-down" class="w-16 h-16 text-red-500/40 mx-auto drop-shadow-md"></i><div class="text-red-400 font-black text-sm mt-2">You Lost</div></div>`;
+                    // ── LOSER overlay ─────────────────────────────────────────
+                    overlay.className = 'absolute inset-0 z-50 flex items-center justify-center transition-all duration-700';
+                    overlay.style.background = 'rgba(0,0,0,0.72)';
+                    overlay.innerHTML = `
+                        <div class="text-center">
+                            <div style="font-size:2.5rem; line-height:1;">💀</div>
+                            <div style="color:#f87171; font-weight:900; font-size:13px; text-transform:uppercase;
+                                        letter-spacing:.15em; margin-top:6px;">Prohra</div>
+                            <div style="color:#6b7280; font-size:10px; font-weight:700; margin-top:2px;">${formatMoney(myScore)}</div>
+                        </div>`;
+                    // Desaturate and dim the player column
+                    if (columnEl) columnEl.classList.add('cb-panel-loser');
                 }
                 overlay.classList.remove('hidden');
             });
+
             const rc = document.getElementById('cb-round-counter');
             if (rc) rc.textContent = 'BATTLE FINISHED';
             lucide.createIcons();
@@ -3959,14 +4145,20 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (cbAnimationLock) return;
             cbAnimationLock = true;
 
-            const rounds = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
+            const rounds       = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
             const playersCount = (room.players || []).length;
-            const ITEM_WIDTH = 140;
-            const WINNER_POS = 60;
+
+            // ── Spinner physics constants ──────────────────────────────────────
+            const ITEM_WIDTH  = 150;   // px, card width
+            const ITEM_GAP    = 8;     // px, gap between cards (must match CSS gap on track)
+            const ITEM_STEP   = ITEM_WIDTH + ITEM_GAP;  // total step per card
+            const WINNER_IDX  = 50;   // which index on the tape holds the winning skin
+            const SPIN_DURATION_MS = 6000; // total spin time
+            const SPIN_EASING      = 'transform 6s cubic-bezier(0.12, 0.8, 0.15, 1)';
 
             // Reset visual state
             cbCurrentRoundIdx = 0;
-            cbRevealedScores = room.players.map(() => 0);
+            cbRevealedScores  = room.players.map(() => 0);
             cbVisualsFinished = false;
 
             // Build the static stage DOM once before animation starts
@@ -3981,14 +4173,14 @@ Zeus x27|Charged Up|8.50|#8847ff
                     if (rc) rc.textContent = `${round + 1} / ${rounds}`;
 
                     // Get item pool for this round
-                    const qCase = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
+                    const qCase  = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
                     const caseObj = qCase
                         ? (casesDB.find(c => c.id === qCase.caseId) || casesDB[0])
                         : (getCaseByRoom(room) || casesDB[0]);
                     let pool = ((caseObj?.contents || casesDB[0]?.contents || []).map(c => c.skin).filter(Boolean));
                     if (!pool.length) pool = Object.values(skinsDB).slice(0, 20);
 
-                    // Build and insert spinner tracks for each player
+                    // ── Build spinner tape for each player ────────────────────
                     const spinners = [];
                     for (let i = 0; i < playersCount; i++) {
                         const track = document.getElementById(`cb-spin-track-${i}`);
@@ -3996,53 +4188,77 @@ Zeus x27|Charged Up|8.50|#8847ff
                         const drop = room.players[i]?.drops?.[round];
                         if (!drop) continue;
 
-                        // Force position reset (no transition)
+                        // Hard reset position (no transition)
                         track.style.transition = 'none';
-                        track.style.transform = 'translate3d(0,0,0)';
+                        track.style.transform  = 'translate3d(0,0,0)';
 
+                        // Build 75-item tape using .cb-spin-card class
+                        const TAPE_LEN = 75;
                         let html = '';
-                        for (let j = 0; j < 75; j++) {
-                            const item = (j === WINNER_POS) ? drop : pool[Math.floor(Math.random() * pool.length)];
-                            html += `<div class="flex-shrink-0 w-[${ITEM_WIDTH}px] h-full flex flex-col items-center justify-center px-2 border-b-4 bg-gradient-to-t from-white/5 to-transparent" style="border-color:${item.color}">
-                                <img src="${item.img}" onerror="handleImgError(this)" class="h-20 w-24 object-contain drop-shadow-lg">
-                                <div class="text-[9px] text-gray-500 font-bold mt-2 uppercase truncate w-full text-center">${item.name}</div>
+                        for (let j = 0; j < TAPE_LEN; j++) {
+                            const item = (j === WINNER_IDX)
+                                ? drop
+                                : pool[Math.floor(Math.random() * pool.length)];
+                            const rarityColor = item.color || '#4b69ff';
+                            const winnerClass = (j === WINNER_IDX) ? 'data-cb-winner="1"' : '';
+                            html += `<div class="cb-spin-card" ${winnerClass}
+                                style="width:${ITEM_WIDTH}px; height: calc(100% - 16px); border-color:${rarityColor}; --card-rarity-color:${rarityColor}">
+                                <img src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)">
+                                <div class="cb-spin-label">${item.name || 'Item'}</div>
                             </div>`;
                         }
                         track.innerHTML = html;
                         spinners.push({ track, drop, idx: i });
                     }
 
-                    // Wait a frame so browser can paint the track HTML before animating
-                    await cbSleep(200);
+                    // Wait one frame for browser to paint before animating
+                    await cbSleep(150);
+                    void spinners[0]?.track?.offsetWidth; // force reflow
 
-                    // Fire all spinners simultaneously
+                    // ── Fire spinners simultaneously ───────────────────────────
+                    // Math: center of winner card must align with container centre.
+                    // translate3d offset = (winnerIdx * ITEM_STEP) - (containerWidth / 2) + (ITEM_WIDTH / 2) ± random
                     spinners.forEach(s => {
                         const containerWidth = s.track.parentElement?.clientWidth || 300;
-                        const center = containerWidth / 2;
-                        const stopX = (ITEM_WIDTH * WINNER_POS) - center + (ITEM_WIDTH / 2) + (Math.random() * 30 - 15);
-                        s.track.style.transition = 'transform 5s cubic-bezier(0.12, 0.8, 0.2, 1)';
-                        s.track.style.transform = `translate3d(-${stopX}px, 0, 0)`;
+                        const randomOffset   = Math.random() * 24 - 12; // ±12 px for human feel
+                        const stopX = (WINNER_IDX * ITEM_STEP)
+                                    - (containerWidth / 2)
+                                    + (ITEM_WIDTH  / 2)
+                                    + randomOffset;
+                        s.stopX = stopX;
+                        s.track.style.transition = SPIN_EASING;
+                        s.track.style.transform  = `translate3d(-${stopX}px, 0, 0)`;
                     });
 
-                    // Tick sound effect while spinning
+                    // ── Tick sound loop while spinning ─────────────────────────
                     const spinStart = Date.now();
                     let lastTickIdx = -1;
                     const tickTimer = setInterval(() => {
-                        if (Date.now() - spinStart > 5000) { clearInterval(tickTimer); return; }
+                        if (Date.now() - spinStart > SPIN_DURATION_MS) { clearInterval(tickTimer); return; }
                         const ref = spinners[0];
                         if (!ref) return;
                         try {
                             const mat = new (window.WebKitCSSMatrix || window.DOMMatrix)(getComputedStyle(ref.track).transform);
-                            const x = mat.m41 !== undefined ? mat.m41 : (mat.e || 0);
-                            const pos = Math.floor(Math.abs(x) / ITEM_WIDTH);
+                            const x   = mat.m41 !== undefined ? mat.m41 : (mat.e || 0);
+                            const pos = Math.floor(Math.abs(x) / ITEM_STEP);
                             if (pos !== lastTickIdx) { lastTickIdx = pos; if (window.SoundEngine) SoundEngine.playTick(); }
                         } catch (_) {}
-                    }, 25);
+                    }, 20);
 
-                    await cbSleep(5500);
+                    await cbSleep(SPIN_DURATION_MS + 400);
                     clearInterval(tickTimer);
 
-                    // Reveal result: update score, history card, crown, coins
+                    // ── Winner card highlight ──────────────────────────────────
+                    spinners.forEach(s => {
+                        const winnerCard = s.track.querySelector('[data-cb-winner="1"]');
+                        if (winnerCard) {
+                            winnerCard.classList.add('winner-reveal');
+                            if (window.SoundEngine) SoundEngine.playWin('red');
+                        }
+                    });
+                    await cbSleep(600); // let winner-reveal animation play
+
+                    // ── Reveal result: update scores, history, crowns ──────────
                     for (const s of spinners) {
                         cbRevealedScores[s.idx] = (cbRevealedScores[s.idx] || 0) + Number(s.drop.price || 0);
 
@@ -4050,25 +4266,29 @@ Zeus x27|Charged Up|8.50|#8847ff
                         if (scoreEl) {
                             scoreEl.textContent = formatMoney(cbRevealedScores[s.idx]);
                             scoreEl.classList.add('cb-winner-flash');
-                            setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 800);
+                            setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 900);
                         }
 
-                        // Flying coin effect
+                        // Flying coin
                         const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
                         if (spinBox) {
                             const r = spinBox.getBoundingClientRect();
                             spawnCbCoin(r.left + r.width / 2, r.top + r.height / 2, r.left + r.width / 2, r.top + r.height + 80);
                         }
 
-                        // Insert revealed drop card at top of history
+                        // Insert drop card into history
                         const hist = document.getElementById(`cb-history-${s.idx}`);
                         if (hist) {
+                            const rarityColor = s.drop.color || '#4b69ff';
                             const card = document.createElement('div');
-                            card.className = 'bg-[#1a1e29] rounded-lg p-2 text-center border-t-2';
-                            card.style.borderColor = s.drop.color || '#4b69ff';
-                            card.innerHTML = `<img src="${s.drop.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 mx-auto object-contain">
-                                <div class="text-[9px] text-gray-400 truncate mt-1">${s.drop.name}</div>
-                                <div class="text-[10px] text-yellow-400 font-black">${formatMoney(s.drop.price)}</div>`;
+                            card.className = 'cb-drop-card';
+                            card.style.cssText = `border-color:${rarityColor}; --card-rarity-color:${rarityColor}`;
+                            card.innerHTML = `
+                                <img src="${s.drop.img || FALLBACK_IMG}" onerror="handleImgError(this)"
+                                     style="height:48px; object-fit:contain; display:block; margin:0 auto;">
+                                <div style="font-size:9px; color:#94a3b8; font-weight:800; text-transform:uppercase;
+                                            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${s.drop.name || '-'}</div>
+                                <div style="font-size:10px; color:#facc15; font-weight:900; margin-top:2px;">${formatMoney(s.drop.price || 0)}</div>`;
                             hist.prepend(card);
                         }
                     }
@@ -4080,11 +4300,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                         if (crown) crown.classList.toggle('hidden', sc < topScore || topScore === 0);
                     });
 
-                    if (window.SoundEngine) SoundEngine.playWin('red');
-                    if (round < rounds - 1) await cbSleep(900);
+                    if (round < rounds - 1) await cbSleep(850);
                 }
 
-                // All rounds done
+                // ── All rounds done ────────────────────────────────────────────
                 cbVisualsFinished = true;
                 cbCurrentRoundIdx = rounds;
 
@@ -4143,10 +4362,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                         <div class="text-[#c0f20c] font-black text-xl uppercase tracking-widest">Ready</div>
                     </div>`;
                 } else {
-                    topZone = `<div id="cb-spinner-box-${i}" class="relative h-56 w-full bg-[#0d1017] border-b-2 border-[#1a1e29] overflow-hidden">
-                        <div class="absolute left-1/2 top-0 bottom-0 w-[2px] bg-yellow-400 z-30 shadow-[0_0_15px_#facc15] -translate-x-1/2 pointer-events-none"></div>
-                        <div id="cb-spin-track-${i}" class="absolute top-0 left-0 h-full flex items-center will-change-transform z-20"></div>
-                        <div id="cb-endgame-${i}" class="absolute inset-0 z-40 hidden items-center justify-center backdrop-blur-[2px] transition-all duration-500"></div>
+                    topZone = `<div id="cb-spinner-box-${i}" class="cb-spinner-wrap h-64 w-full">
+                        <div class="cb-spin-selector"></div>
+                        <div class="cb-spin-fade-left"></div>
+                        <div class="cb-spin-fade-right"></div>
+                        <div id="cb-spin-track-${i}" class="absolute top-0 left-0 h-full flex items-center will-change-transform z-20" style="gap:8px; padding: 0 4px;"></div>
+                        <div id="cb-endgame-${i}" class="absolute inset-0 z-50 hidden items-center justify-center backdrop-blur-[2px] transition-all duration-500"></div>
                     </div>`;
                 }
 
