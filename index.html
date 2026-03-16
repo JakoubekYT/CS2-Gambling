@@ -701,6 +701,189 @@
             animation: winnerFlash 0.8s ease-out;
         }
 
+        /* ══════════════════════════════════════════
+           WINNING INDICATOR BAR
+           ══════════════════════════════════════════ */
+        .cb-win-indicator-wrap {
+            position: relative;
+            height: 48px;
+            background: #0d1017;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        /* Progress fill behind the bar */
+        .cb-win-fill-ct {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.06) 100%);
+            transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1);
+            width: 50%;
+        }
+        .cb-win-fill-t {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            background: linear-gradient(270deg, rgba(251,146,60,0.22) 0%, rgba(251,146,60,0.06) 100%);
+            transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1);
+            width: 50%;
+        }
+        /* Sliding thumb pill */
+        .cb-win-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%,-50%);
+            left: 50%;
+            background: #facc15;
+            color: #111;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 0 14px rgba(250,204,21,0.7);
+            transition: left 0.6s cubic-bezier(0.34,1.2,0.64,1), background 0.3s ease;
+            pointer-events: none;
+        }
+        /* Team labels */
+        .cb-win-label-ct {
+            position: absolute;
+            left: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #60a5fa;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .cb-win-label-t {
+            position: absolute;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #fb923c;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .cb-win-score-ct, .cb-win-score-t {
+            font-size: 13px;
+            font-weight: 900;
+            transition: color 0.3s ease;
+        }
+        .cb-win-score-ct.leading { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.8); }
+        .cb-win-score-t.leading  { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.8); }
+
+        /* ══════════════════════════════════════════
+           ROLLING NUMBER COUNTER
+           ══════════════════════════════════════════ */
+        @keyframes cbRollUp {
+            0%   { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0);    opacity: 1; }
+        }
+        .cb-score-rolling {
+            display: inline-block;
+            animation: cbRollUp 0.35s cubic-bezier(0.34,1.2,0.64,1) forwards;
+        }
+
+        /* ══════════════════════════════════════════
+           WIN COIN ANIMATION
+           ══════════════════════════════════════════ */
+        @keyframes cbCoinFly {
+            0%   { transform: translate(0, 0) scale(0.5) rotate(0deg);   opacity: 0; }
+            15%  { opacity: 1; }
+            60%  { transform: translate(var(--cx), var(--cy-mid)) scale(1.3) rotate(180deg); opacity: 1; }
+            100% { transform: translate(var(--cx), var(--cy-end)) scale(0.8) rotate(360deg); opacity: 0; }
+        }
+        .cb-win-coin {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 900;
+            background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e);
+            box-shadow: 0 0 20px rgba(250,204,21,0.8), 0 0 40px rgba(250,204,21,0.4);
+            animation: cbCoinFly 1.1s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+        }
+
+        /* ══════════════════════════════════════════
+           RARITY PARTICLE BURST
+           ══════════════════════════════════════════ */
+        @keyframes cbParticleFly {
+            0%   { transform: translate(0,0) scale(1);   opacity: 1; }
+            100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+        }
+        .cb-particle {
+            position: fixed;
+            z-index: 9998;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: cbParticleFly var(--pd) ease-out forwards;
+        }
+
+        /* ══════════════════════════════════════════
+           VICTORY SCREEN OVERLAY
+           ══════════════════════════════════════════ */
+        #cb-victory-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8000;
+            background: radial-gradient(ellipse at 50% 30%, rgba(21,128,61,0.55) 0%, rgba(0,0,0,0.92) 65%);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #cb-victory-screen.active {
+            display: flex;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes cbVictoryTitle {
+            0%   { transform: scale(0.4) translateY(40px); opacity: 0; letter-spacing: -0.1em; }
+            60%  { transform: scale(1.12) translateY(-6px); opacity: 1; }
+            100% { transform: scale(1) translateY(0);       opacity: 1; }
+        }
+        .cb-victory-title {
+            font-size: clamp(3.5rem, 10vw, 7rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            background: linear-gradient(135deg, #a3e635 0%, #4ade80 40%, #facc15 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(74,222,128,0.6));
+            animation: cbVictoryTitle 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards;
+            line-height: 1;
+        }
+        .cb-defeat-title {
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #f87171;
+            filter: drop-shadow(0 0 24px rgba(248,113,113,0.5));
+            animation: cbVictoryTitle 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards;
+            line-height: 1;
+        }
+
         /* ========================================
            CASE BATTLE SPINNER — PROFESSIONAL CSS
            ======================================== */
@@ -1254,9 +1437,31 @@
                     class="hidden flex-col bg-[#0b0d11] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
                     <div class="px-6 py-4 bg-[#12161f] border-b border-white/10 flex items-center justify-between gap-4"
                         id="cb-room-header"></div>
-                    <div id="cb-room-teams" class="grid grid-cols-2 bg-[#0d1017] border-b border-white/5 relative">
+                    <!-- Dynamic Winning Indicator Bar -->
+                    <div id="cb-room-teams" class="cb-win-indicator-wrap">
+                        <div id="cb-win-fill-ct" class="cb-win-fill-ct"></div>
+                        <div id="cb-win-fill-t"  class="cb-win-fill-t"></div>
+                        <div class="cb-win-label-ct">
+                            <span>🛡️ CT Team</span>
+                            <span id="cb-win-score-ct" class="cb-win-score-ct">0.00 EUR</span>
+                        </div>
+                        <div id="cb-win-thumb" class="cb-win-thumb">VS</div>
+                        <div class="cb-win-label-t">
+                            <span id="cb-win-score-t" class="cb-win-score-t">0.00 EUR</span>
+                            <span>T Team ⚔️</span>
+                        </div>
                     </div>
                     <div id="cb-stage" class="grid gap-[2px] bg-[#1a1e29] p-[2px] min-h-[500px] w-full"></div>
+                </div>
+                <!-- Victory / Defeat full-screen overlay -->
+                <div id="cb-victory-screen">
+                    <div id="cb-victory-title-el" class="cb-victory-title mb-4">VICTORY</div>
+                    <div class="text-white/60 font-bold text-lg mb-2" id="cb-victory-sub"></div>
+                    <div id="cb-victory-best-drop" class="mt-4 flex flex-col items-center gap-2"></div>
+                    <button onclick="document.getElementById('cb-victory-screen').classList.remove('active')"
+                        class="mt-8 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black px-10 py-3 rounded-xl uppercase tracking-widest transition-all">
+                        Zavřít
+                    </button>
                 </div>
             </section>
 
@@ -4094,11 +4299,15 @@ Zeus x27|Charged Up|8.50|#8847ff
             const winnerId   = String(room?.winnerId || '');
             const maxScore   = Math.max(...(finalScores.map(s => Number(s || 0))), 0);
 
+            let winnerName = 'Unknown';
+            let winnerScore = 0;
+            let isPlayerVictory = false;
+            let bestDrop = null;
+
             (room.players || []).forEach((pl, idx) => {
-                const overlay   = document.getElementById(`cb-endgame-${idx}`);
+                const overlay    = document.getElementById(`cb-endgame-${idx}`);
                 const spinnerBox = document.getElementById(`cb-spinner-box-${idx}`);
-                // The player column root — parent of the spinner box
-                const columnEl  = spinnerBox?.closest('.bg-\[\#12161f\]') || spinnerBox?.parentElement?.parentElement;
+                const columnEl   = spinnerBox?.closest('[class*="bg-[#12161f]"]') || spinnerBox?.parentElement?.parentElement;
 
                 if (!overlay) return;
 
@@ -4108,7 +4317,15 @@ Zeus x27|Charged Up|8.50|#8847ff
                     : myScore >= maxScore && maxScore > 0;
 
                 if (won) {
-                    // ── WINNER overlay ────────────────────────────────────────
+                    winnerName  = pl.nickname || pl.displayName || 'Winner';
+                    winnerScore = myScore;
+                    // Find the best drop of the winner
+                    const drops = pl.drops || [];
+                    bestDrop = drops.reduce((best, d) => (!best || (d?.price || 0) > (best?.price || 0)) ? d : best, null);
+                    // Check if current user is winner
+                    const myId = currentUser?.id || currentUser?._id;
+                    if (myId && String(pl.userId) === String(myId)) isPlayerVictory = true;
+
                     overlay.className = 'absolute inset-0 z-50 flex items-center justify-center transition-all duration-700';
                     overlay.style.background = 'linear-gradient(to top, rgba(21,128,61,0.82) 0%, rgba(21,128,61,0.25) 55%, transparent 100%)';
                     overlay.innerHTML = `
@@ -4118,10 +4335,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                                         text-shadow: 0 0 24px rgba(74,222,128,0.9), 0 0 48px rgba(74,222,128,0.5);
                                         line-height:1;">+${formatMoney(myScore)}</div>
                         </div>`;
-                    // Green glow ring on the player column
                     if (columnEl) columnEl.classList.add('cb-panel-winner');
                 } else {
-                    // ── LOSER overlay ─────────────────────────────────────────
                     overlay.className = 'absolute inset-0 z-50 flex items-center justify-center transition-all duration-700';
                     overlay.style.background = 'rgba(0,0,0,0.72)';
                     overlay.innerHTML = `
@@ -4131,7 +4346,6 @@ Zeus x27|Charged Up|8.50|#8847ff
                                         letter-spacing:.15em; margin-top:6px;">Prohra</div>
                             <div style="color:#6b7280; font-size:10px; font-weight:700; margin-top:2px;">${formatMoney(myScore)}</div>
                         </div>`;
-                    // Desaturate and dim the player column
                     if (columnEl) columnEl.classList.add('cb-panel-loser');
                 }
                 overlay.classList.remove('hidden');
@@ -4140,6 +4354,11 @@ Zeus x27|Charged Up|8.50|#8847ff
             const rc = document.getElementById('cb-round-counter');
             if (rc) rc.textContent = 'BATTLE FINISHED';
             lucide.createIcons();
+
+            // Show dramatic victory/defeat screen after 0.8s delay
+            setTimeout(() => {
+                showCbVictoryScreen(isPlayerVictory, winnerName, bestDrop, winnerScore);
+            }, 800);
         }
         async function startBattleVisuals(room) {
             if (cbAnimationLock) return;
@@ -4260,26 +4479,32 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                     // ── Reveal result: update scores, history, crowns ──────────
                     for (const s of spinners) {
-                        cbRevealedScores[s.idx] = (cbRevealedScores[s.idx] || 0) + Number(s.drop.price || 0);
+                        const prevScore = cbRevealedScores[s.idx] || 0;
+                        cbRevealedScores[s.idx] = prevScore + Number(s.drop.price || 0);
+                        const rarityColor = s.drop.color || '#4b69ff';
 
+                        // Rolling score counter
                         const scoreEl = document.getElementById(`cb-score-${s.idx}`);
                         if (scoreEl) {
-                            scoreEl.textContent = formatMoney(cbRevealedScores[s.idx]);
+                            cbAnimateScore(scoreEl, prevScore, cbRevealedScores[s.idx], 700);
                             scoreEl.classList.add('cb-winner-flash');
                             setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 900);
                         }
 
-                        // Flying coin
+                        // Animated win coin + rarity particle burst
                         const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
                         if (spinBox) {
+                            cbSpawnWinCoin(spinBox, rarityColor);
                             const r = spinBox.getBoundingClientRect();
-                            spawnCbCoin(r.left + r.width / 2, r.top + r.height / 2, r.left + r.width / 2, r.top + r.height + 80);
+                            // Particles only for high-rarity (pink / red / gold)
+                            if (['#d32ee6','#eb4b4b','#ebca44'].includes(rarityColor)) {
+                                cbSpawnParticles(r.left + r.width / 2, r.top + r.height / 2, rarityColor);
+                            }
                         }
 
                         // Insert drop card into history
                         const hist = document.getElementById(`cb-history-${s.idx}`);
                         if (hist) {
-                            const rarityColor = s.drop.color || '#4b69ff';
                             const card = document.createElement('div');
                             card.className = 'cb-drop-card';
                             card.style.cssText = `border-color:${rarityColor}; --card-rarity-color:${rarityColor}`;
@@ -4293,12 +4518,13 @@ Zeus x27|Charged Up|8.50|#8847ff
                         }
                     }
 
-                    // Update leader crowns
+                    // Update leader crowns + winning indicator bar
                     const topScore = Math.max(...cbRevealedScores, 0);
                     cbRevealedScores.forEach((sc, i) => {
                         const crown = document.getElementById(`cb-crown-${i}`);
                         if (crown) crown.classList.toggle('hidden', sc < topScore || topScore === 0);
                     });
+                    updateWinningIndicator(cbRevealedScores, room);
 
                     if (round < rounds - 1) await cbSleep(850);
                 }
@@ -4447,28 +4673,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                     <div class="text-2xl font-black text-yellow-400">${formatMoney(totalValue)}</div>
                 </div>`;
 
-            // Team score bar
-            const scores = cbRevealedScores.length ? cbRevealedScores : room.players.map(() => 0);
-            const half = Math.ceil((room.capacity || 2) / 2);
-            let ctScore = 0, tScore = 0;
-            scores.forEach((s, i) => { if (i < half) ctScore += s; else tScore += s; });
-
-            teams.innerHTML = `
-                <div class="p-3 flex items-center justify-center gap-3 ${ctScore > tScore ? 'bg-blue-900/10' : ''}">
-                    <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
-                    <span class="text-xs font-black text-blue-400 uppercase">CT</span>
-                    <span class="font-black text-lg ${ctScore > tScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(ctScore)}</span>
-                </div>
-                <div class="flex items-center justify-center">
-                    <div class="w-8 h-8 bg-[#12161f] border-2 border-green-500 rounded flex items-center justify-center rotate-45">
-                        <span class="-rotate-45 text-green-400 text-[9px] font-black">VS</span>
-                    </div>
-                </div>
-                <div class="p-3 flex items-center justify-center gap-3 ${tScore > ctScore ? 'bg-orange-900/10' : ''}">
-                    <span class="font-black text-lg ${tScore > ctScore ? 'text-green-400' : 'text-gray-400'}">${formatMoney(tScore)}</span>
-                    <span class="text-xs font-black text-orange-400 uppercase">T</span>
-                    <i data-lucide="swords" class="w-4 h-4 text-orange-400"></i>
-                </div>`;
+            // The winning indicator bar is now static DOM — just update it
+            updateWinningIndicator(cbRevealedScores.length ? cbRevealedScores : room.players.map(() => 0), room);
 
             // Only rebuild stage DOM when NOT mid-animation
             if (!cbAnimationLock) {
@@ -4501,6 +4707,136 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             lucide.createIcons();
         }
+
+        // ══ WINNING INDICATOR: slides the thumb based on CT vs T scores ══
+        function updateWinningIndicator(scores, room) {
+            const half    = Math.ceil(((room?.capacity) || 2) / 2);
+            let ctScore = 0, tScore = 0;
+            (scores || []).forEach((s, i) => { if (i < half) ctScore += s; else tScore += s; });
+
+            const total = ctScore + tScore;
+            const ctPct = total > 0 ? (ctScore / total) * 100 : 50;
+            const tPct  = 100 - ctPct;
+
+            const thumb    = document.getElementById('cb-win-thumb');
+            const fillCT   = document.getElementById('cb-win-fill-ct');
+            const fillT    = document.getElementById('cb-win-fill-t');
+            const scoreCT  = document.getElementById('cb-win-score-ct');
+            const scoreT   = document.getElementById('cb-win-score-t');
+
+            if (thumb)  {
+                thumb.style.left = `${ctPct}%`;
+                if (ctScore > tScore)       { thumb.style.background = '#60a5fa'; thumb.style.color = '#fff'; thumb.textContent = 'CT ▶'; }
+                else if (tScore > ctScore)  { thumb.style.background = '#fb923c'; thumb.style.color = '#fff'; thumb.textContent = '◀ T'; }
+                else { thumb.style.background = '#facc15'; thumb.style.color = '#111'; thumb.textContent = 'VS'; }
+            }
+            if (fillCT)  fillCT.style.width  = `${ctPct}%`;
+            if (fillT)   fillT.style.width   = `${tPct}%`;
+            if (scoreCT) {
+                scoreCT.textContent = formatMoney(ctScore);
+                scoreCT.classList.toggle('leading', ctScore > tScore);
+            }
+            if (scoreT)  {
+                scoreT.textContent = formatMoney(tScore);
+                scoreT.classList.toggle('leading', tScore > ctScore);
+            }
+        }
+
+        // ══ ROLLING NUMBER COUNTER on a score element ══
+        function cbAnimateScore(el, fromVal, toVal, durationMs = 600) {
+            if (!el) return;
+            const startTime = performance.now();
+            const diff = toVal - fromVal;
+            function step(now) {
+                const t = Math.min((now - startTime) / durationMs, 1);
+                // ease-out quad
+                const eased = 1 - (1 - t) * (1 - t);
+                const current = fromVal + diff * eased;
+                el.innerHTML = `<span class="cb-score-rolling">${formatMoney(current)}</span>`;
+                if (t < 1) requestAnimationFrame(step);
+                else el.textContent = formatMoney(toVal);
+            }
+            requestAnimationFrame(step);
+        }
+
+        // ══ RARITY PARTICLE BURST at a screen position ══
+        function cbSpawnParticles(x, y, rarityColor) {
+            const count = 18;
+            const colors = [rarityColor || '#facc15', '#fff', '#fde68a'];
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'cb-particle';
+                const angle  = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+                const dist   = 60 + Math.random() * 80;
+                const px     = Math.cos(angle) * dist;
+                const py     = Math.sin(angle) * dist;
+                const size   = 4 + Math.random() * 6;
+                const dur    = (0.6 + Math.random() * 0.7).toFixed(2) + 's';
+                el.style.cssText = `
+                    left:${x}px; top:${y}px;
+                    width:${size}px; height:${size}px;
+                    background:${colors[i % colors.length]};
+                    --px:${px}px; --py:${py}px; --pd:${dur};
+                    box-shadow: 0 0 6px ${colors[i % colors.length]};
+                `;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 1400);
+            }
+        }
+
+        // ══ WIN COIN: flies from spinner centre and fades ══
+        function cbSpawnWinCoin(spinnerEl, rarityColor) {
+            if (!spinnerEl) return;
+            const r = spinnerEl.getBoundingClientRect();
+            const startX = r.left + r.width  / 2 - 26;
+            const startY = r.top  + r.height / 2 - 26;
+            const el = document.createElement('div');
+            el.className = 'cb-win-coin';
+            el.textContent = '🪙';
+            el.style.cssText = `
+                left: ${startX}px;
+                top:  ${startY}px;
+                background: radial-gradient(circle at 35% 35%, #fde68a, ${rarityColor || '#f59e0b'}, #92400e);
+                box-shadow: 0 0 20px ${rarityColor || '#facc15'}, 0 0 40px ${rarityColor || '#facc15'}55;
+                --cx: 0px;
+                --cy-mid: -90px;
+                --cy-end: 60px;
+            `;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
+
+        // ══ VICTORY / DEFEAT FULL-SCREEN OVERLAY ══
+        function showCbVictoryScreen(isVictory, winnerName, bestDrop, totalScore) {
+            const screen = document.getElementById('cb-victory-screen');
+            const titleEl = document.getElementById('cb-victory-title-el');
+            const subEl   = document.getElementById('cb-victory-sub');
+            const bestEl  = document.getElementById('cb-victory-best-drop');
+            if (!screen || !titleEl) return;
+
+            titleEl.className = isVictory ? 'cb-victory-title mb-4' : 'cb-defeat-title mb-4';
+            titleEl.textContent = isVictory ? 'VICTORY!' : 'DEFEAT';
+            if (subEl) subEl.textContent = isVictory
+                ? `${winnerName} wins with ${formatMoney(totalScore)}!`
+                : `${winnerName} won the battle.`;
+
+            if (bestEl && bestDrop) {
+                bestEl.innerHTML = `
+                    <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.15em; font-weight:800;">Best Drop</div>
+                    <img src="${bestDrop.img || FALLBACK_IMG}" style="height:120px; object-fit:contain; filter:drop-shadow(0 0 20px ${bestDrop.color || '#facc15'})" onerror="handleImgError(this)">
+                    <div style="font-size:1.1rem; font-weight:900; color:${bestDrop.color || '#facc15'}">${bestDrop.name || ''}</div>
+                    <div style="font-size:1.4rem; font-weight:900; color:#facc15;">${formatMoney(bestDrop.price || 0)}</div>
+                `;
+            } else if (bestEl) {
+                bestEl.innerHTML = '';
+            }
+
+            screen.classList.add('active');
+            // Auto-dismiss after 7s  
+            setTimeout(() => screen.classList.remove('active'), 7000);
+        }
+
+        // end of CB utility functions
 
                 function setCasesCategoryFilter(category) {
                     casesCategoryFilter = category;
