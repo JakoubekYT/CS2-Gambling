@@ -798,29 +798,68 @@
         }
 
         /* ══════════════════════════════════════════
-           WIN COIN ANIMATION
+           WIN COIN ANIMATION (THE HYPE MOMENT)
+           Trajectory: Shoots UP, hangs, drops FAST with bounce
            ══════════════════════════════════════════ */
-        @keyframes cbCoinFly {
-            0%   { transform: translate(0, 0) scale(0.5) rotate(0deg);   opacity: 0; }
-            15%  { opacity: 1; }
-            60%  { transform: translate(var(--cx), var(--cy-mid)) scale(1.3) rotate(180deg); opacity: 1; }
-            100% { transform: translate(var(--cx), var(--cy-end)) scale(0.8) rotate(360deg); opacity: 0; }
+        @keyframes cbCoinHype {
+            0%   { transform: translate(0, 0) scale(0.2) rotate(0deg); opacity: 0; }
+            /* First shot: Up and grow */
+            25%  { transform: translate(var(--dx-mid), -240px) scale(2.0) rotate(180deg); opacity: 1; }
+            /* Hang at peak */
+            45%  { transform: translate(var(--dx-mid), -260px) scale(1.8) rotate(220deg); opacity: 1; }
+            /* Fast fall down into winner panel */
+            85%  { transform: translate(var(--dx-end), var(--dy-end)) scale(1.0) rotate(360deg); opacity: 1; }
+            /* Final bounce */
+            92%  { transform: translate(var(--dx-end), calc(var(--dy-end) - 15px)) scale(1.1); opacity: 1; }
+            100% { transform: translate(var(--dx-end), var(--dy-end)) scale(1.0); opacity: 0; }
         }
         .cb-win-coin {
             position: fixed;
             z-index: 9999;
             pointer-events: none;
-            width: 52px;
-            height: 52px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 900;
             background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e);
-            box-shadow: 0 0 20px rgba(250,204,21,0.8), 0 0 40px rgba(250,204,21,0.4);
-            animation: cbCoinFly 1.1s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 30px rgba(250,204,21,1.0), 0 0 60px rgba(250,204,21,0.5);
+            animation: cbCoinHype 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        /* ══════════════════════════════════════════
+           HYPE VISUALS: SHINE & SHAKE
+           ══════════════════════════════════════════ */
+        @keyframes cbItemShine {
+            0%   { left: -100%; }
+            20%  { left: 100%; }
+            100% { left: 100%; }
+        }
+        .cb-item-shine::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transform: skewX(-25deg);
+            animation: cbItemShine 2s infinite;
+        }
+        @keyframes cbItemShake {
+            0%, 100% { transform: scale(1.08) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(-1deg); }
+            20%, 40%, 60%, 80% { transform: scale(1.1) rotate(1deg); }
+        }
+        .cb-rare-shake {
+            animation: cbItemShake 0.4s ease-in-out infinite !important;
+        }
+        /* Massive glow for Classified / Covert drops */
+        .cb-rare-glow {
+            box-shadow: 0 0 120px 20px var(--card-rarity-color) !important;
+            transition: box-shadow 0.3s ease-out;
         }
 
         /* ══════════════════════════════════════════
@@ -1880,13 +1919,18 @@
         let audioInitialized = false;
 
         function initAudio() {
-            if (!audioInitialized) {
+            if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                audioInitialized = true;
-            } else if (audioCtx.state === 'suspended') {
+            }
+            if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            audioInitialized = true;
         }
+
+        // Global unlock on any interaction
+        window.addEventListener('click', initAudio, { once: true });
+        window.addEventListener('touchstart', initAudio, { once: true });
 
         const SoundEngine = {
             playTick: () => {
@@ -1961,6 +2005,21 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.15);
+            },
+            playDing: () => {
+                if (!audioCtx) return;
+                // High frequency "ping"
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
             },
             playWhoosh: () => {
                 if (!audioCtx) return;
@@ -4355,11 +4414,12 @@ Zeus x27|Charged Up|8.50|#8847ff
         function triggerEndgameSequence(room, finalScores) {
             const winnerId   = String(room?.winnerId || '');
             const maxScore   = Math.max(...(finalScores.map(s => Number(s || 0))), 0);
+            const myId       = currentUser?.id || currentUser?._id;
 
-            let winnerName = 'Unknown';
-            let winnerScore = 0;
+            let winnerName      = 'Unknown';
+            let winnerScore     = 0;
             let isPlayerVictory = false;
-            let bestDrop = null;
+            let myBestDrop      = null;
 
             (room.players || []).forEach((pl, idx) => {
                 const overlay    = document.getElementById(`cb-endgame-${idx}`);
@@ -4369,19 +4429,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                 if (!overlay) return;
 
                 const myScore = Number(finalScores[idx] || 0);
+                const isMe = myId && String(pl.userId) === String(myId);
                 const won = winnerId
                     ? String(pl.userId) === winnerId
                     : myScore >= maxScore && maxScore > 0;
 
+                if (isMe) {
+                    const drops = pl.drops || [];
+                    myBestDrop = drops.reduce((best, d) => (!best || (d?.price || 0) > (best?.price || 0)) ? d : best, null);
+                }
+
                 if (won) {
                     winnerName  = pl.nickname || pl.displayName || 'Winner';
                     winnerScore = myScore;
-                    // Find the best drop of the winner
-                    const drops = pl.drops || [];
-                    bestDrop = drops.reduce((best, d) => (!best || (d?.price || 0) > (best?.price || 0)) ? d : best, null);
-                    // Check if current user is winner
-                    const myId = currentUser?.id || currentUser?._id;
-                    if (myId && String(pl.userId) === String(myId)) isPlayerVictory = true;
+                    if (isMe) isPlayerVictory = true;
 
                     overlay.className = 'absolute inset-0 z-50 flex items-center justify-center transition-all duration-700';
                     overlay.style.background = 'linear-gradient(to top, rgba(21,128,61,0.82) 0%, rgba(21,128,61,0.25) 55%, transparent 100%)';
@@ -4410,15 +4471,13 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             const rc = document.getElementById('cb-round-counter');
             if (rc) rc.textContent = 'BATTLE FINISHED';
-            lucide.createIcons();
 
-            // Show dramatic victory/defeat screen after 0.8s delay
             setTimeout(() => {
                 if (window.SoundEngine) {
                     if (isPlayerVictory) SoundEngine.playBattleVictory();
                     else SoundEngine.playBattleDefeat();
                 }
-                showCbVictoryScreen(isPlayerVictory, winnerName, bestDrop, winnerScore);
+                showCbVictoryScreen(isPlayerVictory, winnerName, myBestDrop, winnerScore);
             }, 800);
         }
         async function startBattleVisuals(room) {
@@ -4522,31 +4581,44 @@ Zeus x27|Charged Up|8.50|#8847ff
                             const mat = new (window.WebKitCSSMatrix || window.DOMMatrix)(getComputedStyle(ref.track).transform);
                             const x   = mat.m41 !== undefined ? mat.m41 : (mat.e || 0);
                             const pos = Math.floor(Math.abs(x) / ITEM_STEP);
-                            if (pos !== lastTickIdx) { lastTickIdx = pos; if (window.SoundEngine) SoundEngine.playTick(); }
+                            if (pos !== lastTickIdx) { 
+                                lastTickIdx = pos; 
+                                if (window.SoundEngine) SoundEngine.playTick(); 
+                            }
                         } catch (_) {}
-                    }, 20);
+                    }, 16);
 
-                    await cbSleep(SPIN_DURATION_MS + 400);
+                    await cbSleep(SPIN_DURATION_MS + 200);
                     clearInterval(tickTimer);
+                    if (window.SoundEngine) SoundEngine.playDing(); // STOP CLINK!
 
                     // ── Winner card highlight ──────────────────────────────────
                     spinners.forEach(s => {
                         const winnerCard = s.track.querySelector('[data-cb-winner="1"]');
                         if (winnerCard) {
                             winnerCard.classList.add('winner-reveal');
-                            if (window.SoundEngine) {
-                                // playWin expects rarity like 'gold', 'red', 'pink', 'purple' etc.
-                                SoundEngine.playWin(s.drop.rarityName || 'blue');
+                            const rarity = s.drop.rarityName || 'blue';
+                            if (window.SoundEngine) SoundEngine.playWin(rarity);
+
+                            // Apply Hype Effects for Classifed/Covert
+                            if (['red', 'gold', 'pink'].includes(rarity)) {
+                                winnerCard.classList.add('cb-rare-shake', 'cb-item-shine');
+                                const col = winnerCard.closest('[id^="cb-spinner-box-"]')?.parentElement;
+                                if (col) col.classList.add('cb-rare-glow');
                             }
                         }
                     });
-                    await cbSleep(600); // let winner-reveal animation play
+                    await cbSleep(800); 
 
                     // ── Reveal result: update scores, history, crowns ──────────
                     for (const s of spinners) {
                         const prevScore = cbRevealedScores[s.idx] || 0;
                         cbRevealedScores[s.idx] = prevScore + Number(s.drop.price || 0);
                         const rarityColor = s.drop.color || '#4b69ff';
+
+                        // Remove Hype Glow after win
+                        const col = document.getElementById(`cb-spinner-box-${s.idx}`)?.parentElement;
+                        if (col) col.classList.remove('cb-rare-glow');
 
                         // Rolling score counter
                         const scoreEl = document.getElementById(`cb-score-${s.idx}`);
@@ -4559,9 +4631,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                         // Animated win coin + rarity particle burst
                         const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
                         if (spinBox) {
-                            cbSpawnWinCoin(spinBox, rarityColor);
+                            cbSpawnWinCoin(spinBox, rarityColor, s.idx);
                             const r = spinBox.getBoundingClientRect();
-                            // Particles only for high-rarity (pink / red / gold)
                             if (['#d32ee6','#eb4b4b','#ebca44'].includes(rarityColor)) {
                                 cbSpawnParticles(r.left + r.width / 2, r.top + r.height / 2, rarityColor);
                             }
@@ -4849,55 +4920,81 @@ Zeus x27|Charged Up|8.50|#8847ff
             }
         }
 
-        // ══ WIN COIN: flies from spinner centre and fades ══
-        function cbSpawnWinCoin(spinnerEl, rarityColor) {
+        // ══ WIN COIN: flies from spinner centre and falls into panel ══
+        function cbSpawnWinCoin(spinnerEl, rarityColor, playerIdx) {
             if (!spinnerEl) return;
             const r = spinnerEl.getBoundingClientRect();
-            const startX = r.left + r.width  / 2 - 26;
-            const startY = r.top  + r.height / 2 - 26;
+            
+            // Destination panel (cb-history container)
+            const targetEl = document.getElementById(`cb-history-${playerIdx}`);
+            const tRect = targetEl ? targetEl.getBoundingClientRect() : { top: window.innerHeight, left: r.left };
+
+            const startX = r.left + r.width  / 2 - 32;
+            const startY = r.top  + r.height / 2 - 32;
+            
+            const dxEnd = tRect.left - startX + (tRect.width / 2) - 32;
+            const dyEnd = tRect.top  - startY + 40;
+
             const el = document.createElement('div');
             el.className = 'cb-win-coin';
-            el.textContent = '🪙';
+            el.innerHTML = '🪙';
             el.style.cssText = `
                 left: ${startX}px;
                 top:  ${startY}px;
-                background: radial-gradient(circle at 35% 35%, #fde68a, ${rarityColor || '#f59e0b'}, #92400e);
-                box-shadow: 0 0 20px ${rarityColor || '#facc15'}, 0 0 40px ${rarityColor || '#facc15'}55;
-                --cx: 0px;
-                --cy-mid: -90px;
-                --cy-end: 60px;
+                --card-rarity-color: ${rarityColor || '#facc15'};
+                --dx-mid: ${dxEnd / 2}px;
+                --dx-end: ${dxEnd}px;
+                --dy-end: ${dyEnd}px;
             `;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1200);
+            setTimeout(() => {
+                el.remove();
+                if (window.SoundEngine) SoundEngine.playCoin();
+            }, 1400);
         }
 
         // ══ VICTORY / DEFEAT FULL-SCREEN OVERLAY ══
-        function showCbVictoryScreen(isVictory, winnerName, bestDrop, totalScore) {
+        function showCbVictoryScreen(isVictory, winnerName, myBestDrop, totalScore) {
             const screen = document.getElementById('cb-victory-screen');
             const titleEl = document.getElementById('cb-victory-title-el');
             const subEl   = document.getElementById('cb-victory-sub');
             const bestEl  = document.getElementById('cb-victory-best-drop');
             if (!screen || !titleEl) return;
 
-            titleEl.className = isVictory ? 'cb-victory-title mb-4' : 'cb-defeat-title mb-4';
-            titleEl.textContent = isVictory ? 'VICTORY!' : 'DEFEAT';
-            if (subEl) subEl.textContent = isVictory
-                ? `${winnerName} wins with ${formatMoney(totalScore)}!`
-                : `${winnerName} won the battle.`;
+            const isRareDrop = myBestDrop && ['red', 'gold', 'pink'].includes(myBestDrop.rarityName);
 
-            if (bestEl && bestDrop) {
+            if (isVictory) {
+                titleEl.className = 'cb-victory-title mb-4';
+                titleEl.textContent = 'VICTORY!';
+                if (subEl) subEl.textContent = `You won the battle with ${formatMoney(totalScore)}!`;
+            } else {
+                titleEl.className = 'cb-defeat-title mb-4';
+                // Consolation message if user got a rare item
+                if (isRareDrop) {
+                    titleEl.textContent = 'GOOD DROP!';
+                    titleEl.style.color = '#facc15';
+                    if (subEl) subEl.textContent = `Battle lost, but check your inventory!`;
+                } else {
+                    titleEl.textContent = 'DEFEAT';
+                    titleEl.style.color = '#f87171';
+                    if (subEl) subEl.textContent = `${winnerName} took the win.`;
+                }
+            }
+
+            if (bestEl && myBestDrop) {
                 bestEl.innerHTML = `
-                    <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.15em; font-weight:800;">Best Drop</div>
-                    <img src="${bestDrop.img || FALLBACK_IMG}" style="height:120px; object-fit:contain; filter:drop-shadow(0 0 20px ${bestDrop.color || '#facc15'})" onerror="handleImgError(this)">
-                    <div style="font-size:1.1rem; font-weight:900; color:${bestDrop.color || '#facc15'}">${bestDrop.name || ''}</div>
-                    <div style="font-size:1.4rem; font-weight:900; color:#facc15;">${formatMoney(bestDrop.price || 0)}</div>
+                    <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.15em; font-weight:800; margin-bottom:8px;">Your Best Drop</div>
+                    <div class="relative p-6 rounded-2xl bg-white/5 border border-white/10" style="box-shadow: 0 0 40px ${myBestDrop.color}44">
+                        <img src="${myBestDrop.img || FALLBACK_IMG}" style="height:140px; object-fit:contain; filter:drop-shadow(0 0 25px ${myBestDrop.color})" onerror="handleImgError(this)">
+                        <div style="font-size:1.2rem; font-weight:900; color:${myBestDrop.color}; margin-top:12px; text-align:center;">${myBestDrop.name || ''}</div>
+                        <div style="font-size:1.6rem; font-weight:900; color:#facc15; text-align:center;">${formatMoney(myBestDrop.price || 0)}</div>
+                    </div>
                 `;
             } else if (bestEl) {
                 bestEl.innerHTML = '';
             }
 
             screen.classList.add('active');
-            // Auto-dismiss after 7s  
             setTimeout(() => screen.classList.remove('active'), 7000);
         }
 
