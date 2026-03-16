@@ -1961,6 +1961,63 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.15);
+            },
+            playWhoosh: () => {
+                if (!audioCtx) return;
+                const bufferSize = audioCtx.sampleRate * 0.4;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.2);
+                filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+                noise.stop(audioCtx.currentTime + 0.4);
+            },
+            playBattleVictory: () => {
+                if (!audioCtx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + i * 0.15 + 0.05);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.15 + 0.5);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.15);
+                    osc.stop(audioCtx.currentTime + i * 0.15 + 0.5);
+                });
+            },
+            playBattleDefeat: () => {
+                if (!audioCtx) return;
+                const notes = [392.00, 349.23, 329.63, 261.63]; // G4, F4, E4, C4
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.2);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.2);
+                    gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + i * 0.2 + 0.05);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.2 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.2);
+                    osc.stop(audioCtx.currentTime + i * 0.2 + 0.6);
+                });
             }
         };
 
@@ -4357,12 +4414,17 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             // Show dramatic victory/defeat screen after 0.8s delay
             setTimeout(() => {
+                if (window.SoundEngine) {
+                    if (isPlayerVictory) SoundEngine.playBattleVictory();
+                    else SoundEngine.playBattleDefeat();
+                }
                 showCbVictoryScreen(isPlayerVictory, winnerName, bestDrop, winnerScore);
             }, 800);
         }
         async function startBattleVisuals(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
+            if (window.SoundEngine) SoundEngine.playWhoosh();
 
             const rounds       = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
             const playersCount = (room.players || []).length;
@@ -4472,7 +4534,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                         const winnerCard = s.track.querySelector('[data-cb-winner="1"]');
                         if (winnerCard) {
                             winnerCard.classList.add('winner-reveal');
-                            if (window.SoundEngine) SoundEngine.playWin('red');
+                            if (window.SoundEngine) {
+                                // playWin expects rarity like 'gold', 'red', 'pink', 'purple' etc.
+                                SoundEngine.playWin(s.drop.rarityName || 'blue');
+                            }
                         }
                     });
                     await cbSleep(600); // let winner-reveal animation play
