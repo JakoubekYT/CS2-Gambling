@@ -1251,9 +1251,10 @@
         <!-- Desktop Navigation -->
         <nav class="hidden lg:flex items-center gap-10">
             <button onclick="switchPage('cases')" class="nav-link active">Cases</button>
-            <button onclick="switchPage('battles')" class="nav-link">Battles</button>
+            <button onclick="switchPage('case-battle')" class="nav-link">Battles</button>
             <button onclick="switchPage('upgrade')" class="nav-link">Upgrade</button>
             <button onclick="switchPage('inventory')" class="nav-link">Inventory</button>
+            <button onclick="switchPage('profile')" class="nav-link">Profile</button>
         </nav>
 
         <!-- Right User Area -->
@@ -1320,23 +1321,15 @@
                 <div class="text-[10px] uppercase tracking-wider text-gray-400">Zůstatek</div>
             </div>
             <button onclick="switchPage('cases'); toggleMobileMenu(false);"
-                class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎁
-                Cases</button>
-            <button onclick="switchPage('inventory'); toggleMobileMenu(false);"
-                class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">🎒
-                Inventář</button>
-            <button onclick="switchPage('upgrade'); toggleMobileMenu(false);"
-                class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⬆️
-                Upgrade</button>
+                class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 font-bold uppercase text-sm tracking-wider transition-colors">Cases</button>
             <button onclick="switchPage('case-battle'); toggleMobileMenu(false);"
-                class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">⚔️ Case
-                Battle</button>
+                class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 font-bold uppercase text-sm tracking-wider transition-colors">Battles</button>
+            <button onclick="switchPage('upgrade'); toggleMobileMenu(false);"
+                class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 font-bold uppercase text-sm tracking-wider transition-colors">Upgrade</button>
+            <button onclick="switchPage('inventory'); toggleMobileMenu(false);"
+                class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 font-bold uppercase text-sm tracking-wider transition-colors">Inventory</button>
             <button onclick="switchPage('profile'); toggleMobileMenu(false);"
-                class="w-full text-left bg-white/5 border border-white/10 rounded-xl px-3 py-2 font-black">👤
-                Profil</button>
-            <button onclick="addFreeMoney(); toggleMobileMenu(false);"
-                class="w-full text-left bg-green-600/30 border border-green-400/40 rounded-xl px-3 py-2 font-black">💰
-                Peníze zdarma</button>
+                class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 font-bold uppercase text-sm tracking-wider transition-colors">Profile</button>
         </div>
     </div>
 

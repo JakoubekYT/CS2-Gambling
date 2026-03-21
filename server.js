@@ -49,7 +49,7 @@ function getSkinLocalPath(skinName) {
   return null;
 }
 
-const START_BALANCE = 10;
+const START_BALANCE = 1000;
 const SESSION_DAYS = Number(process.env.SESSION_DAYS || 180);
 const USER_TOPUP_MAX = Number(process.env.USER_TOPUP_MAX || 25);
 const USER_TOPUP_COOLDOWN_MS = Number(process.env.USER_TOPUP_COOLDOWN_MS || 24 * 60 * 60 * 1000);
