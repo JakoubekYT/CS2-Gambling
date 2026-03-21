@@ -16,8 +16,9 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>console.warn = _warn;</script>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;900&display=swap"
-        rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&family=Outfit:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         #live-chat-toggle * {
@@ -25,38 +26,155 @@
         }
 
         :root {
-            --bg-dark: #0b0d11;
-            --bg-panel: #14171c;
-            --accent: #facc15;
-            --accent-hot: #fb7185;
-            --rarity-blue: #4b69ff;
-            --rarity-purple: #8847ff;
-            --rarity-pink: #d32ee6;
-            --rarity-red: #eb4b4b;
-            --rarity-gold: #ebca44;
+            /* CaseHug Ultimate Palette */
+            --bg-deep: #0b0e14;
+            --bg-surface: #151b27;
+            --bg-card: rgba(26, 33, 46, 0.45);
+            --border-primary: rgba(255, 255, 255, 0.05);
+            --border-highlight: rgba(255, 255, 255, 0.12);
+            
+            --accent-green: #00e574;
+            --accent-green-glow: rgba(0, 229, 116, 0.4);
+            --accent-yellow: #ffb700;
+            --accent-yellow-glow: rgba(255, 183, 0, 0.4);
+            
+            /* CS2 Rarity Tokens - CaseHug Spec */
+            --rare-blue: #4b69ff;
+            --rare-purple: #8847ff;
+            --rare-pink: #d32ce6;
+            --rare-red: #eb4b4b;
+            --rare-gold: #caab05;
+
+            /* Shadows & Depth */
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.3);
+            --shadow-md: 0 12px 32px rgba(0,0,0,0.5);
+            --shadow-lg: 0 24px 64px rgba(0,0,0,0.8);
+            
+            --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+            --ease-out-expo: cubic-bezier(0.1, 0.9, 0.15, 1);
         }
 
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: var(--bg-dark);
-            color: #e2e8f0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #ffffff;
             overflow-x: hidden;
-            overflow-y: auto;
-            background-image: radial-gradient(circle at 15% -20%, rgba(250, 204, 21, 0.15), transparent 40%), radial-gradient(circle at 80% -10%, rgba(244, 114, 182, 0.13), transparent 35%);
+            -webkit-font-smoothing: antialiased;
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(0, 229, 116, 0.05), transparent 60%), 
+                radial-gradient(circle at 10% 20%, rgba(75, 105, 255, 0.03), transparent 40%);
+            background-attachment: fixed;
         }
 
-        .nav-link.active {
-            color: var(--accent);
-            border-bottom: 3px solid var(--accent);
-            text-shadow: 0 0 14px rgba(250, 204, 21, 0.7);
+        /* ══════════════════════════════════════════
+           PREMIUM GLASSMORPHISM & UTILITIES
+           ══════════════════════════════════════════ */
+        .premium-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--border-primary);
+            border-radius: 14px;
+            box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255,255,255,0.02);
+            transition: all 0.35s var(--ease-in-out-cubic);
         }
 
-        .live-drop-scroll {
+        .premium-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+            background: rgba(30,38,54,0.6);
+            box-shadow: var(--shadow-lg), 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        /* Rarity Glow System (CaseHug Style) */
+        .rarity-glow-wrap {
+            position: relative;
+            overflow: hidden;
+            border-radius: inherit;
+        }
+        .rarity-glow-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, var(--rarity-color) 0%, transparent 75%);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .item-rarity-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--rarity-color);
+            box-shadow: 0 0 15px var(--rarity-color);
+            opacity: 0.8;
+            z-index: 2;
+        }
+
+        /* Balance Pill / Button Style */
+        .balance-pill {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            min-height: 100%;
-            width: 100%;
+            background: rgba(0, 229, 116, 0.08);
+            border: 1px solid rgba(0, 229, 116, 0.15);
+            border-radius: 12px;
+            padding: 4px 4px 4px 14px;
+            gap: 12px;
+            transition: all 0.3s var(--ease-in-out-cubic);
+            cursor: pointer;
+            user-select: none;
+        }
+        .balance-pill:hover {
+            background: rgba(0, 229, 116, 0.12);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(0, 229, 116, 0.15);
+        }
+        .balance-pill .balance-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: var(--accent-green);
+            font-size: 1rem;
+            letter-spacing: -0.01em;
+        }
+        .balance-pill .deposit-btn {
+            background: var(--accent-green);
+            color: #0b0e14;
+            font-weight: 800;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            box-shadow: 0 4px 12px rgba(0, 229, 116, 0.3);
+            transition: transform 0.2s ease;
+        }
+        .balance-pill:active .deposit-btn {
+            transform: scale(0.95);
+        }
+
+        .nav-link {
+            font-weight: 600;
+            color: var(--cb-text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 8px 0;
+        }
+        .nav-link:hover {
+            color: #ffffff;
+        }
+        .nav-link.active {
+            color: var(--accent-green);
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
         }
 
         @keyframes dropIn {
@@ -231,7 +349,7 @@
                 min-width: 112px;
             }
 
-            #cb-stage {
+            #cb-arena {
                 grid-template-columns: 1fr !important;
             }
         }
@@ -697,93 +815,105 @@
             }
         }
 
+        /* ══════════════════════════════════════════
+           CRITICAL: CS2 RARITY SYSTEM
+           ══════════════════════════════════════════ */
+        :root {
+            --rarity-milspec: #4b69ff;
+            --rarity-restricted: #8847ff;
+            --rarity-classified: #d32ce6;
+            --rarity-covert: #eb4b4b;
+            --rarity-special: #ffd700;
+        }
+
+        .cb-rarity-glow-milspec    { box-shadow: 0 0 20px rgba(75, 105, 255, 0.35); }
+        .cb-rarity-glow-restricted { box-shadow: 0 0 25px rgba(136, 71, 255, 0.4); }
+        .cb-rarity-glow-classified { box-shadow: 0 0 35px rgba(211, 44, 230, 0.5); }
+        .cb-rarity-glow-covert     { box-shadow: 0 0 45px rgba(235, 75, 75, 0.6); }
+        .cb-rarity-glow-special    { box-shadow: 0 0 55px rgba(255, 215, 0, 0.7); }
+
         .cb-winner-flash {
             animation: winnerFlash 0.8s ease-out;
+        }
+        @keyframes winnerFlash {
+            0% { filter: brightness(1); transform: scale(1); }
+            30% { filter: brightness(1.8); transform: scale(1.05); }
+            100% { filter: brightness(1); transform: scale(1); }
         }
 
         /* ══════════════════════════════════════════
            WINNING INDICATOR BAR
            ══════════════════════════════════════════ */
+        /* ══════════════════════════════════════════
+           MODERN WINNING INDICATOR (DYNAMIC PULL)
+           ══════════════════════════════════════════ */
         .cb-win-indicator-wrap {
             position: relative;
-            height: 48px;
-            background: #0d1017;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            overflow: hidden;
+            height: 64px;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            border-bottom: 2px solid rgba(255,255,255,0.05);
             display: flex;
             align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 2px;
         }
-        /* Progress fill behind the bar */
+        /* Background Progress Bar */
+        .cb-win-track-bg {
+            position: absolute;
+            inset: 12px 24px;
+            background: #000;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
         .cb-win-fill-ct {
             position: absolute;
             top: 0; left: 0; bottom: 0;
-            background: linear-gradient(90deg, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.06) 100%);
-            transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1);
-            width: 50%;
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            transition: width 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            border-radius: 999px 0 0 999px;
         }
         .cb-win-fill-t {
             position: absolute;
             top: 0; right: 0; bottom: 0;
-            background: linear-gradient(270deg, rgba(251,146,60,0.22) 0%, rgba(251,146,60,0.06) 100%);
-            transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1);
-            width: 50%;
+            background: linear-gradient(270deg, #f97316 0%, #fb923c 100%);
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+            transition: width 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            border-radius: 0 999px 999px 0;
         }
-        /* Sliding thumb pill */
+        /* Sliding Pulse Indicator */
         .cb-win-thumb {
             position: absolute;
             top: 50%;
-            transform: translate(-50%,-50%);
             left: 50%;
-            background: #facc15;
-            color: #111;
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            white-space: nowrap;
-            z-index: 10;
-            box-shadow: 0 0 14px rgba(250,204,21,0.7);
-            transition: left 0.6s cubic-bezier(0.34,1.2,0.64,1), background 0.3s ease;
-            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            width: 4px;
+            height: 40px;
+            background: #fff;
+            box-shadow: 0 0 20px 2px #fff, 0 0 40px rgba(255,255,255,0.5);
+            transition: left 0.7s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        /* Team labels */
-        .cb-win-label-ct {
+        .cb-team-label-ct, .cb-team-label-t {
             position: absolute;
-            left: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #60a5fa;
-            z-index: 5;
+            top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 10px;
+            z-index: 60; font-weight: 900; font-size: 14px;
+            text-transform: uppercase; letter-spacing: 0.1em;
             pointer-events: none;
         }
-        .cb-win-label-t {
-            position: absolute;
-            right: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #fb923c;
-            z-index: 5;
-            pointer-events: none;
+        .cb-team-label-ct { left: 40px; color: #60a5fa; }
+        .cb-team-label-t { right: 40px; color: #fb923c; }
+
+        .cb-team-score-val {
+            background: rgba(0,0,0,0.5);
+            padding: 2px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            min-width: 80px; text-align: center;
         }
-        .cb-win-score-ct, .cb-win-score-t {
-            font-size: 13px;
-            font-weight: 900;
-            transition: color 0.3s ease;
-        }
-        .cb-win-score-ct.leading { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.8); }
-        .cb-win-score-t.leading  { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.8); }
 
         /* ══════════════════════════════════════════
            ROLLING NUMBER COUNTER
@@ -798,37 +928,36 @@
         }
 
         /* ══════════════════════════════════════════
-           WIN COIN ANIMATION (THE HYPE MOMENT)
-           Trajectory: Shoots UP, hangs, drops FAST with bounce
+           WIN COIN ANIMATION (4-STEP EXPLOSION)
+           1. Birth 0->1.5 | 2. Launch Up | 3. Hangtime | 4. Hard Drop
            ══════════════════════════════════════════ */
         @keyframes cbCoinHype {
-            0%   { transform: translate(0, 0) scale(0.2) rotate(0deg); opacity: 0; }
-            /* First shot: Up and grow */
-            25%  { transform: translate(var(--dx-mid), -240px) scale(2.0) rotate(180deg); opacity: 1; }
-            /* Hang at peak */
-            45%  { transform: translate(var(--dx-mid), -260px) scale(1.8) rotate(220deg); opacity: 1; }
-            /* Fast fall down into winner panel */
-            85%  { transform: translate(var(--dx-end), var(--dy-end)) scale(1.0) rotate(360deg); opacity: 1; }
-            /* Final bounce */
-            92%  { transform: translate(var(--dx-end), calc(var(--dy-end) - 15px)) scale(1.1); opacity: 1; }
-            100% { transform: translate(var(--dx-end), var(--dy-end)) scale(1.0); opacity: 0; }
+            0%   { transform: translate(0, 0) scale(0); opacity: 0; }
+            /* Step 1 & 2: Explosive Launch Up */
+            35%  { transform: translate(var(--dx-mid), -260px) scale(1.6) rotate(360deg); opacity: 1; }
+            /* Step 3: Hangtime (Frozen in space) */
+            55%  { transform: translate(var(--dx-mid), -275px) scale(1.5) rotate(410deg); opacity: 1; }
+            /* Step 4: High-Velocity Fall */
+            88%  { transform: translate(var(--dx-end), var(--dy-end)) scale(0.8) rotate(720deg); opacity: 1; }
+            /* Fade on impact */
+            100% { transform: translate(var(--dx-end), var(--dy-end)) scale(0.7); opacity: 0; }
         }
         .cb-win-coin {
             position: fixed;
             z-index: 9999;
             pointer-events: none;
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 900;
-            background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #92400e);
-            border: 3px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 30px rgba(250,204,21,1.0), 0 0 60px rgba(250,204,21,0.5);
-            animation: cbCoinHype 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            background: radial-gradient(circle at 35% 35%, #fff 0%, #facc15 40%, #a16207 100%);
+            border: 4px solid #fff;
+            box-shadow: 0 0 40px rgba(250,204,21,1.0), 0 0 80px rgba(250,204,21,0.5);
+            animation: cbCoinHype 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
         /* ══════════════════════════════════════════
@@ -927,104 +1056,84 @@
            CASE BATTLE SPINNER — PROFESSIONAL CSS
            ======================================== */
 
-        /* Spinner Container */
-        .cb-spinner-wrap {
+        /* Spinner Container — Vertical (CaseHug Style) */
+        .cb-v-spinner-container {
             position: relative;
             width: 100%;
+            height: 240px;
+            background: rgba(0,0,0,0.5);
             overflow: hidden;
-            background: linear-gradient(180deg, #080a0e 0%, #0d1017 60%, #080a0e 100%);
-            border-bottom: 2px solid rgba(255,255,255,0.06);
+            border-bottom: 2px solid var(--border-primary);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+            perspective: 1000px;
         }
 
-        /* Edge vignette fades */
-        .cb-spin-fade-left,
-        .cb-spin-fade-right {
+        /* Edge vignette fades — Vertical */
+        .cb-spin-fade-top,
+        .cb-spin-fade-bottom {
             position: absolute;
-            top: 0; bottom: 0;
-            width: 22%;
+            left: 0; right: 0;
+            height: 50px;
             z-index: 25;
             pointer-events: none;
         }
-        .cb-spin-fade-left  { left:  0; background: linear-gradient(90deg,  #080a0e 0%, transparent 100%); }
-        .cb-spin-fade-right { right: 0; background: linear-gradient(270deg, #080a0e 0%, transparent 100%); }
+        .cb-spin-fade-top    { top: 0; background: linear-gradient(180deg, #151b27 100%, transparent); }
+        .cb-spin-fade-bottom { bottom: 0; background: linear-gradient(0deg, #151b27 100%, transparent); }
 
-        /* Center selector line */
-        .cb-spin-selector {
-            position: absolute;
-            left: 50%;
-            top: 0; bottom: 0;
-            width: 3px;
-            background: linear-gradient(180deg, transparent, #facc15 20%, #facc15 80%, transparent);
-            z-index: 30;
-            transform: translateX(-50%);
-            box-shadow: 0 0 18px 4px rgba(250, 204, 21, 0.65);
-            pointer-events: none;
-        }
-        /* Triangle arrows flanking selector */
-        .cb-spin-selector::before,
-        .cb-spin-selector::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-        }
-        .cb-spin-selector::before {
-            top: -1px;
-            border-left:  8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top:   10px solid #facc15;
-        }
-        .cb-spin-selector::after {
-            bottom: -1px;
-            border-left:  8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 10px solid #facc15;
+        /* Center selector line — Horizontal for vertical spinner */
+        .cb-v-tape {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            transition: transform 7.5s cubic-bezier(0.12, 0.9, 0.15, 1);
+            will-change: transform;
         }
 
-        /* Individual item card inside CB spinner track */
-        .cb-spin-card {
+        .cb-v-card {
+            width: 100%;
+            height: 200px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(180deg, #10141c 0%, #0d1017 100%);
-            border-bottom: 4px solid;
-            border-radius: 10px;
-            padding: 8px 4px;
+            padding: 20px;
             position: relative;
-            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 80%);
         }
-        /* Subtle rarity radial glow behind item image */
-        .cb-spin-card::before {
+
+        .cb-v-card img {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));
+            transition: transform 0.6s var(--ease-out-expo);
+            z-index: 2;
+        }
+
+        .cb-v-selector {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-green);
+            box-shadow: 0 0 25px var(--accent-green);
+            z-index: 10;
+            pointer-events: none;
+            transform: translateY(-50%);
+            opacity: 0.8;
+        }
+        .cb-v-selector::before, .cb-v-selector::after {
             content: '';
             position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 50% 70%, var(--card-rarity-color, #4b69ff22) 0%, transparent 70%);
-            opacity: 0.45;
-            pointer-events: none;
+            top: -8px;
+            width: 0; height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
         }
-        .cb-spin-card img {
-            height: 72px;
-            object-fit: contain;
-            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6));
-            position: relative;
-        }
-        .cb-spin-card .cb-spin-label {
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #94a3b8;
-            text-align: center;
-            margin-top: 5px;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            position: relative;
-        }
+        .cb-v-selector::before { left: 4px; border-left: 10px solid var(--accent-green); }
+        .cb-v-selector::after { right: 4px; border-right: 10px solid var(--accent-green); }
 
         /* Winning card highlight — triggered by JS adding class */
         @keyframes cbWinnerReveal {
@@ -1108,99 +1217,73 @@
         <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
     </div>
 
-    <div class="h-16 bg-[#0b0d11] border-b border-white/5 flex items-stretch z-40 relative shadow-md overflow-hidden">
-        <div
-            class="flex-shrink-0 bg-[#12161f] border-r border-white/5 px-6 flex flex-col justify-center relative z-10 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
-            <div class="flex items-center gap-2 mb-1">
-                <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_#facc15]"></div>
-                <span class="text-yellow-400 font-black text-[10px] uppercase tracking-[0.2em]">Live Drops</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-                <span class="relative flex h-1.5 w-1.5">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
-                </span>
-                <span id="live-online-counter" class="text-gray-400 font-bold text-[9px] uppercase tracking-wider">1,687
-                    Online</span>
+    <div class="h-12 bg-[#080a0e] border-b border-white/5 flex items-stretch z-40 relative overflow-hidden">
+        <div class="flex-shrink-0 bg-[#0b0e14] border-r border-white/5 px-6 flex flex-col justify-center relative z-10">
+            <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse shadow-[0_0_8px_var(--accent-green)]"></div>
+                <span class="text-accent-green font-black text-[9px] uppercase tracking-[0.2em] whitespace-nowrap">Live Drops</span>
             </div>
         </div>
 
         <div class="flex-1 overflow-hidden relative flex items-center">
-            <div id="live-drops" class="flex items-center gap-2 px-4 w-full h-full"></div>
+            <div id="live-drops" class="flex items-center gap-3 px-4 w-full h-full">
+                <!-- Drop items will be injected here -->
+            </div>
+        </div>
+        
+        <div class="flex-shrink-0 border-l border-white/5 px-4 flex items-center gap-2 bg-[#0b0e14]/50">
+             <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest"><span id="live-online-counter" class="text-white">1,687</span> Online</span>
         </div>
     </div>
 
-    <header class="h-20 bg-[#12161f] border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-50">
-        <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('cases')">
-            <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" alt="OTODROP logo"
-                class="w-12 h-12 object-contain">
-            <div class="text-2xl font-black italic tracking-tight text-white">OTO<span
-                    class="text-yellow-400">DROP</span></div>
+    <header class="h-20 bg-[#0b0e14] border-b border-white/5 sticky top-0 z-50 flex items-center justify-between px-8 backdrop-blur-md">
+        <!-- Logo Section -->
+        <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
+            <div class="w-10 h-10 relative">
+                <div class="absolute inset-0 bg-accent-green opacity-20 blur-xl group-hover:opacity-40 transition-opacity"></div>
+                <img src="https://i.ibb.co/vzZt0mN/logo.png" onerror="this.src='Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png'" alt="OTODROP" class="w-full h-full object-contain relative z-10">
+            </div>
+            <div class="text-2xl font-black italic tracking-tighter text-white">
+                OTO<span class="text-accent-green">DROP</span>
+            </div>
         </div>
-        <nav class="hidden lg:flex items-center justify-center flex-1 gap-8">
-            <button onclick="switchPage('inventory')"
-                class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i
-                    data-lucide="backpack" class="w-4 h-4"></i>Inventář</button>
-            <button onclick="switchPage('upgrade')"
-                class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i
-                    data-lucide="arrow-up-circle" class="w-4 h-4"></i>Upgrade</button>
-            <button onclick="switchPage('giveaways')"
-                class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i
-                    data-lucide="gift" class="w-4 h-4"></i>Giveaways</button>
-            <button onclick="switchPage('cases')"
-                class="nav-link active text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i
-                    data-lucide="star" class="w-4 h-4"></i>Cases</button>
-            <button onclick="switchPage('case-battle')"
-                class="nav-link text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"><i
-                    data-lucide="swords" class="w-4 h-4 text-yellow-400"></i>Case Battle</button>
-            <button id="admin-nav-btn" onclick="switchPage('admin')"
-                class="hidden text-sm font-black text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors cursor-pointer bg-red-500/10 px-3 py-1 rounded-lg"><i
-                    data-lucide="shield-alert" class="w-4 h-4"></i>Admin</button>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden lg:flex items-center gap-10">
+            <button onclick="switchPage('cases')" class="nav-link active">Cases</button>
+            <button onclick="switchPage('battles')" class="nav-link">Battles</button>
+            <button onclick="switchPage('upgrade')" class="nav-link">Upgrade</button>
+            <button onclick="switchPage('inventory')" class="nav-link">Inventory</button>
         </nav>
-        <div class="flex items-center gap-3">
-            <button
-                class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg font-black flex items-center gap-2">
-                <span id="balance">0.00 EUR</span>
-                <span class="bg-green-500/20 px-1.5 rounded">+</span>
+
+        <!-- Right User Area -->
+        <div class="flex items-center gap-6">
+            <!-- Balance Pill (CaseHug Style) -->
+            <div class="balance-pill" onclick="switchPage('deposit')">
+                <span class="balance-value" id="balance-main">0.00 EUR</span>
+                <div class="deposit-btn">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                </div>
+            </div>
+
+            <!-- Profile Area -->
+            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="flex items-center gap-3 pl-6 border-l border-white/5 cursor-pointer hover:opacity-80 transition-opacity">
+                <div class="flex flex-col items-end">
+                    <span id="profile-pill-nick" class="text-[12px] font-bold text-white leading-none mb-1">User</span>
+                    <div class="flex items-center gap-1.5 px-2 py-0.5 bg-accent-green/10 border border-accent-green/20 rounded-md">
+                        <span class="text-[8px] font-black text-accent-green uppercase tracking-wider">Level 1</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl border border-white/10 overflow-hidden shadow-lg bg-surface relative">
+                    <img id="profile-pill-avatar" src="https://i.ibb.co/5GzXp7C/avatar-placeholder.png" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+            </div>
+
+            <button onclick="openAuthModal()" id="auth-open-btn" class="hidden bg-accent-green text-black font-black px-6 py-2.5 rounded-xl uppercase text-xs tracking-widest hover:brightness-110 active:scale-95 transition-all">Sign In</button>
+            
+            <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-white/60 hover:text-white">
+                <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-
-            <div class="relative ml-2 mr-2 cursor-pointer group" onclick="toggleNotifications()">
-                <i data-lucide="bell" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors"></i>
-                <div id="notif-badge"
-                    class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                    1</div>
-            </div>
-
-            <div id="notif-dropdown"
-                class="hidden absolute top-16 right-20 w-80 bg-[#12161f] border border-white/10 rounded-xl shadow-2xl z-[100] flex-col overflow-hidden">
-                <div
-                    class="bg-[#1a1e29] px-4 py-3 font-black text-white text-xs uppercase tracking-widest border-b border-white/5">
-                    Upozornění</div>
-                <div id="notif-list" class="max-h-64 overflow-y-auto custom-scroll p-2 space-y-2">
-                    <div class="bg-white/5 p-3 rounded-lg text-xs text-gray-300"><strong class="text-yellow-400">Vítej
-                            na OTODROP!</strong> Užij si otevírání beden.</div>
-                </div>
-            </div>
-
-            <div id="profile-pill" onclick="window.renderOwnPublicProfile()"
-                class="hidden md:flex items-center gap-2 bg-[#0d1017] border border-white/10 rounded-xl px-2 py-1.5 cursor-pointer hover:bg-[#161a24] transition-colors">
-                <div class="w-10 h-10 rounded-full p-[2px] bg-[conic-gradient(from_0deg,_#a3e635,_#22c55e,_#a3e635)]">
-                    <img id="profile-pill-avatar" src="" alt="avatar"
-                        class="w-full h-full rounded-full object-cover bg-black">
-                </div>
-                <div class="leading-tight">
-                    <div id="profile-pill-name" class="text-xs text-white font-black"></div>
-                    <div id="profile-pill-nick" class="text-[10px] text-gray-400 font-bold"></div>
-                </div>
-            </div>
-
-            <button onclick="openAuthModal()" id="auth-open-btn"
-                class="bg-[#161a24] border border-white/10 text-gray-200 hover:text-white px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-colors">Sign
-                In</button>
-            <button onclick="toggleMobileMenu()"
-                class="md:hidden bg-[#0d1017] hover:bg-[#161a24] text-gray-300 px-3 py-2 rounded-lg border border-white/10"><i
-                    data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
     </header>
 
@@ -1430,10 +1513,10 @@
                 <h2 class="text-3xl font-black uppercase">Giveaways (3 Tiers)</h2>
                 <div class="grid md:grid-cols-3 gap-4" id="giveaway-grid"></div>
             </section>
-            <section id="page-case-battle" class="page hidden max-w-[1400px] mx-auto space-y-6 fade-in">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+            <section id="page-case-battle" class="page hidden max-w-[1400px] mx-auto space-y-6 fade-in" style="background: radial-gradient(circle at 50% 30%, #111827 0%, #000 100%); padding: 20px; border-radius: 24px;">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-4">
                     <h2 class="text-3xl font-black uppercase text-white drop-shadow-lg">Case Battle <span
-                            class="text-yellow-400">Online</span></h2>
+                            class="text-yellow-400">Arena</span></h2>
                 </div>
 
                 <div id="cb-lobby-panel" class="space-y-4">
@@ -1472,25 +1555,39 @@
                     <div id="cb-open-rooms" class="flex flex-col gap-2 min-h-[300px]"></div>
                 </div>
 
-                <div id="cb-room-panel"
-                    class="hidden flex-col bg-[#0b0d11] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
-                    <div class="px-6 py-4 bg-[#12161f] border-b border-white/10 flex items-center justify-between gap-4"
-                        id="cb-room-header"></div>
-                    <!-- Dynamic Winning Indicator Bar -->
-                    <div id="cb-room-teams" class="cb-win-indicator-wrap">
-                        <div id="cb-win-fill-ct" class="cb-win-fill-ct"></div>
-                        <div id="cb-win-fill-t"  class="cb-win-fill-t"></div>
-                        <div class="cb-win-label-ct">
-                            <span>🛡️ CT Team</span>
-                            <span id="cb-win-score-ct" class="cb-win-score-ct">0.00 EUR</span>
-                        </div>
-                        <div id="cb-win-thumb" class="cb-win-thumb">VS</div>
-                        <div class="cb-win-label-t">
-                            <span id="cb-win-score-t" class="cb-win-score-t">0.00 EUR</span>
-                            <span>T Team ⚔️</span>
+                <div id="cb-room-panel" class="hidden flex-col">
+                    <!-- Premium Header -->
+                    <div id="cb-room-header" class="flex items-center justify-between p-6 bg-surface border border-white/5 rounded-t-3xl border-b-0">
+                        <!-- Header content injected by JS -->
+                    </div>
+
+                    <!-- Winning Indicator (CaseHug Style) -->
+                    <div class="h-14 bg-[#080a0e] border-y border-white/5 relative flex items-center justify-center px-8">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-red-500/5"></div>
+                        
+                        <div class="flex items-center gap-4 w-full max-w-3xl">
+                             <div class="flex items-center gap-2 min-w-[100px]">
+                                <img src="https://i.ibb.co/3S4S0C0/ct-logo.png" class="w-6 h-6 opacity-80" alt="CT">
+                                <span id="cb-win-score-ct" class="text-xs font-black text-blue-400">$ 0.00</span>
+                             </div>
+
+                             <div class="flex-1 relative h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                 <div id="cb-win-fill-ct" class="absolute left-0 h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-1000" style="width: 50%;"></div>
+                                 <div id="cb-win-fill-t" class="absolute right-0 h-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all duration-1000" style="width: 50%;"></div>
+                                 <div id="cb-win-thumb" class="absolute left-1/2 -ml-2 -top-1 w-4 h-4 bg-white rounded-full shadow-xl border-2 border-gray-900 z-20 transition-all duration-700"></div>
+                             </div>
+
+                             <div class="flex items-center gap-2 min-w-[100px] justify-end">
+                                <span id="cb-win-score-t" class="text-xs font-black text-red-400">$ 0.00</span>
+                                <img src="https://i.ibb.co/vzZt0mN/logo.png" class="w-6 h-6 opacity-80" alt="T">
+                             </div>
                         </div>
                     </div>
-                    <div id="cb-stage" class="grid gap-[2px] bg-[#1a1e29] p-[2px] min-h-[500px] w-full"></div>
+
+                    <!-- Arena Grid (Player Columns) -->
+                    <div id="cb-arena" class="cb-arena-grid">
+                        <!-- Player columns injected by JS -->
+                    </div>
                 </div>
                 <!-- Victory / Defeat full-screen overlay -->
                 <div id="cb-victory-screen">
@@ -4270,7 +4367,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             cbVisualsFinished = false;
             cbLastAnimatedSignature = ''; 
             cbSetPanels(false); 
-            document.getElementById('cb-stage').innerHTML = ''; 
+            document.getElementById('cb-arena').innerHTML = ''; 
             document.getElementById('cb-log').innerHTML = ''; 
             loadCaseBattleRooms(); 
         }
@@ -4366,8 +4463,9 @@ Zeus x27|Charged Up|8.50|#8847ff
 
         function cbHistoryCard(drop, rIdx) {
             const color = drop?.color || '#4b69ff';
+            const wearBadge = drop?.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${drop.wear}</div>` : '';
             return `<div class="bg-[#1a1e29] border border-white/5 rounded-md p-2 relative text-center group transition-all duration-300 border-t-2" style="border-top-color:${color}">
-                <div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${cbWearTag()}</div>
+                ${wearBadge}
                 <img src="${drop?.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-12 object-contain mx-auto mt-2">
                 <div class="text-[9px] mt-1 text-gray-300 truncate">${drop?.name || '-'}</div>
                 <div class="text-yellow-400 font-bold text-[10px]">${formatMoney(drop?.price || 0)}</div>
@@ -4480,6 +4578,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                 showCbVictoryScreen(isPlayerVictory, winnerName, myBestDrop, winnerScore);
             }, 800);
         }
+
         async function startBattleVisuals(room) {
             if (cbAnimationLock) return;
             cbAnimationLock = true;
@@ -4488,99 +4587,75 @@ Zeus x27|Charged Up|8.50|#8847ff
             const rounds       = Math.max(1, Number(room?.totalRounds || room?.rounds || 1));
             const playersCount = (room.players || []).length;
 
-            // ── Spinner physics constants ──────────────────────────────────────
-            const ITEM_WIDTH  = 150;   // px, card width
-            const ITEM_GAP    = 8;     // px, gap between cards (must match CSS gap on track)
-            const ITEM_STEP   = ITEM_WIDTH + ITEM_GAP;  // total step per card
-            const WINNER_IDX  = 50;   // which index on the tape holds the winning skin
-            const SPIN_DURATION_MS = 6000; // total spin time
-            const SPIN_EASING      = 'transform 6s cubic-bezier(0.12, 0.8, 0.15, 1)';
+            // ── Spinner physics constants (VERTICAL) ───────────────────────────
+            const CARD_HEIGHT   = 200;    // Matches .cb-v-card CSS
+            const WINNER_IDX    = 40;     // Center tape on 40th item
+            const SPIN_DURATION = 7500;   // 7.5s for that slow, heart-pounding finish
+            const SPIN_EASING   = 'transform 7.5s cubic-bezier(0.12, 0.9, 0.15, 1)';
 
-            // Reset visual state
             cbCurrentRoundIdx = 0;
             cbRevealedScores  = room.players.map(() => 0);
             cbVisualsFinished = false;
 
-            // Build the static stage DOM once before animation starts
             _buildStageDOM(room);
 
             try {
                 for (let round = 0; round < rounds; round++) {
                     cbCurrentRoundIdx = round;
-
-                    // Update round counter UI
                     const rc = document.getElementById('cb-round-counter');
                     if (rc) rc.textContent = `${round + 1} / ${rounds}`;
 
-                    // Get item pool for this round
-                    const qCase  = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
-                    const caseObj = qCase
-                        ? (casesDB.find(c => c.id === qCase.caseId) || casesDB[0])
-                        : (getCaseByRoom(room) || casesDB[0]);
-                    let pool = ((caseObj?.contents || casesDB[0]?.contents || []).map(c => c.skin).filter(Boolean));
-                    if (!pool.length) pool = Object.values(skinsDB).slice(0, 20);
+                    const qCase   = Array.isArray(room.caseQueue) ? room.caseQueue[round] : null;
+                    const caseObj = qCase ? (casesDB.find(c => c.id === qCase.caseId) || casesDB[0]) : (casesDB[0]);
+                    let pool = (caseObj?.contents || []).map(c => c.skin).filter(Boolean);
+                    if (!pool.length) pool = Object.values(skinsDB).slice(0, 15);
 
-                    // ── Build spinner tape for each player ────────────────────
                     const spinners = [];
                     for (let i = 0; i < playersCount; i++) {
-                        const track = document.getElementById(`cb-spin-track-${i}`);
-                        if (!track) continue;
+                        const tape = document.getElementById(`cb-v-tape-${i}`);
+                        if (!tape) continue;
                         const drop = room.players[i]?.drops?.[round];
                         if (!drop) continue;
 
-                        // Hard reset position (no transition)
-                        track.style.transition = 'none';
-                        track.style.transform  = 'translate3d(0,0,0)';
+                        tape.style.transition = 'none';
+                        tape.style.transform  = 'translate3d(0,0,0)';
 
-                        // Build 75-item tape using .cb-spin-card class
-                        const TAPE_LEN = 75;
                         let html = '';
-                        for (let j = 0; j < TAPE_LEN; j++) {
-                            const item = (j === WINNER_IDX)
-                                ? drop
-                                : pool[Math.floor(Math.random() * pool.length)];
+                        for (let j = 0; j < 60; j++) {
+                            const item = (j === WINNER_IDX) ? drop : pool[Math.floor(Math.random() * pool.length)];
                             const rarityColor = item.color || '#4b69ff';
-                            const winnerClass = (j === WINNER_IDX) ? 'data-cb-winner="1"' : '';
-                            html += `<div class="cb-spin-card" ${winnerClass}
-                                style="width:${ITEM_WIDTH}px; height: calc(100% - 16px); border-color:${rarityColor}; --card-rarity-color:${rarityColor}">
+                            html += `
+                            <div class="cb-v-card" ${j === WINNER_IDX ? 'data-cb-winner="1"' : ''} style="--rarity-glow: ${rarityColor}">
+                                <div class="rarity-light"></div>
                                 <img src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)">
-                                <div class="cb-spin-label">${item.name || 'Item'}</div>
                             </div>`;
                         }
-                        track.innerHTML = html;
-                        spinners.push({ track, drop, idx: i });
+                        tape.innerHTML = html;
+                        spinners.push({ tape, drop, idx: i });
                     }
 
-                    // Wait one frame for browser to paint before animating
-                    await cbSleep(150);
-                    void spinners[0]?.track?.offsetWidth; // force reflow
+                    await cbSleep(100);
+                    void spinners[0]?.tape?.offsetHeight; // reflow
 
-                    // ── Fire spinners simultaneously ───────────────────────────
-                    // Math: center of winner card must align with container centre.
-                    // translate3d offset = (winnerIdx * ITEM_STEP) - (containerWidth / 2) + (ITEM_WIDTH / 2) ± random
                     spinners.forEach(s => {
-                        const containerWidth = s.track.parentElement?.clientWidth || 300;
-                        const randomOffset   = Math.random() * 24 - 12; // ±12 px for human feel
-                        const stopX = (WINNER_IDX * ITEM_STEP)
-                                    - (containerWidth / 2)
-                                    + (ITEM_WIDTH  / 2)
-                                    + randomOffset;
-                        s.stopX = stopX;
-                        s.track.style.transition = SPIN_EASING;
-                        s.track.style.transform  = `translate3d(-${stopX}px, 0, 0)`;
+                        const containerHeight = s.tape.parentElement?.clientHeight || 240;
+                        const randomOffset    = Math.random() * 40 - 20;
+                        const stopY = (WINNER_IDX * CARD_HEIGHT) - (containerHeight / 2) + (CARD_HEIGHT / 2) + randomOffset;
+                        s.tape.style.transition = SPIN_EASING;
+                        s.tape.style.transform  = `translate3d(0, -${stopY}px, 0)`;
                     });
 
-                    // ── Tick sound loop while spinning ─────────────────────────
+                    // Sound Loop
                     const spinStart = Date.now();
                     let lastTickIdx = -1;
                     const tickTimer = setInterval(() => {
-                        if (Date.now() - spinStart > SPIN_DURATION_MS) { clearInterval(tickTimer); return; }
+                        if (Date.now() - spinStart > SPIN_DURATION) { clearInterval(tickTimer); return; }
                         const ref = spinners[0];
                         if (!ref) return;
                         try {
-                            const mat = new (window.WebKitCSSMatrix || window.DOMMatrix)(getComputedStyle(ref.track).transform);
-                            const x   = mat.m41 !== undefined ? mat.m41 : (mat.e || 0);
-                            const pos = Math.floor(Math.abs(x) / ITEM_STEP);
+                            const mat = new DOMMatrix(getComputedStyle(ref.tape).transform);
+                            const y   = Math.abs(mat.m42);
+                            const pos = Math.floor(y / CARD_HEIGHT);
                             if (pos !== lastTickIdx) { 
                                 lastTickIdx = pos; 
                                 if (window.SoundEngine) SoundEngine.playTick(); 
@@ -4588,181 +4663,134 @@ Zeus x27|Charged Up|8.50|#8847ff
                         } catch (_) {}
                     }, 16);
 
-                    await cbSleep(SPIN_DURATION_MS + 200);
+                    await cbSleep(SPIN_DURATION + 300);
                     clearInterval(tickTimer);
-                    if (window.SoundEngine) SoundEngine.playDing(); // STOP CLINK!
+                    if (window.SoundEngine) SoundEngine.playDing();
 
-                    // ── Winner card highlight ──────────────────────────────────
-                    spinners.forEach(s => {
-                        const winnerCard = s.track.querySelector('[data-cb-winner="1"]');
-                        if (winnerCard) {
-                            winnerCard.classList.add('winner-reveal');
-                            const rarity = s.drop.rarityName || 'blue';
-                            if (window.SoundEngine) SoundEngine.playWin(rarity);
-
-                            // Apply Hype Effects for Classifed/Covert
-                            if (['red', 'gold', 'pink'].includes(rarity)) {
-                                winnerCard.classList.add('cb-rare-shake', 'cb-item-shine');
-                                const col = winnerCard.closest('[id^="cb-spinner-box-"]')?.parentElement;
-                                if (col) col.classList.add('cb-rare-glow');
-                            }
-                        }
-                    });
-                    await cbSleep(800); 
-
-                    // ── Reveal result: update scores, history, crowns ──────────
+                    // Reveal & Drop
+                    // Reveal & Drop
                     for (const s of spinners) {
-                        const prevScore = cbRevealedScores[s.idx] || 0;
-                        cbRevealedScores[s.idx] = prevScore + Number(s.drop.price || 0);
-                        const rarityColor = s.drop.color || '#4b69ff';
+                        const winner = s.drops[WINNER_IDX];
+                        cbRevealedScores[s.playerIdx] += (winner?.price || 0);
 
-                        // Remove Hype Glow after win
-                        const col = document.getElementById(`cb-spinner-box-${s.idx}`)?.parentElement;
-                        if (col) col.classList.remove('cb-rare-glow');
+                        const dropEl = document.createElement('div');
+                        dropEl.className = 'cb-drop-card relative';
+                        dropEl.style.setProperty('--card-rarity-color', winner?.color || '#4b69ff');
+                        const wearHtml = winner?.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[7px] text-gray-300 font-black rounded z-10">${winner.wear}</div>` : '';
+                        dropEl.innerHTML = `
+                            ${wearHtml}
+                            <img src="${winner?.img}" class="h-10 mx-auto object-contain">
+                            <div class="text-[8px] text-gray-400 truncate">${winner?.name || ''}</div>
+                            <div class="text-[9px] text-yellow-400 font-bold">${formatMoney(winner?.price || 0)}</div>
+                        `;
 
-                        // Rolling score counter
-                        const scoreEl = document.getElementById(`cb-score-${s.idx}`);
-                        if (scoreEl) {
-                            cbAnimateScore(scoreEl, prevScore, cbRevealedScores[s.idx], 700);
-                            scoreEl.classList.add('cb-winner-flash');
-                            setTimeout(() => scoreEl.classList.remove('cb-winner-flash'), 900);
-                        }
-
-                        // Animated win coin + rarity particle burst
-                        const spinBox = document.getElementById(`cb-spinner-box-${s.idx}`);
-                        if (spinBox) {
-                            cbSpawnWinCoin(spinBox, rarityColor, s.idx);
-                            const r = spinBox.getBoundingClientRect();
-                            if (['#d32ee6','#eb4b4b','#ebca44'].includes(rarityColor)) {
-                                cbSpawnParticles(r.left + r.width / 2, r.top + r.height / 2, rarityColor);
+                        const historyList = document.getElementById(`cb-history-${s.playerIdx}`);
+                        if (historyList) {
+                            const slot = historyList.children[roundIdx];
+                            if (slot) {
+                                slot.innerHTML = '';
+                                slot.appendChild(dropEl);
+                                slot.classList.remove('opacity-10');
                             }
                         }
 
-                        // Insert drop card into history
-                        const hist = document.getElementById(`cb-history-${s.idx}`);
-                        if (hist) {
-                            const card = document.createElement('div');
-                            card.className = 'cb-drop-card';
-                            card.style.cssText = `border-color:${rarityColor}; --card-rarity-color:${rarityColor}`;
-                            card.innerHTML = `
-                                <img src="${s.drop.img || FALLBACK_IMG}" onerror="handleImgError(this)"
-                                     style="height:48px; object-fit:contain; display:block; margin:0 auto;">
-                                <div style="font-size:9px; color:#94a3b8; font-weight:800; text-transform:uppercase;
-                                            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${s.drop.name || '-'}</div>
-                                <div style="font-size:10px; color:#facc15; font-weight:900; margin-top:2px;">${formatMoney(s.drop.price || 0)}</div>`;
-                            hist.prepend(card);
+                        const scoreEl = document.getElementById(`cb-score-${s.playerIdx}`);
+                        if (scoreEl) {
+                            cbAnimateScore(scoreEl, cbRevealedScores[s.playerIdx] - (winner?.price || 0), cbRevealedScores[s.playerIdx]);
+                        }
+
+                        updateWinningIndicator(cbRevealedScores, room);
+                        if (winner?.rarity === 'gold' || winner?.rarity === 'red') {
+                            cbSpawnParticles(window.innerWidth / 2, window.innerHeight / 2, winner.color);
                         }
                     }
 
-                    // Update leader crowns + winning indicator bar
-                    const topScore = Math.max(...cbRevealedScores, 0);
-                    cbRevealedScores.forEach((sc, i) => {
-                        const crown = document.getElementById(`cb-crown-${i}`);
-                        if (crown) crown.classList.toggle('hidden', sc < topScore || topScore === 0);
-                    });
-                    updateWinningIndicator(cbRevealedScores, room);
-
-                    if (round < rounds - 1) await cbSleep(850);
+                    await cbSleep(1200);
                 }
 
-                // ── All rounds done ────────────────────────────────────────────
+                cbAnimationLock = false;
                 cbVisualsFinished = true;
-                cbCurrentRoundIdx = rounds;
-
-                // Sync won items to inventory
-                try {
-                    const myId = currentUser?.id || currentUser?._id;
-                    if (myId) {
-                        const myIdx = room.players.findIndex(p => String(p.userId) === String(myId));
-                        if (myIdx >= 0) (room.players[myIdx].drops || []).forEach(d => { if (d?.name) addToInventory(d); });
-                    }
-                } catch (_) {}
-
-                triggerEndgameSequence(room, cbRevealedScores);
-
+                await renderCaseBattleRoom(room);
             } catch (err) {
-                console.error('[CB Visual Engine]', err);
-            } finally {
+                console.error('[CB] Visuals error:', err);
                 cbAnimationLock = false;
             }
         }
 
-        // Builds the complete stage DOM (player columns, spinner zones, history grids).
-        // Call this ONCE before animation starts, and again after animation ends for the final view.
-        // NEVER call from inside the animation loop — that would destroy live spinners.
         function _buildStageDOM(room) {
-            const stage = document.getElementById('cb-stage');
-            if (!stage) return;
+            const arena = document.getElementById('cb-arena');
+            if (!arena) return;
 
             const totalRounds = Math.max(1, Number(room.rounds || room.totalRounds || 1));
-            const colsCount   = Math.max(2, Number(room.capacity || 2));
+            const capacity    = Math.max(2, Number(room.capacity || 2));
             const isWaiting   = room.status === 'waiting';
-            const gridClass   = colsCount === 4 ? 'grid-cols-4' : colsCount === 3 ? 'grid-cols-3' : 'grid-cols-2';
-
-            stage.className = `grid gap-[2px] bg-[#1a1e29] p-[2px] ${gridClass} min-h-[600px] w-full`;
 
             let html = '';
-            for (let i = 0; i < colsCount; i++) {
-                const pl     = room.players?.[i];
+            for (let i = 0; i < capacity; i++) {
+                const pl = room.players?.[i];
                 const avatar = pl ? (pl.bot ? CB_BOT_AVATAR : (pl.avatar || FALLBACK_IMG)) : FALLBACK_IMG;
-                const nick   = pl?.nickname || 'Hráč';
+                const nick = pl?.nickname || 'Player';
 
                 let topZone = '';
                 if (!pl) {
-                    topZone = `<div class="flex-1 flex flex-col items-center justify-center bg-[#12161f] min-h-[250px] gap-4 p-6">
-                        <i data-lucide="loader-2" class="w-10 h-10 text-[#c0f20c] animate-spin"></i>
-                        <div class="text-white font-black uppercase tracking-widest text-center">Waiting for Player</div>
-                        <button onclick="fillCaseBattleBotSlot(${i})" class="bg-white/5 border border-white/10 hover:border-[#c0f20c] text-gray-300 hover:text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all flex items-center gap-2">
-                            <i data-lucide="bot" class="w-4 h-4"></i> Play with bot
+                    topZone = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-surface/50 border-b border-white/5">
+                        <div class="w-16 h-16 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center mb-6">
+                            <i data-lucide="plus" class="w-6 h-6 text-white/20"></i>
+                        </div>
+                        <button onclick="fillCaseBattleBotSlot(${i})" class="bg-accent-green/10 hover:bg-accent-green/20 text-accent-green border border-accent-green/20 px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2">
+                            <i data-lucide="bot" class="w-4 h-4"></i> Add Bot
                         </button>
                     </div>`;
                 } else if (isWaiting) {
-                    topZone = `<div class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-green-900/10 to-[#12161f] min-h-[250px] gap-4">
-                        <div class="w-16 h-16 rounded-full bg-[#c0f20c]/10 ring-2 ring-[#c0f20c] flex items-center justify-center shadow-[0_0_30px_rgba(192,242,12,0.15)]">
-                            <i data-lucide="check" class="w-8 h-8 text-[#c0f20c]"></i>
+                    topZone = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-accent-green/5 border-b border-white/5">
+                        <div class="w-16 h-16 rounded-full bg-accent-green/20 ring-4 ring-accent-green/10 flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(0,229,116,0.15)] animate-pulse">
+                            <i data-lucide="check" class="w-8 h-8 text-accent-green"></i>
                         </div>
-                        <div class="text-[#c0f20c] font-black text-xl uppercase tracking-widest">Ready</div>
+                        <div class="text-accent-green font-black text-xs uppercase tracking-[0.2em]">Ready</div>
                     </div>`;
                 } else {
-                    topZone = `<div id="cb-spinner-box-${i}" class="cb-spinner-wrap h-64 w-full">
-                        <div class="cb-spin-selector"></div>
-                        <div class="cb-spin-fade-left"></div>
-                        <div class="cb-spin-fade-right"></div>
-                        <div id="cb-spin-track-${i}" class="absolute top-0 left-0 h-full flex items-center will-change-transform z-20" style="gap:8px; padding: 0 4px;"></div>
-                        <div id="cb-endgame-${i}" class="absolute inset-0 z-50 hidden items-center justify-center backdrop-blur-[2px] transition-all duration-500"></div>
+                    topZone = `
+                    <div class="cb-v-spinner-container">
+                        <div class="cb-v-selector"></div>
+                        <div id="cb-v-tape-${i}" class="cb-v-tape"></div>
+                        <div id="cb-endgame-${i}" class="absolute inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-500"></div>
                     </div>`;
                 }
 
-                let historyHtml = '';
-                for (let j = 0; j < totalRounds; j++) {
-                    historyHtml += `<div class="bg-[#161a24] border border-white/5 rounded-lg h-[100px] flex items-center justify-center text-[11px] text-gray-700 font-black">${j + 1}</div>`;
-                }
-
-                html += `<div class="bg-[#12161f] flex flex-col">
-                    ${topZone}
-                    <div class="px-4 py-3 flex items-center justify-between bg-[#161a24] border-y border-white/5">
-                        <div class="flex items-center gap-2 relative">
-                            <img src="${avatar}" onerror="handleImgError(this)" class="w-9 h-9 rounded-lg border border-white/10 object-cover">
-                            ${pl?.bot ? '<div class="absolute -bottom-1 -right-1 text-[8px] bg-red-600 text-white px-1 rounded font-black">BOT</div>' : ''}
-                            <span class="text-xs font-black text-white truncate max-w-[110px]">${nick}</span>
+                html += `
+                <div class="cb-player-col" id="cb-col-${i}">
+                    <div class="p-4 flex items-center justify-between border-b border-white/5 bg-surface/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl border border-white/10 overflow-hidden relative">
+                                <img src="${avatar}" class="w-full h-full object-cover">
+                                ${pl?.bot ? '<div class="absolute bottom-0 inset-x-0 bg-red-600 text-[6px] font-black text-white text-center">BOT</div>' : ''}
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-white uppercase tracking-wider">${nick}</div>
+                                <div class="px-1.5 py-0.5 bg-accent-green/10 border border-accent-green/20 rounded-md text-[7px] font-black text-accent-green mt-1 inline-block">LVL 1</div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <i id="cb-crown-${i}" data-lucide="crown" class="w-4 h-4 text-yellow-400 hidden drop-shadow-[0_0_6px_#facc15]"></i>
-                            <div id="cb-score-${i}" class="text-sm font-black text-gray-300">${formatMoney(0)}</div>
+                        <div class="text-right">
+                             <div id="cb-score-${i}" class="text-xs font-black text-white">$ 0.00</div>
                         </div>
                     </div>
-                    <div class="flex-1 p-3 overflow-y-auto bg-[#0d1017] custom-scroll max-h-[380px]">
-                        <div id="cb-history-${i}" class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
-                            ${historyHtml}
-                        </div>
+                    ${topZone}
+                    <div id="cb-history-${i}" class="cb-history-list">
+                        ${Array.from({length: totalRounds}).map((_, rIdx) => `
+                            <div class="cb-history-item opacity-10">
+                                <span class="text-[9px] font-black text-white/10">${rIdx+1}</span>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>`;
             }
-
-            stage.innerHTML = html;
+            arena.innerHTML = html;
             lucide.createIcons();
         }
 
+        
         async function renderCaseBattleRoom(room) {
             if (!room) return;
 
@@ -4817,20 +4845,22 @@ Zeus x27|Charged Up|8.50|#8847ff
                 _buildStageDOM(room);
 
                 if (visualsDone) {
+                    const currentScores = room.players.map(pl => (pl.drops || []).reduce((sum, d) => sum + (d.price || 0), 0));
                     room.players.forEach((pl, i) => {
                         const hist    = document.getElementById(`cb-history-${i}`);
                         const scoreEl = document.getElementById(`cb-score-${i}`);
                         if (hist && pl.drops) {
                             hist.innerHTML = pl.drops.map(drop => `
-                                <div class="bg-[#1a1e29] rounded-lg p-2 text-center border-t-2" style="border-color:${drop.color}">
+                                <div class="bg-[#1a1e29] rounded-lg p-2 text-center border-t-2 relative" style="border-color:${drop.color}">
+                                    ${drop.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[7px] text-gray-300 font-black rounded">${drop.wear}</div>` : ''}
                                     <img src="${drop.img}" onerror="handleImgError(this)" class="h-12 mx-auto object-contain">
                                     <div class="text-[9px] text-gray-400 truncate">${drop.name}</div>
                                     <div class="text-[10px] text-yellow-400 font-black">${formatMoney(drop.price)}</div>
                                 </div>`).join('');
                         }
-                        if (scoreEl) scoreEl.textContent = formatMoney(scores[i] || 0);
+                        if (scoreEl) scoreEl.textContent = formatMoney(currentScores[i] || 0);
                     });
-                    triggerEndgameSequence(room, scores);
+                    triggerEndgameSequence(room, currentScores);
                 }
             }
 
@@ -4852,7 +4882,6 @@ Zeus x27|Charged Up|8.50|#8847ff
 
             const total = ctScore + tScore;
             const ctPct = total > 0 ? (ctScore / total) * 100 : 50;
-            const tPct  = 100 - ctPct;
 
             const thumb    = document.getElementById('cb-win-thumb');
             const fillCT   = document.getElementById('cb-win-fill-ct');
@@ -4860,22 +4889,11 @@ Zeus x27|Charged Up|8.50|#8847ff
             const scoreCT  = document.getElementById('cb-win-score-ct');
             const scoreT   = document.getElementById('cb-win-score-t');
 
-            if (thumb)  {
-                thumb.style.left = `${ctPct}%`;
-                if (ctScore > tScore)       { thumb.style.background = '#60a5fa'; thumb.style.color = '#fff'; thumb.textContent = 'CT ▶'; }
-                else if (tScore > ctScore)  { thumb.style.background = '#fb923c'; thumb.style.color = '#fff'; thumb.textContent = '◀ T'; }
-                else { thumb.style.background = '#facc15'; thumb.style.color = '#111'; thumb.textContent = 'VS'; }
-            }
-            if (fillCT)  fillCT.style.width  = `${ctPct}%`;
-            if (fillT)   fillT.style.width   = `${tPct}%`;
-            if (scoreCT) {
-                scoreCT.textContent = formatMoney(ctScore);
-                scoreCT.classList.toggle('leading', ctScore > tScore);
-            }
-            if (scoreT)  {
-                scoreT.textContent = formatMoney(tScore);
-                scoreT.classList.toggle('leading', tScore > ctScore);
-            }
+            if (thumb)  thumb.style.left = `${ctPct}%`;
+            if (fillCT) fillCT.style.width = `${ctPct}%`;
+            if (fillT)  fillT.style.width = `${100 - ctPct}%`;
+            if (scoreCT) scoreCT.textContent = formatMoney(ctScore);
+            if (scoreT)  scoreT.textContent = formatMoney(tScore);
         }
 
         // ══ ROLLING NUMBER COUNTER on a score element ══
@@ -4961,41 +4979,54 @@ Zeus x27|Charged Up|8.50|#8847ff
             const bestEl  = document.getElementById('cb-victory-best-drop');
             if (!screen || !titleEl) return;
 
+            // PERSONAL PERSPECTIVE: Logic determines background based on user result
+            if (isVictory) {
+                screen.style.background = 'radial-gradient(circle at 50% 30%, rgba(34,197,94,0.6) 0%, rgba(0,0,0,0.95) 70%)';
+            } else {
+                screen.style.background = 'radial-gradient(circle at 50% 30%, rgba(185,28,28,0.4) 0%, rgba(0,0,0,0.95) 70%)';
+            }
+
             const isRareDrop = myBestDrop && ['red', 'gold', 'pink'].includes(myBestDrop.rarityName);
 
             if (isVictory) {
                 titleEl.className = 'cb-victory-title mb-4';
                 titleEl.textContent = 'VICTORY!';
-                if (subEl) subEl.textContent = `You won the battle with ${formatMoney(totalScore)}!`;
+                if (subEl) subEl.textContent = `You dominated the arena with ${formatMoney(totalScore)}!`;
             } else {
-                titleEl.className = 'cb-defeat-title mb-4';
-                // Consolation message if user got a rare item
                 if (isRareDrop) {
+                    titleEl.className = 'cb-victory-title mb-4';
+                    titleEl.style.background = 'linear-gradient(135deg, #ffd700 0%, #facc15 100%)';
+                    titleEl.style.webkitTextFillColor = 'transparent';
+                    titleEl.style.backgroundClip = 'text';
                     titleEl.textContent = 'GOOD DROP!';
-                    titleEl.style.color = '#facc15';
-                    if (subEl) subEl.textContent = `Battle lost, but check your inventory!`;
+                    if (subEl) subEl.textContent = `Battle lost, but your luck was legendary!`;
                 } else {
-                    titleEl.textContent = 'DEFEAT';
+                    titleEl.className = 'cb-defeat-title mb-4';
                     titleEl.style.color = '#f87171';
-                    if (subEl) subEl.textContent = `${winnerName} took the win.`;
+                    titleEl.textContent = 'DEFEAT';
+                    if (subEl) subEl.textContent = `Luck wasn't on your side this time.`;
                 }
             }
 
             if (bestEl && myBestDrop) {
                 bestEl.innerHTML = `
-                    <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.15em; font-weight:800; margin-bottom:8px;">Your Best Drop</div>
-                    <div class="relative p-6 rounded-2xl bg-white/5 border border-white/10" style="box-shadow: 0 0 40px ${myBestDrop.color}44">
-                        <img src="${myBestDrop.img || FALLBACK_IMG}" style="height:140px; object-fit:contain; filter:drop-shadow(0 0 25px ${myBestDrop.color})" onerror="handleImgError(this)">
-                        <div style="font-size:1.2rem; font-weight:900; color:${myBestDrop.color}; margin-top:12px; text-align:center;">${myBestDrop.name || ''}</div>
-                        <div style="font-size:1.6rem; font-weight:900; color:#facc15; text-align:center;">${formatMoney(myBestDrop.price || 0)}</div>
+                    <div style="font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:.2em; font-weight:900; margin-bottom:12px;">Your Personal Highlight</div>
+                    <div class="relative p-10 rounded-[32px] bg-white/5 border border-white/10 overflow-hidden" style="box-shadow: 0 0 60px ${myBestDrop.color}33">
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent"></div>
+                        ${myBestDrop.wear ? `<div class="absolute top-4 left-4 bg-black/80 px-2 py-1 text-xs text-gray-300 font-black rounded border border-white/10 z-20">${myBestDrop.wear}</div>` : ''}
+                        <img src="${myBestDrop.img || FALLBACK_IMG}" style="height:180px; object-fit:contain; filter:drop-shadow(0 0 35px ${myBestDrop.color})" onerror="handleImgError(this)" class="relative z-10">
+                        <div style="font-size:1.4rem; font-weight:900; color:${myBestDrop.color}; margin-top:20px; text-align:center;" class="relative z-10">${myBestDrop.name || ''}</div>
+                        <div style="font-size:2rem; font-weight:900; color:#facc15; text-align:center;" class="relative z-10">${formatMoney(myBestDrop.price || 0)}</div>
                     </div>
                 `;
             } else if (bestEl) {
-                bestEl.innerHTML = '';
+                bestEl.innerHTML = `
+                    <div class="text-white/20 font-black text-2xl uppercase italic">No drops captured</div>
+                `;
             }
 
             screen.classList.add('active');
-            setTimeout(() => screen.classList.remove('active'), 7000);
+            setTimeout(() => screen.classList.remove('active'), 8000);
         }
 
         // end of CB utility functions
@@ -5109,7 +5140,7 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const modal = document.getElementById('win-modal');
                     const img = document.getElementById('win-image');
 
-                    document.getElementById('win-name').textContent = skin.name;
+                    document.getElementById('win-name').innerHTML = skin.wear ? `${skin.name} <span class="bg-black/80 px-1 ml-2 text-[10px] text-gray-300 font-black rounded align-middle border border-white/10">${skin.wear}</span>` : skin.name;
                     document.getElementById('win-price').textContent = formatMoney(skin.price);
                     document.getElementById('win-sell-price').textContent = formatMoney(skin.price);
                     document.getElementById('win-bg-glow').style.backgroundColor = skin.color;
@@ -5257,11 +5288,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                     // GOD MODE (Luck 9 nebo 10) -> Vnutí vždy TOP 3 nejcennější skiny z bedny
                     if (userLuck >= 9) {
                         let topSkins = sortedContents.slice(0, 3);
-                        return topSkins[Math.floor(Math.random() * topSkins.length)].skin;
+                        return {...topSkins[Math.floor(Math.random() * topSkins.length)].skin, wear: cbWearTag()};
                     }
                     // TRASH MODE (Luck -9 nebo -10) -> Vnutí vždy nejlevnější odpad z bedny
                     if (userLuck <= -9) {
-                        return sortedContents[sortedContents.length - 1].skin;
+                        return {...sortedContents[sortedContents.length - 1].skin, wear: cbWearTag()};
                     }
 
                     // Lehký rigging pro hodnoty 1 až 8 (Zvyšuje šanci na vzácné skiny exponenciálně)
@@ -5281,11 +5312,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                         sum += item.chance;
                         if (riggedRoll <= sum) { win = item.skin; break; }
                     }
-                    return win;
+                    return {...win, wear: cbWearTag()};
                 }
 
                 function renderMultiResultCard(skin) {
-                    return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center" style="border-color:${skin.color}"><img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
+                    const wearHtml = skin.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${skin.wear}</div>` : '';
+                    return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center relative" style="border-color:${skin.color}">${wearHtml}<img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
                 }
 
                 function getOpenCount() {
@@ -5590,15 +5622,16 @@ Zeus x27|Charged Up|8.50|#8847ff
                         return `
                 <div class="bg-[#14171c] p-4 rounded-2xl border-b-4 group relative overflow-hidden transition-all hover:scale-105 shadow-lg item-float" style="border-color: ${item.color}; animation-delay: ${idx * 50}ms;">
                     <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style="background-color: ${item.color}"></div>
+                    ${item.wear ? `<div class="absolute top-2 left-2 bg-black/80 px-1 py-0.5 text-[8px] text-gray-300 font-black rounded border border-white/5 opacity-80 group-hover:opacity-10 transition-opacity z-10">${item.wear}</div>` : ''}
                     <img src="${item.img}" data-alts="${(item.imgAlts || []).join('|')}" onerror="handleImgError(this)" class="w-full h-24 object-contain drop-shadow-xl group-hover:scale-110 transition-transform">
                     <div class="mt-3 text-center">
                         <div class="text-[10px] font-black uppercase text-gray-400 truncate">${item.name}</div>
                         <div class="text-sm font-black text-white mt-1">${formatMoney(item.price)}</div>
                     </div>
-                    <button onclick="queueItemForUpgrade('${item.uid}')" class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 bg-purple-500/85 hover:bg-purple-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm" title="Upgradnout skin">
+                    <button onclick="queueItemForUpgrade('${item.uid}')" class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 bg-purple-500/85 hover:bg-purple-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm z-20" title="Upgradnout skin">
                         <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="sellSkin('${item.uid}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm">
+                    <button onclick="sellSkin('${item.uid}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg transition-all shadow-lg backdrop-blur-sm z-20">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>`;
@@ -5658,6 +5691,7 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                     container.innerHTML = [0, 1, 2].map(i => upgInputs[i] ? `
                 <div onclick="removeUpgInput(${i})" class="bg-gray-800/80 border border-gray-600 hover:border-red-500 rounded-2xl h-24 flex items-center p-3 cursor-pointer group relative overflow-hidden transition-all">
+                    ${upgInputs[i].wear ? `<div class="absolute top-2 left-2 bg-black/80 px-1 py-0.5 text-[8px] text-gray-300 font-black rounded border border-white/5 opacity-80 z-20">${upgInputs[i].wear}</div>` : ''}
                     <img src="${upgInputs[i].img}" data-alts="${(upgInputs[i].imgAlts || []).join('|')}" onerror="handleImgError(this)" class="h-16 w-20 object-contain drop-shadow-md">
                     <div class="ml-3 flex-1 overflow-hidden">
                         <div class="text-[10px] font-bold text-gray-400 uppercase truncate">${upgInputs[i].name}</div>
@@ -5773,7 +5807,12 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                         grid.innerHTML = slice.map((item, idx) => {
                             if (src.type === 'input') {
-                                return `<div onclick="upgInputs[${src.slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#161a24] p-4 rounded-xl cursor-pointer hover:bg-[#1a1e29] transition-all border-b-4 flex flex-col items-center shadow-lg" style="border-color: ${item.color};"><img loading="lazy" src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div></div>`;
+                                return `<div onclick="upgInputs[${src.slotIndex}] = userInventory.find(i=>i.uid==='${item.uid}'); switchPage('upgrade');" class="bg-[#161a24] p-4 rounded-xl cursor-pointer hover:bg-[#1a1e29] transition-all border-b-4 flex flex-col items-center shadow-lg relative" style="border-color: ${item.color};">
+                                    ${item.wear ? `<div class="absolute top-2 left-2 bg-black/80 px-1 py-0.5 text-[8px] text-gray-300 font-black rounded border border-white/5 opacity-80 z-10">${item.wear}</div>` : ''}
+                                    <img loading="lazy" src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform">
+                                    <div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div>
+                                    <div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div>
+                                </div>`;
                             }
                             let chanceCalc = src.totalVal > 0 ? Math.min((src.totalVal / item.price) * 100, 90).toFixed(1) : 0;
                             return `<div onclick="upgTarget = skinsDB[${item.id}]; switchPage('upgrade');" class="bg-[#161a24] p-4 rounded-xl cursor-pointer hover:bg-[#1a1e29] transition-all border-b-4 flex flex-col items-center shadow-lg" style="border-color: ${item.color};"><img loading="lazy" src="${item.img || FALLBACK_IMG}" onerror="handleImgError(this)" class="h-20 w-full object-contain mb-3 drop-shadow-md hover:scale-110 transition-transform"><div class="text-[10px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div><div class="text-sm text-center font-black text-white">${formatMoney(item.price)}</div><div class="text-[10px] text-center font-black mt-1 ${chanceCalc > 50 ? 'text-green-400' : 'text-purple-400'}">Šance: ${chanceCalc}%</div></div>`;
@@ -5818,6 +5857,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                         upgInputs.forEach(item => { if (item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
 
                         if (roll <= chance) {
+                            // Assign wear to target on successful upgrade since it's "crafted"
+                            upgTarget.wear = cbWearTag();
                             showWinModal(upgTarget);
                         } else {
                             SoundEngine.playUpgradeFail();
@@ -6385,10 +6426,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                         inv.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10 font-bold uppercase tracking-widest">Inventář je prázdný.</div>';
                     } else {
                         inv.innerHTML = displayInv.map(item => `
-            <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1" style="border-color: ${item.color};">
-                <img src="${item.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-2 drop-shadow-md">
-                <div class="text-[9px] text-center truncate font-bold text-gray-400 uppercase w-full">${item.name}</div>
-                <div class="text-xs text-center font-black text-white mt-1">${formatMoney(item.price)}</div>
+            <div class="bg-[#1a1e29] p-3 rounded-xl border-b-4 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1 relative" style="border-color: ${item.color};">
+                ${item.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 py-0.5 text-[7px] text-gray-300 font-black rounded border border-white/5 opacity-80 z-10">${item.wear}</div>` : ''}
+                <img src="${item.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-2 drop-shadow-md relative z-0">
+                <div class="text-[9px] text-center truncate font-bold text-gray-400 uppercase w-full relative z-0">${item.name}</div>
+                <div class="text-xs text-center font-black text-white mt-1 relative z-0">${formatMoney(item.price)}</div>
             </div>
         `).join('');
                     }
