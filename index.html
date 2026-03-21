@@ -4175,6 +4175,10 @@ Zeus x27|Charged Up|8.50|#8847ff
             cbSelectedCases.forEach((count) => { rounds += Number(count || 0); });
             if (roundsEl) roundsEl.textContent = String(rounds);
             if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
+            const mainBal = document.getElementById('balance-main');
+            if (mainBal) mainBal.textContent = formatMoney(balanceBase || 0);
+            const mobBal = document.getElementById('mobile-balance');
+            if (mobBal) mobBal.textContent = formatMoney(balanceBase || 0);
         }
 
         function applyCaseBattleBuilder() { closeCaseSelectorModal(); renderCreateBattleQueue(); updateSelectorBottomBar(); showToast('Queue připravena.'); }
@@ -4788,8 +4792,7 @@ Zeus x27|Charged Up|8.50|#8847ff
             if (!room) return;
 
             const header = document.getElementById('cb-room-header');
-            const teams  = document.getElementById('cb-room-teams');
-            if (!header || !teams) return;
+            if (!header) return;
 
             const totalRounds  = Math.max(1, Number(room.rounds || room.totalRounds || 1));
             const isWaiting    = room.status === 'waiting';
@@ -5847,7 +5850,16 @@ Zeus x27|Charged Up|8.50|#8847ff
                         document.getElementById('btn-upgrade-exec').textContent = "Vylepšit";
                         if (soundNode) { soundNode.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); }
 
-                        upgInputs.forEach(item => { if (item) { userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1); } });
+                        upgInputs.forEach(item => {
+                            if (item) {
+                                userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1);
+                            }
+                        });
+                        // Update balance display after items are removed
+                        const balanceMain = document.getElementById('balance-main');
+                        const balanceMob = document.getElementById('mobile-balance');
+                        if (balanceMain) balanceMain.textContent = formatMoney(balanceBase);
+                        if (balanceMob) balanceMob.textContent = formatMoney(balanceBase);
 
                         if (roll <= chance) {
                             // Assign wear to target on successful upgrade since it's "crafted"
@@ -5878,7 +5890,8 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 function updateAuthUI() {
                     const authBtn = document.getElementById('auth-open-btn');
-                    const balanceEl = document.getElementById('balance');
+                    const balanceMain = document.getElementById('balance-main');
+                    const balanceMob = document.getElementById('mobile-balance');
                     const profilePill = document.getElementById('profile-pill');
                     const pillAvatar = document.getElementById('profile-pill-avatar');
                     const pillName = document.getElementById('profile-pill-name');
@@ -6196,8 +6209,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                 function updateUI() {
                     try { renderCases(); } catch (_) { }
                     try { if (typeof renderInventory === 'function') renderInventory(); } catch (_) { }
-                    const balanceEl = document.getElementById('top-balance');
-                    if (balanceEl) balanceEl.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
+                    const balanceMain = document.getElementById('balance-main');
+                    const balanceMob = document.getElementById('mobile-balance');
+                    if (balanceMain) balanceMain.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
+                    if (balanceMob) balanceMob.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
                 }
 
                 function sanitizeDuplicateSocialButtons() {
