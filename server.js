@@ -536,6 +536,125 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
+// --- GOOGLE OAUTH ROUTES ---
+app.get('/auth/google', (req, res, next) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    console.warn('[AUTH] Google OAuth disabled – missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
+    return res.redirect('/?auth_error=google_disabled');
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
+
+app.get('/auth/google/callback', (req, res, next) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return res.redirect('/?auth_error=google_disabled');
+  }
+  passport.authenticate('google', { failureRedirect: '/?auth_error=google_failed' })(req, res, async (err) => {
+    if (err) {
+      console.error('[AUTH] Google callback error:', err.message || err);
+      return res.redirect(`/?auth_error=${encodeURIComponent(err.message || 'google_error')}`);
+    }
+    if (!req.user) {
+      return res.redirect('/?auth_error=google_no_user');
+    }
+    try {
+      req.user.lastLoginAt = new Date();
+      await req.user.save();
+    } catch (_e) { /* non-fatal */ }
+    console.log(`[AUTH] Google login OK – user: ${req.user.email || req.user._id}`);
+    return res.redirect('/');
+  });
+});
+
+// --- STEAM OPENID ROUTES ---
+app.get('/auth/steam', (req, res) => {
+  const url = getSteamAuthUrl();
+  console.log('[AUTH] Redirecting to Steam OpenID:', url.substring(0, 80) + '...');
+  return res.redirect(url);
+});
+
+app.get('/auth/steam/return', ensureDbReady, async (req, res) => {
+  try {
+    const params = {};
+    for (const [k, v] of Object.entries(req.query)) {
+      params[k] = v;
+    }
+
+    const isValid = await validateSteamOpenId(params);
+    if (!isValid) {
+      console.warn('[AUTH] Steam OpenID validation failed');
+      return res.redirect('/?auth_error=steam_invalid');
+    }
+
+    const claimedId = String(req.query['openid.claimed_id'] || '');
+    const steamId = extractSteamId(claimedId);
+    if (!steamId) {
+      console.warn('[AUTH] Could not extract Steam ID from:', claimedId);
+      return res.redirect('/?auth_error=steam_no_id');
+    }
+
+    // Fetch Steam profile for display name + avatar
+    let profile = null;
+    try {
+      profile = await fetchSteamProfile(steamId);
+    } catch (e) {
+      console.warn('[AUTH] fetchSteamProfile failed (non-fatal):', e.message);
+    }
+
+    const displayName = profile?.personaname || `Steam:${steamId.slice(-6)}`;
+    const avatar = profile?.avatarfull || profile?.avatar || '';
+
+    // Upsert user
+    let user = await User.findOne({ steamId });
+    if (!user) {
+      try {
+        user = await User.create({
+          steamId,
+          nickname: displayName,
+          displayName,
+          avatar,
+          balance: START_BALANCE,
+          inventory: []
+        });
+        console.log(`[AUTH] Steam – new user created: ${steamId}`);
+      } catch (createErr) {
+        if (createErr?.code === 11000) {
+          user = await User.findOne({ steamId });
+        } else {
+          throw createErr;
+        }
+      }
+    } else {
+      // Update profile info on login
+      if (!user.nickname || user.nickname === `Steam:${steamId.slice(-6)}`) {
+        user.nickname = displayName;
+      }
+      user.displayName = displayName;
+      if (avatar) user.avatar = avatar;
+    }
+
+    if (!user) {
+      return res.redirect('/?auth_error=steam_db_error');
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    req.login(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[AUTH] req.login error after Steam auth:', loginErr);
+        return res.redirect('/?auth_error=session_error');
+      }
+      console.log(`[AUTH] Steam login OK – steamId: ${steamId}`);
+      return res.redirect('/');
+    });
+
+  } catch (err) {
+    console.error('[AUTH] Steam return error:', err);
+    return res.redirect(`/?auth_error=${encodeURIComponent('steam_server_error')}`);
+  }
+});
+
 app.get('/api/health', (_req, res) => {
   const state = mongoose.connection.readyState;
   const dbState = state === 1 ? 'connected' : state === 2 ? 'connecting' : state === 3 ? 'disconnecting' : 'disconnected';

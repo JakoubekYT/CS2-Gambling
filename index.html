@@ -6206,6 +6206,19 @@ Zeus x27|Charged Up|8.50|#8847ff
                     return `${Number(value || 0).toFixed(3).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
                 }
 
+                let _syncTimeout = null;
+                async function syncStateToBackend() {
+                    if (!currentUser) return;
+                    try {
+                        await apiRequest('/api/state', 'POST', {
+                            balance: typeof balanceBase === 'number' ? Math.round(balanceBase * 100) / 100 : 0,
+                            inventory: Array.isArray(userInventory) ? userInventory : []
+                        });
+                    } catch (e) {
+                        console.error('Failed to sync state:', e);
+                    }
+                }
+
                 function updateUI() {
                     try { renderCases(); } catch (_) { }
                     try { if (typeof renderInventory === 'function') renderInventory(); } catch (_) { }
@@ -6213,6 +6226,12 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const balanceMob = document.getElementById('mobile-balance');
                     if (balanceMain) balanceMain.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
                     if (balanceMob) balanceMob.textContent = formatMoney(typeof balanceBase === 'number' ? balanceBase : 0);
+
+                    // Automatické bleskové a bezpečné ukládání na MongoDB (debounce chrání před spamem a db locks)
+                    if (currentUser) {
+                        if (_syncTimeout) clearTimeout(_syncTimeout);
+                        _syncTimeout = setTimeout(syncStateToBackend, 350);
+                    }
                 }
 
                 function sanitizeDuplicateSocialButtons() {
@@ -6506,6 +6525,29 @@ Zeus x27|Charged Up|8.50|#8847ff
                     lucide.createIcons();
                     switchPage('cases');
                     await loadSessionFromBackend();
+
+                    // Zobrazení chyb z OAuth přesměrování (Steam / Google)
+                    const authErrorMap = {
+                        google_disabled: 'Google přihlášení není nakonfigurované (chybí klíče na serveru).',
+                        google_failed: 'Google přihlášení selhalo. Zkus to znovu.',
+                        google_no_user: 'Nepodařilo se načíst Google účet.',
+                        google_error: 'Chyba Google přihlášení.',
+                        steam_invalid: 'Steam přihlášení selhalo – neplatná odpověď od Steamu.',
+                        steam_no_id: 'Steam neposlal platné ID.',
+                        steam_db_error: 'Chyba databáze při Steam přihlášení.',
+                        session_error: 'Chyba session po přihlášení.',
+                        steam_server_error: 'Chyba serveru při Steam přihlášení.'
+                    };
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const authError = urlParams.get('auth_error');
+                    if (authError) {
+                        const msg = authErrorMap[authError] || `Chyba přihlášení: ${authError}`;
+                        setTimeout(() => showToast(msg, true), 500);
+                        // Odstranit parametr z URL bez reload
+                        urlParams.delete('auth_error');
+                        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                        history.replaceState(null, '', newUrl);
+                    }
                     // pro výkon na slabších zařízeních nespouštíme agresivní preload všech skinů
                     // Inicializuj live drops + chat (fail-safe)
                     setTimeout(() => { try { initializeLiveDrops(); } catch (e) { console.error('live drops init failed', e); } }, 300);
