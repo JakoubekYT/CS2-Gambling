@@ -5886,14 +5886,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                                 userInventory.splice(userInventory.findIndex(i => i.uid === item.uid), 1);
                             }
                         });
-                        // Update balance display after items are removed
-                        const balanceMain = document.getElementById('balance-main');
-                        const balanceMob = document.getElementById('mobile-balance');
-                        if (balanceMain) balanceMain.textContent = formatMoney(balanceBase);
-                        if (balanceMob) balanceMob.textContent = formatMoney(balanceBase);
 
                         if (roll <= chance) {
-                            // Assign wear + cena podle wearu pro upgrade výhry
                             const wornTarget = applySkinWear({...upgTarget});
                             showWinModal(wornTarget);
                         } else {
@@ -5927,20 +5921,22 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const pillNick = document.getElementById('profile-pill-nick');
                     const adminHint = document.getElementById('admin-hint');
                     const adminBtn = document.getElementById('admin-nav-btn');
+                    const balanceMain = document.getElementById('balance-main');
+                    const balanceMob = document.getElementById('mobile-balance');
 
-                    if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
+                    const balanceStr = formatMoney(balanceBase || 0);
+                    if (balanceMain) balanceMain.textContent = balanceStr;
+                    if (balanceMob) balanceMob.textContent = balanceStr;
 
                     if (currentUser) {
-                        // Přihlášen – skryj Sign In, zobraz profil
                         if (authBtn) { authBtn.classList.add('hidden'); authBtn.style.display = 'none'; }
                         if (profilePill) { profilePill.classList.remove('hidden'); profilePill.style.display = 'flex'; }
                         if (pillAvatar) pillAvatar.src = currentUser.avatar || '';
                         if (pillName) pillName.textContent = currentUser.displayName || currentUser.nickname || 'User';
                         if (pillNick) pillNick.textContent = `@${currentUser.nickname || 'user'}`;
                         if (adminHint) adminHint.classList.toggle('hidden', !currentUser.isAdmin);
-                        if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
+                        if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser.isAdmin);
                     } else {
-                        // Nepřihlášen – zobraz Sign In, skryj profil
                         if (authBtn) { authBtn.classList.remove('hidden'); authBtn.style.display = 'flex'; }
                         if (profilePill) { profilePill.classList.add('hidden'); profilePill.style.display = 'none'; }
                         if (adminHint) adminHint.classList.add('hidden');
@@ -6062,29 +6058,46 @@ Zeus x27|Charged Up|8.50|#8847ff
                 }
 
                 async function loadSessionFromBackend() {
+                    // Krok 1: Zjisti jestli je session platna
+                    let session;
                     try {
-                        const session = await apiRequest('/api/auth/session');
-                        currentUser = session.user || null;
-                        if (!currentUser) {
-                            balanceBase = 0;
-                            userInventory = [];
-                            userProfile = { exp: 0 };
-                            updateAuthUI();
-                            return null;
-                        }
-                        const state = await apiRequest('/api/state');
-                        balanceBase = Number(state.balance || 0);
-                        userInventory = Array.isArray(state.inventory) ? state.inventory : [];
-                        userProfile = { ...userProfile, luckModifier: currentUser.luckModifier || 0 };
-                        updateAuthUI();
-                        updateUI();
-                        return currentUser;
-                    } catch (_err) {
+                        session = await apiRequest('/api/auth/session');
+                    } catch (_) {
+                        // Chyba sítě nebo server nedostupný
                         currentUser = null;
+                        balanceBase = 0;
+                        userInventory = [];
                         userProfile = { exp: 0 };
                         updateAuthUI();
                         return null;
                     }
+
+                    currentUser = session.user || null;
+                    if (!currentUser) {
+                        balanceBase = 0;
+                        userInventory = [];
+                        userProfile = { exp: 0 };
+                        updateAuthUI();
+                        return null;
+                    }
+
+                    // Krok 2: Nacti stav (balance, inventory) - chyba tady NEodhlasi!
+                    try {
+                        const state = await apiRequest('/api/state');
+                        balanceBase = Number(state.balance || 0);
+                        userInventory = Array.isArray(state.inventory) ? state.inventory : [];
+                        userProfile = { ...userProfile, luckModifier: currentUser.luckModifier || 0 };
+                    } catch (_stateErr) {
+                        // DB nedostupna - zobraz uzivatele ale s 0 zustatkem
+                        console.warn('[Session] /api/state selhal, user zustava prihlasen:', _stateErr.message);
+                        balanceBase = 0;
+                        userInventory = [];
+                        userProfile = { exp: 0, luckModifier: 0 };
+                    }
+
+                    updateAuthUI();
+                    updateUI();
+                    return currentUser;
                 }
                 window.loadSessionFromBackend = loadSessionFromBackend;
 
@@ -6649,44 +6662,43 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const dropsContainer = document.getElementById('live-drops');
                     if (!dropsContainer) return;
 
-                    if (liveDropsAddTimer) {
-                        clearInterval(liveDropsAddTimer);
-                        liveDropsAddTimer = null;
-                    }
-                    if (liveDropsOnlineTimer) {
-                        clearInterval(liveDropsOnlineTimer);
-                        liveDropsOnlineTimer = null;
-                    }
+                    if (liveDropsAddTimer) { clearInterval(liveDropsAddTimer); liveDropsAddTimer = null; }
+                    if (liveDropsOnlineTimer) { clearInterval(liveDropsOnlineTimer); liveDropsOnlineTimer = null; }
 
                     dropsContainer.innerHTML = '';
                     liveDropsSkinsPool = [];
+
+                    // Primárně použij skiny z casesDB
                     for (const c of casesDB) {
                         for (const it of (c.contents || [])) {
                             if (it?.skin) liveDropsSkinsPool.push(it.skin);
                         }
                     }
 
-                    if (!liveDropsSkinsPool.length) {
-                        liveDropsSkinsPool = [{
-                            id: 'fallback-live-skin',
-                            name: 'Fallback Skin',
-                            img: FALLBACK_IMG,
-                            price: 0,
-                            color: '#4b69ff'
-                        }];
+                    // Fallback: použij skinsDB přímo (vždy obsahuje 1900+ skinů)
+                    if (liveDropsSkinsPool.length < 20) {
+                        const allSkins = Object.values(skinsDB);
+                        // Preferuj barevnější skiny (purple, pink, red, gold)
+                        const coloredSkins = allSkins.filter(s => ['#d32ee6','#eb4b4b','#8847ff','#ebca44'].includes(s.color));
+                        liveDropsSkinsPool = coloredSkins.length > 20 ? coloredSkins : allSkins;
                     }
 
-                    for (let i = 0; i < 12; i += 1) {
-                        addRandomDrop();
+                    // Popůl bínami
+                    liveDropsSkinsPool = liveDropsSkinsPool.filter(s => s && s.img && s.name);
+
+                    if (!liveDropsSkinsPool.length) {
+                        // Absolutní fallback
+                        liveDropsSkinsPool = [{ id: 1, name: 'Skin', img: FALLBACK_IMG, price: 0.01, color: '#4b69ff' }];
                     }
+
+                    // Zobraz 12 itemů ihned
+                    for (let i = 0; i < 12; i++) addRandomDrop();
 
                     const onlineCounter = document.getElementById('live-online-counter');
-                    let online = Number((document.getElementById('online-count')?.textContent || '1687').replace(/\D/g, '')) || 1687;
+                    let online = 1687;
                     if (onlineCounter) onlineCounter.textContent = `${online.toLocaleString('en-US')} Online`;
 
-                    liveDropsAddTimer = setInterval(() => {
-                        addRandomDrop();
-                    }, 2300);
+                    liveDropsAddTimer = setInterval(() => addRandomDrop(), 2300);
 
                     liveDropsOnlineTimer = setInterval(() => {
                         const delta = Math.floor(Math.random() * 25) - 12;
