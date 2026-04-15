@@ -1220,8 +1220,8 @@
     <div class="h-12 bg-[#080a0e] border-b border-white/5 flex items-stretch z-40 relative overflow-hidden">
         <div class="flex-shrink-0 bg-[#0b0e14] border-r border-white/5 px-6 flex flex-col justify-center relative z-10">
             <div class="flex items-center gap-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse shadow-[0_0_8px_var(--accent-green)]"></div>
-                <span class="text-accent-green font-black text-[9px] uppercase tracking-[0.2em] whitespace-nowrap">Live Drops</span>
+                <div class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color:#00e574; box-shadow:0 0 8px #00e574;"></div>
+                <span class="font-black text-[9px] uppercase tracking-[0.2em] whitespace-nowrap" style="color:#00e574;">Live Drops</span>
             </div>
         </div>
 
@@ -1240,11 +1240,11 @@
         <!-- Logo Section -->
         <div class="flex items-center gap-4 cursor-pointer group" onclick="switchPage('cases')">
             <div class="w-10 h-10 relative">
-                <div class="absolute inset-0 bg-accent-green opacity-20 blur-xl group-hover:opacity-40 transition-opacity"></div>
-                <img src="https://i.ibb.co/vzZt0mN/logo.png" onerror="this.src='Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png'" alt="OTODROP" class="w-full h-full object-contain relative z-10">
+                <div class="absolute inset-0 opacity-20 blur-xl group-hover:opacity-40 transition-opacity" style="background-color:#00e574;"></div>
+                <img src="Gemini_Generated_Image_v28osov28osov28o-removebg-preview (1).png" onerror="this.style.display='none'" alt="OTODROP" class="w-full h-full object-contain relative z-10">
             </div>
             <div class="text-2xl font-black italic tracking-tighter text-white">
-                OTO<span class="text-accent-green">DROP</span>
+                OTO<span style="color:#00e574;">DROP</span>
             </div>
         </div>
 
@@ -1268,19 +1268,17 @@
             </div>
 
             <!-- Profile Area -->
-            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="flex items-center gap-3 pl-6 border-l border-white/5 cursor-pointer hover:opacity-80 transition-opacity">
+            <div id="profile-pill" onclick="window.renderOwnPublicProfile()" class="hidden items-center gap-3 pl-6 border-l border-white/5 cursor-pointer hover:opacity-80 transition-opacity">
                 <div class="flex flex-col items-end">
-                    <span id="profile-pill-nick" class="text-[12px] font-bold text-white leading-none mb-1">User</span>
-                    <div class="flex items-center gap-1.5 px-2 py-0.5 bg-accent-green/10 border border-accent-green/20 rounded-md">
-                        <span class="text-[8px] font-black text-accent-green uppercase tracking-wider">Level 1</span>
-                    </div>
+                    <span id="profile-pill-name" class="text-[12px] font-bold text-white leading-none mb-1">User</span>
+                    <span id="profile-pill-nick" class="text-[10px] text-gray-400">@user</span>
                 </div>
                 <div class="w-10 h-10 rounded-xl border border-white/10 overflow-hidden shadow-lg bg-surface relative">
-                    <img id="profile-pill-avatar" src="https://i.ibb.co/5GzXp7C/avatar-placeholder.png" alt="Avatar" class="w-full h-full object-cover">
+                    <img id="profile-pill-avatar" src="" alt="Avatar" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 40 40\'><rect width=\'40\' height=\'40\' fill=\'%231a1e29\'/>\n<circle cx=\'20\' cy=\'15\' r=\'8\' fill=\'%2300e574\'/>\n<ellipse cx=\'20\' cy=\'36\' rx=\'14\' ry=\'10\' fill=\'%2300e574\'/></svg>'">
                 </div>
             </div>
 
-            <button onclick="openAuthModal()" id="auth-open-btn" class="hidden bg-accent-green text-black font-black px-6 py-2.5 rounded-xl uppercase text-xs tracking-widest hover:brightness-110 active:scale-95 transition-all">Sign In</button>
+            <button onclick="openAuthModal()" id="auth-open-btn" class="flex" style="background-color:#00e574; color:black; font-weight:900; padding:10px 24px; border-radius:12px; font-size:12px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border:none; transition:all .2s;">Sign In</button>
             
             <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-white/60 hover:text-white">
                 <i data-lucide="menu" class="w-6 h-6"></i>
@@ -4453,9 +4451,38 @@ Zeus x27|Charged Up|8.50|#8847ff
             return 0;
         }
 
+        // Wear tiers s reálnými cenovými multipliéry (jako CS2)
+        const WEAR_TIERS = [
+            { tag: 'FN',  label: 'Factory New',      mult: 1.15, weight: 3  },
+            { tag: 'MW',  label: 'Minimal Wear',     mult: 1.05, weight: 12 },
+            { tag: 'FT',  label: 'Field-Tested',     mult: 0.85, weight: 35 },
+            { tag: 'WW',  label: 'Well-Worn',        mult: 0.65, weight: 25 },
+            { tag: 'BS',  label: 'Battle-Scarred',   mult: 0.45, weight: 25 }
+        ];
+        const WEAR_TOTAL_WEIGHT = WEAR_TIERS.reduce((s, t) => s + t.weight, 0);
+
         function cbWearTag() {
-            const tags = ['FN', 'MW', 'FT', 'WW', 'BS'];
-            return tags[Math.floor(Math.random() * tags.length)];
+            const roll = Math.random() * WEAR_TOTAL_WEIGHT;
+            let acc = 0;
+            for (const tier of WEAR_TIERS) {
+                acc += tier.weight;
+                if (roll < acc) return tier;
+            }
+            return WEAR_TIERS[2]; // fallback FT
+        }
+
+        // Aplikuje wear na skin objekt – upraví cenu a přidá wear tagy
+        function applySkinWear(skin) {
+            const wearTier = cbWearTag();
+            const basePrice = Number(skin.price || 0);
+            const wearPrice = Math.max(0.01, Math.round(basePrice * wearTier.mult * 100) / 100);
+            return {
+                ...skin,
+                wear: wearTier.tag,
+                wearLabel: wearTier.label,
+                price: wearPrice,
+                basePriceNoWear: basePrice
+            };
         }
 
         function cbHistoryCard(drop, rIdx) {
@@ -5136,7 +5163,10 @@ Zeus x27|Charged Up|8.50|#8847ff
                     const modal = document.getElementById('win-modal');
                     const img = document.getElementById('win-image');
 
-                    document.getElementById('win-name').innerHTML = skin.wear ? `${skin.name} <span class="bg-black/80 px-1 ml-2 text-[10px] text-gray-300 font-black rounded align-middle border border-white/10">${skin.wear}</span>` : skin.name;
+                    const wearDisplay = skin.wearLabel || skin.wear || '';
+                    document.getElementById('win-name').innerHTML = wearDisplay
+                        ? `${skin.name} <span class="bg-black/80 px-2 py-0.5 ml-2 text-[11px] text-gray-300 font-black rounded-lg align-middle border border-white/10">${wearDisplay}</span>`
+                        : skin.name;
                     document.getElementById('win-price').textContent = formatMoney(skin.price);
                     document.getElementById('win-sell-price').textContent = formatMoney(skin.price);
                     document.getElementById('win-bg-glow').style.backgroundColor = skin.color;
@@ -5284,11 +5314,11 @@ Zeus x27|Charged Up|8.50|#8847ff
                     // GOD MODE (Luck 9 nebo 10) -> Vnutí vždy TOP 3 nejcennější skiny z bedny
                     if (userLuck >= 9) {
                         let topSkins = sortedContents.slice(0, 3);
-                        return {...topSkins[Math.floor(Math.random() * topSkins.length)].skin, wear: cbWearTag()};
+                        return applySkinWear(topSkins[Math.floor(Math.random() * topSkins.length)].skin);
                     }
                     // TRASH MODE (Luck -9 nebo -10) -> Vnutí vždy nejlevnější odpad z bedny
                     if (userLuck <= -9) {
-                        return {...sortedContents[sortedContents.length - 1].skin, wear: cbWearTag()};
+                        return applySkinWear(sortedContents[sortedContents.length - 1].skin);
                     }
 
                     // Lehký rigging pro hodnoty 1 až 8 (Zvyšuje šanci na vzácné skiny exponenciálně)
@@ -5308,12 +5338,13 @@ Zeus x27|Charged Up|8.50|#8847ff
                         sum += item.chance;
                         if (riggedRoll <= sum) { win = item.skin; break; }
                     }
-                    return {...win, wear: cbWearTag()};
+                    return applySkinWear(win);
                 }
 
                 function renderMultiResultCard(skin) {
-                    const wearHtml = skin.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded">${skin.wear}</div>` : '';
-                    return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center relative" style="border-color:${skin.color}">${wearHtml}<img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div><div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
+                    const wearHtml = skin.wear ? `<div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-gray-300 font-black rounded z-10">${skin.wear}</div>` : '';
+                    const wearLabelHtml = skin.wearLabel ? `<div class="text-[8px] text-gray-500 font-bold mt-0.5">${skin.wearLabel}</div>` : '';
+                    return `<div class="bg-[#14171c] border-b-4 rounded-xl p-2 text-center relative" style="border-color:${skin.color}">${wearHtml}<img src="${skin.img}" onerror="handleImgError(this)" class="h-16 w-full object-contain mb-1"><div class="text-[9px] font-black uppercase truncate">${skin.name}</div>${wearLabelHtml}<div class="text-[10px] text-yellow-300 font-bold">${formatMoney(skin.price)}</div></div>`;
                 }
 
                 function getOpenCount() {
@@ -5862,9 +5893,9 @@ Zeus x27|Charged Up|8.50|#8847ff
                         if (balanceMob) balanceMob.textContent = formatMoney(balanceBase);
 
                         if (roll <= chance) {
-                            // Assign wear to target on successful upgrade since it's "crafted"
-                            upgTarget.wear = cbWearTag();
-                            showWinModal(upgTarget);
+                            // Assign wear + cena podle wearu pro upgrade výhry
+                            const wornTarget = applySkinWear({...upgTarget});
+                            showWinModal(wornTarget);
                         } else {
                             SoundEngine.playUpgradeFail();
                             showToast("Upgrade selhal. Skiny shořely.", true);
@@ -5890,8 +5921,6 @@ Zeus x27|Charged Up|8.50|#8847ff
 
                 function updateAuthUI() {
                     const authBtn = document.getElementById('auth-open-btn');
-                    const balanceMain = document.getElementById('balance-main');
-                    const balanceMob = document.getElementById('mobile-balance');
                     const profilePill = document.getElementById('profile-pill');
                     const pillAvatar = document.getElementById('profile-pill-avatar');
                     const pillName = document.getElementById('profile-pill-name');
@@ -5902,20 +5931,20 @@ Zeus x27|Charged Up|8.50|#8847ff
                     if (balanceEl) balanceEl.textContent = formatMoney(balanceBase || 0);
 
                     if (currentUser) {
-                        if (authBtn) authBtn.classList.add('hidden'); // SKRYJE SE
-                        if (profilePill) profilePill.classList.remove('hidden');
-                        if (profilePill) profilePill.classList.add('flex');
-                        if (pillAvatar) pillAvatar.src = currentUser.avatar || FALLBACK_IMG;
+                        // Přihlášen – skryj Sign In, zobraz profil
+                        if (authBtn) { authBtn.classList.add('hidden'); authBtn.style.display = 'none'; }
+                        if (profilePill) { profilePill.classList.remove('hidden'); profilePill.style.display = 'flex'; }
+                        if (pillAvatar) pillAvatar.src = currentUser.avatar || '';
                         if (pillName) pillName.textContent = currentUser.displayName || currentUser.nickname || 'User';
                         if (pillNick) pillNick.textContent = `@${currentUser.nickname || 'user'}`;
                         if (adminHint) adminHint.classList.toggle('hidden', !currentUser.isAdmin);
                         if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
                     } else {
-                        if (authBtn) authBtn.classList.remove('hidden'); // UKÁŽE SE
-                        if (profilePill) profilePill.classList.add('hidden');
-                        if (profilePill) profilePill.classList.remove('flex');
+                        // Nepřihlášen – zobraz Sign In, skryj profil
+                        if (authBtn) { authBtn.classList.remove('hidden'); authBtn.style.display = 'flex'; }
+                        if (profilePill) { profilePill.classList.add('hidden'); profilePill.style.display = 'none'; }
                         if (adminHint) adminHint.classList.add('hidden');
-                        if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser?.isAdmin);
+                        if (adminBtn) adminBtn.classList.add('hidden');
                     }
                 }
 
@@ -6548,9 +6577,8 @@ Zeus x27|Charged Up|8.50|#8847ff
                         const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
                         history.replaceState(null, '', newUrl);
                     }
-                    // pro výkon na slabších zařízeních nespouštíme agresivní preload všech skinů
-                    // Inicializuj live drops + chat (fail-safe)
-                    setTimeout(() => { try { initializeLiveDrops(); } catch (e) { console.error('live drops init failed', e); } }, 300);
+                    // Inicializuj live drops + chat (fail-safe) – delay 1500ms aby casesDB stihlo naplnit
+                    setTimeout(() => { try { initializeLiveDrops(); } catch (e) { console.error('live drops init failed', e); } }, 1500);
                     setTimeout(() => { try { initLiveChat(); } catch (e) { console.error('live chat init failed', e); } }, 700);
                     // Currency selector handler
                     const cur = document.getElementById('currency-select');

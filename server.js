@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const { MongoStore } = require('connect-mongo');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
@@ -203,12 +204,29 @@ function pushNotification(userId, type, text) {
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(cors({ origin: true, credentials: true }));
+// Build session store — use MongoStore when MongoDB is reachable, fallback to MemoryStore
+let sessionStore;
+try {
+  sessionStore = MongoStore.create({
+    mongoUrl: MONGO_URI,
+    ttl: SESSION_DAYS * 24 * 60 * 60,
+    autoRemove: 'native',
+    touchAfter: 3600,
+    mongoOptions: { serverSelectionTimeoutMS: 5000 }
+  });
+  console.log('[Session] Using MongoStore for persistent sessions');
+} catch (e) {
+  console.warn('[Session] MongoStore init failed, falling back to MemoryStore:', e.message);
+  sessionStore = undefined;
+}
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'change-me-please',
     resave: false,
     saveUninitialized: false,
     rolling: true,
+    ...(sessionStore ? { store: sessionStore } : {}),
     cookie: {
       maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000,
       httpOnly: true,
@@ -2010,3 +2028,12 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+// Zabrání pádu serveru při async MongoDB chybách (např. MongoStore)
+process.on('unhandledRejection', (reason) => {
+  const msg = String(reason?.message || reason || '');
+  if (/ECONNREFUSED|MongoServerSelectionError|topology|serverSelectionTimeout/i.test(msg)) {
+    console.warn('[Session] MongoStore nedostupna (sessions se nebudou persistovat):', msg.split('\n')[0]);
+    return;
+  }
+  console.error('[UnhandledRejection]', reason);
+});
